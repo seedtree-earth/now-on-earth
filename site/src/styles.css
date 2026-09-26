@@ -1,0 +1,330 @@
+@import "./tokens.css";
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-instrument);
+  font-size: var(--fs-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.8s var(--ease-unfurl), color 0.8s var(--ease-unfurl);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shell {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.globe {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- the face: words, never numbers ----------------------------------- */
+
+.face {
+  position: absolute;
+  top: max(1.25rem, env(safe-area-inset-top));
+  left: max(1.25rem, env(safe-area-inset-left));
+  right: 1.25rem;
+  max-width: 34rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.phase {
+  margin: 0;
+  font-family: var(--font-fraunces);
+  font-weight: 420;
+  font-style: italic;
+  font-variation-settings: "SOFT" 60, "opsz" 96;
+  font-size: var(--fs-h3);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  transition: opacity 0.6s var(--ease-unfurl);
+}
+
+.phase::first-letter {
+  text-transform: uppercase;
+}
+
+.sky,
+.where {
+  margin: 0.45rem 0 0;
+  font-size: var(--fs-body-s);
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.where {
+  color: var(--ink-faint);
+  margin-top: 0.2rem;
+}
+
+/* The face floats over imagery; a soft wash keeps it legible without a slab. */
+.face::before {
+  content: "";
+  position: absolute;
+  inset: -2.5rem -4rem -2rem -2.5rem;
+  z-index: -1;
+  background: radial-gradient(ellipse at 20% 30%, color-mix(in oklab, var(--bg) 82%, transparent), transparent 70%);
+}
+
+.notice {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  font-family: var(--font-fraunces);
+  font-size: var(--fs-lead);
+  color: var(--ink-soft);
+}
+
+.notice p {
+  max-width: 28rem;
+}
+
+/* --- the dock ---------------------------------------------------------- */
+
+.dock {
+  position: absolute;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(46rem, calc(100% - 2rem));
+  padding: 0.9rem 1.1rem 0.8rem;
+  border-radius: 1.4rem;
+  background: color-mix(in oklab, var(--bg) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: var(--shadow-lift);
+  border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  z-index: 3;
+}
+
+.sliders {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.slider {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.slider-name {
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-size: var(--fs-body-s);
+  color: var(--ink-soft);
+}
+
+/* The track carries the light itself: across the day at your place, and
+   across the year as the length of your days. No ticks, no numbers. */
+input[type="range"] {
+  --track: linear-gradient(90deg, var(--noe-night), var(--accent), var(--noe-night));
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.6rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--track);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: -0.3rem;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s var(--ease-unfurl);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--ink);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+input[type="range"]:focus-visible {
+  outline: none;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.8rem 0.42rem 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--line) 80%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg-2) 70%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-body-s);
+  cursor: pointer;
+  transition: background-color 0.25s var(--ease-unfurl), border-color 0.25s var(--ease-unfurl), transform 0.2s var(--ease-unfurl);
+}
+
+.btn:hover {
+  border-color: color-mix(in oklab, var(--ink) 30%, transparent);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.btn[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--accent) 26%, var(--bg));
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+.btn svg:not([fill]) {
+  fill: currentColor;
+}
+
+.btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sky::first-letter {
+  text-transform: uppercase;
+}
+
+.btn .i-pause {
+  display: none;
+}
+.btn[aria-pressed="true"] .i-pause {
+  display: inline;
+}
+.btn[aria-pressed="true"] .i-play {
+  display: none;
+}
+
+/* On a phone the labels fold away; the icons and their names still speak. */
+@media (max-width: 560px) {
+  .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .btn {
+    padding: 0.55rem;
+  }
+  .slider {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+  .phase {
+    font-size: 1.55rem;
+  }
+}
+
+/* Mapbox's own chrome, quietened to sit with the paper. */
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-bottom-left {
+  bottom: 0;
+  opacity: 0.7;
+}
+
+@media (max-width: 720px) {
+  .mapboxgl-ctrl-bottom-right,
+  .mapboxgl-ctrl-bottom-left {
+    bottom: auto;
+    top: 0;
+  }
+  .mapboxgl-ctrl-bottom-left {
+    top: auto;
+    bottom: calc(11.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}

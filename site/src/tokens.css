@@ -1,0 +1,70 @@
+/* ==========================================================================
+   SeedTree V2 design tokens, mirrored for the standalone site.
+
+   Source of truth: seedtree-earth/seedtree-web, app/globals.css (the :root
+   "morning" and [data-theme="night"] sets) and lib/fonts.ts. Same names, same
+   values, so the clock looks like the Landscape and the library reads the
+   same variables in both places. When the clock runs inside V2 this file is
+   not loaded at all: V2's own tokens colour it, and a V2 restyle flows in.
+
+   If V2's palette changes, update the values here to match. Names only change
+   if V2's names change.
+
+   The two --noe-* tokens are the clock's own (V2 has no night violet or
+   viewer teal yet). V2 can define them to override the defaults.
+   ========================================================================== */
+
+:root {
+  --font-fraunces: "Fraunces", Georgia, serif;
+  --font-instrument: "Instrument Sans", system-ui, sans-serif;
+
+  --bg: #f4eee1;
+  --bg-2: #ece3d1;
+  --ink: #1c231a;
+  --ink-soft: #4b5344;
+  --ink-faint: #7c8373;
+  --line: #dbd0bb;
+  --canopy: #294a34;
+  --canopy-2: #386b44;
+  --moss: #6d8a5a;
+  --bark: #7c6a52;
+  --accent: #d99a2e;
+  --accent-strong: #b07715;
+  --accent-ink: #33230a;
+  --shadow-soft: 0 1px 2px rgba(24, 34, 22, 0.05), 0 10px 30px rgba(26, 48, 30, 0.09);
+  --shadow-lift: 0 2px 6px rgba(24, 34, 22, 0.08), 0 22px 60px rgba(26, 52, 32, 0.16);
+  --ease-unfurl: cubic-bezier(0.22, 1, 0.36, 1);
+  --fs-eyebrow: 0.76rem;
+  --fs-body-s: 0.92rem;
+  --fs-body: 1.0625rem;
+  --fs-lead: clamp(1.16rem, 1.04rem + 0.55vw, 1.45rem);
+  --fs-h3: clamp(1.5rem, 1.28rem + 1.1vw, 2.1rem);
+
+  --noe-night: #2d2350;
+  --noe-me: #2a9d9a;
+
+  color-scheme: light;
+}
+
+[data-theme="night"] {
+  --bg: #0f1712;
+  --bg-2: #16211a;
+  --ink: #e9e6d7;
+  --ink-soft: #aeb6a5;
+  --ink-faint: #7e877a;
+  --line: #26332a;
+  --canopy: #8bae82;
+  --canopy-2: #6f9268;
+  --moss: #9db98c;
+  --bark: #b49b7c;
+  --accent: #f0c05a;
+  --accent-strong: #f2c765;
+  --accent-ink: #241a06;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 34px rgba(0, 0, 0, 0.45);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 26px 70px rgba(0, 0, 0, 0.55);
+
+  --noe-night: #120d24;
+  --noe-me: #5cc8c2;
+
+  color-scheme: dark;
+}
