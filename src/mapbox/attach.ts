@@ -10,6 +10,7 @@ import type { Map as MapboxMap } from "mapbox-gl";
 import { FALLBACK_VIEWER, type LngLat, type Presence, type SeasonalEvent, moonState, sunState } from "../core/index.js";
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
+import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
@@ -117,6 +118,8 @@ export const defaultLayers = (
   peopleLayer({ onPick: opts.onPick }),
   moonLayer(),
   sunLayer(),
+  magneticFieldLayer(),
+  magneticPolesLayer(),
 ];
 
 /** Quiet by default: tides and people are there to be switched on. */

@@ -97,3 +97,19 @@ export {
   tideFeatures,
   tideWords,
 } from "./tides.js";
+
+export {
+  type Vec3,
+  type FieldComponents,
+  type FieldLine,
+  type PolePosition,
+  decimalYear,
+  coefficientsAt,
+  fieldAt,
+  compass,
+  compassWords,
+  toXYZ,
+  dipoleAxis,
+  fieldLines,
+  magneticPoleTrails,
+} from "./magnetic.js";

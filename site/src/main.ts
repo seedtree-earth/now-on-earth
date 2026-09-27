@@ -12,6 +12,7 @@ import {
   type SeasonalEvent,
   describeLight,
   eventStory,
+  compassWords,
   moonState,
   seasonMarkWords,
   seasonMarks,
@@ -93,6 +94,12 @@ const iceCredit = document.createElement("p");
 iceCredit.className = "credit";
 iceCredit.textContent = `Snow: MODIS/Terra monthly snow cover. Sea ice: AMSR2 sea ice concentration, GCOM-W1 (the series in GIBS ends in September 2025). ${GIBS_ACKNOWLEDGEMENT}`;
 
+/** Credit for the magnetic layers. */
+const magCredit = document.createElement("p");
+magCredit.className = "credit";
+magCredit.textContent =
+  "Field: World Magnetic Model 2025, NOAA NCEI Geomagnetic Modeling Team and British Geological Survey (public domain; U.S. government material). The model is the Earth's own field; further out the solar wind reshapes it. Pole positions: NOAA NCEI, Wandering of the Geomagnetic Poles (IGRF).";
+
 /** Finer rings: a setting inside the Light lens rather than a layer. */
 const fineRow = document.createElement("label");
 fineRow.className = "switch";
@@ -127,8 +134,8 @@ const lenses = createLensPanel(
       built: false,
       on: false,
     },
-    { key: "magnetic-field", label: "The magnetic field", built: false, on: true },
-    { key: "magnetic-poles", label: "Magnetic north's wandering", built: false, on: true },
+    { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
+    { key: "magnetic-poles", label: "Magnetic north's wandering", note: "(since 1925)", built: true, on: true, after: magCredit },
     { key: "aurora", label: "The aurora", built: false, on: true },
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
@@ -189,8 +196,10 @@ function renderWords() {
   els.moonline.hidden = !moonText;
   if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
-  els.eventline.hidden = !story;
-  if (story) els.eventline.textContent = story;
+  const earth = !isFlat() && (shownLayers.has("magnetic-field") || shownLayers.has("magnetic-poles")) ? compassWords(viewer, date) : undefined;
+  const lifeAndEarth = [story, earth].filter(Boolean).join(" · ");
+  els.eventline.hidden = !lifeAndEarth;
+  if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
   // Screen readers hear a change of light, not every frame of it: while the
   // sun is playing, at most one sentence every six seconds.
@@ -202,7 +211,8 @@ function renderWords() {
       (drift ? `${drift}. ` : "") +
       w.sentence +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
-      (story ? ` Along the east coast, ${story}.` : "");
+      (story ? ` Along the east coast, ${story}.` : "") +
+      (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "");
   }
   els.globe.setAttribute("aria-label", `A globe lit by the sun. ${w.sentence}`);
   flatCanvasLabel(`Flat model. ${w.sentence}`);
@@ -383,7 +393,7 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "rings"], els.flatSwitch.checked);
+  lenses.setLocked(["moon", "tides", "twilight", "people", "rings", "magnetic-field", "magnetic-poles", "sea-ice"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();

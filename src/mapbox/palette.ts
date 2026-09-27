@@ -26,6 +26,8 @@ export type Palette = {
   moon: string;
   /** Living things: ecological events. Clock token: --noe-life. */
   life: string;
+  /** The Earth's body: magnetic field lines and poles. Clock token: --noe-field. */
+  field: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -46,6 +48,7 @@ export const TOKENS: PaletteTokens = {
   dusk: "--noe-dusk",
   moon: "--noe-moon",
   life: "--noe-life",
+  field: "--noe-field",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -58,6 +61,7 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   dusk: "#d9826b",
   moon: "#dfe4ee",
   life: "#3f9e8f",
+  field: "#8fa6dc",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -70,6 +74,7 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   dusk: "#e59274",
   moon: "#e9edf6",
   life: "#7fd6c4",
+  field: "#a9bdf0",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -117,6 +122,7 @@ export function readPalette(
     dusk: pick("dusk"),
     moon: pick("moon"),
     life: pick("life"),
+    field: pick("field"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),

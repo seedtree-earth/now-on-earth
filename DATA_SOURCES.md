@@ -50,6 +50,16 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Drawn** as soft white: any sea ice as one white; snow graded by cover, read back from NASA's colour scale. Months crossfade as the year slider turns.
 - **Requests:** none at build time. While the layer is on, the map fetches GIBS tiles for the two months either side of the date, at the zoom in view (a few dozen small PNGs), and the browser caches them. Before building, 1 capabilities document and 4 colour-key files were read by hand to choose layers.
 
+### Magnetic field and poles (checked 2026-09-27)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **World Magnetic Model 2025** (NOAA NCEI and British Geological Survey), `WMM2025COF.zip` from [ncei.noaa.gov](https://www.ncei.noaa.gov/products/world-magnetic-model/wmm-coefficients) | Field lines traced from the model's spherical harmonic coefficients (degree 12, epoch 2025.0, valid to the end of 2029) | Once, at build time (`scripts/earth/magnetic.mjs`), written to `src/core/data/wmm2025.ts` | "The WMM source code is in the public domain and not licensed or under copyright. The information and software may be used freely by the public." Works built largely on U.S. government material should say so. | "NOAA NCEI Geomagnetic Modeling Team; British Geological Survey. 2024: World Magnetic Model 2025." |
+| **Wandering of the Geomagnetic Poles** (NOAA NCEI): dip pole positions computed from IGRF, `NP.xy` and `SP.xy` from [ngdc.noaa.gov](https://www.ncei.noaa.gov/products/wandering-geomagnetic-poles) | The trail of the north and south magnetic poles since 1925, and their current positions | Once, at build time, written to `src/core/data/magnetic-poles.ts` | U.S. government data; no licence restrictions stated | "Magnetic pole positions: NOAA NCEI (IGRF)" |
+
+- **Requests:** 3 in total (the coefficient zip and the two pole files), one at a time, 1.5 s apart, cached in `scripts/earth/.cache/` so rebuilds make none; any error stops the run.
+- The model describes the field the Earth makes itself. Far out in space the real field is squeezed and stretched by the solar wind, which the model does not include; the field lines are drawn close to the Earth and described as the Earth's own field.
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |
