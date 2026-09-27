@@ -28,6 +28,8 @@ export type Palette = {
   life: string;
   /** The Earth's body: magnetic field lines and poles. Clock token: --noe-field. */
   field: string;
+  /** The aurora's green. Clock token: --noe-aurora. */
+  aurora: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -49,6 +51,7 @@ export const TOKENS: PaletteTokens = {
   moon: "--noe-moon",
   life: "--noe-life",
   field: "--noe-field",
+  aurora: "--noe-aurora",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -62,6 +65,7 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   moon: "#dfe4ee",
   life: "#3f9e8f",
   field: "#8fa6dc",
+  aurora: "#3fcf8e",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -75,6 +79,7 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   moon: "#e9edf6",
   life: "#7fd6c4",
   field: "#a9bdf0",
+  aurora: "#6dffb0",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -123,6 +128,7 @@ export function readPalette(
     moon: pick("moon"),
     life: pick("life"),
     field: pick("field"),
+    aurora: pick("aurora"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),

@@ -19,5 +19,5 @@
       "now-on-earth/events/*": ["./events/*"]
     }
   },
-  "include": ["src", "site/src", "site/vite.config.ts", "test", "tsup.config.ts"]
+  "include": ["src", "api", "site/src", "site/vite.config.ts", "test", "tsup.config.ts"]
 }

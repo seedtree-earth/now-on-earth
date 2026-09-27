@@ -12,6 +12,7 @@ import {
   type SeasonalEvent,
   describeLight,
   eventStory,
+  auroraWords,
   compassWords,
   moonState,
   seasonMarkWords,
@@ -100,6 +101,15 @@ magCredit.className = "credit";
 magCredit.textContent =
   "Field: World Magnetic Model 2025, NOAA NCEI Geomagnetic Modeling Team and British Geological Survey (public domain; U.S. government material). The model is the Earth's own field; further out the solar wind reshapes it. Pole positions: NOAA NCEI, Wandering of the Geomagnetic Poles (IGRF).";
 
+/** The aurora's credit, and what it is showing: live or typical. */
+const auroraCredit = document.createElement("p");
+auroraCredit.className = "credit";
+const AURORA_CREDIT =
+  "Live: NOAA Space Weather Prediction Center, OVATION aurora forecast (based on the OVATION Prime model by P. Newell, JHU/APL), refreshed every ten minutes. Typical: a moderately active night's oval, drawn in grey with dashed edges.";
+auroraCredit.textContent = AURORA_CREDIT;
+let auroraLive: { points: Array<[number, number, number]> } | null = null;
+let auroraMode: "live" | "typical" | "unavailable" = "typical";
+
 /** Finer rings: a setting inside the Light lens rather than a layer. */
 const fineRow = document.createElement("label");
 fineRow.className = "switch";
@@ -136,7 +146,7 @@ const lenses = createLensPanel(
     },
     { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
     { key: "magnetic-poles", label: "Magnetic north's wandering", note: "(since 1925)", built: true, on: true, after: magCredit },
-    { key: "aurora", label: "The aurora", built: false, on: true },
+    { key: "aurora", label: "The aurora", note: "(live near now, typical otherwise)", built: true, on: true, after: auroraCredit },
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
   {
@@ -197,7 +207,15 @@ function renderWords() {
   if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
   const earth = !isFlat() && (shownLayers.has("magnetic-field") || shownLayers.has("magnetic-poles")) ? compassWords(viewer, date) : undefined;
-  const lifeAndEarth = [story, earth].filter(Boolean).join(" · ");
+  const auroraOn = !isFlat() && shownLayers.has("aurora");
+  const aurora = auroraOn
+    ? auroraMode === "live" && auroraLive
+      ? (auroraWords(viewer, auroraLive.points, sunState(date)) ?? "the aurora now, from NOAA's forecast")
+      : auroraMode === "unavailable"
+        ? "the live aurora forecast is resting; a typical oval shows"
+        : "a typical aurora, not tonight's"
+    : undefined;
+  const lifeAndEarth = [story, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -212,7 +230,8 @@ function renderWords() {
       w.sentence +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
-      (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "");
+      (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "") +
+      (aurora ? ` ${aurora.charAt(0).toUpperCase()}${aurora.slice(1)}.` : "");
   }
   els.globe.setAttribute("aria-label", `A globe lit by the sun. ${w.sentence}`);
   flatCanvasLabel(`Flat model. ${w.sentence}`);
@@ -393,7 +412,7 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "rings", "magnetic-field", "magnetic-poles", "sea-ice"], els.flatSwitch.checked);
+  lenses.setLocked(["moon", "tides", "twilight", "people", "rings", "magnetic-field", "magnetic-poles", "sea-ice", "aurora"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();
@@ -558,6 +577,14 @@ function buildGlobe() {
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),
     onPick: showPick,
+    aurora: {
+      url: "/api/aurora",
+      onStatus: (st) => {
+        auroraMode = st.mode;
+        auroraLive = st.mode === "live" && st.points ? { points: st.points } : null;
+        push();
+      },
+    },
   });
   // Dev only: a handle for poking at the globe from the console.
   if (import.meta.env.DEV) Object.assign(window, { __noe: { map, clock } });

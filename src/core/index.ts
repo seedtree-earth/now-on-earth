@@ -113,3 +113,11 @@ export {
   fieldLines,
   magneticPoleTrails,
 } from "./magnetic.js";
+
+export {
+  type AuroraPoint,
+  darkness,
+  typicalAurora,
+  typicalOvalEdges,
+  auroraWords,
+} from "./aurora.js";

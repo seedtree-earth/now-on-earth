@@ -11,6 +11,7 @@ import { FALLBACK_VIEWER, type LngLat, type Presence, type SeasonalEvent, moonSt
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
+import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
@@ -36,6 +37,8 @@ export type NowOnEarthOptions = {
   people?: Presence[];
   /** Seasonal ecological events (built by scripts/ecology/), drawn under the lines. */
   events?: SeasonalEvent[];
+  /** The aurora: where its cached forecast is served, and a status callback. */
+  aurora?: AuroraOptions;
   /** A person or node dot was hovered or tapped (null on leave). */
   onPick?: (pick: PresencePick | null) => void;
   /**
@@ -104,12 +107,13 @@ export type NowOnEarth = {
 };
 
 export const defaultLayers = (
-  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[] } = {},
+  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions } = {},
 ): ClockLayer[] => [
   seaIceLayer(),
   tidesLayer(),
   ringsLayer(),
   twilightLayer(),
+  auroraLayer(opts.aurora),
   ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
   partneredKnowledgeLayer(),
   laneLayer(),
@@ -134,7 +138,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const prefix = options.prefix ?? "noe-";
   const themeEl = options.themeElement ?? document.documentElement;
   const tokens = { ...TOKENS, ...options.tokens };
-  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events });
+  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events, aurora: options.aurora });
   const hidden = options.hidden ?? DEFAULT_HIDDEN;
   const chosen = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
   const eventLens = Object.fromEntries((options.events ?? []).map((e) => [e.id, (e.lens ?? "life") as LensId]));

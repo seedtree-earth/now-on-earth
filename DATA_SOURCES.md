@@ -60,6 +60,15 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Requests:** 3 in total (the coefficient zip and the two pole files), one at a time, 1.5 s apart, cached in `scripts/earth/.cache/` so rebuilds make none; any error stops the run.
 - The model describes the field the Earth makes itself. Far out in space the real field is squeezed and stretched by the solar wind, which the model does not include; the field lines are drawn close to the Earth and described as the Earth's own field.
 
+### The aurora (checked 2026-09-27)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **NOAA Space Weather Prediction Center**, OVATION aurora forecast (`services.swpc.noaa.gov/json/ovation_aurora_latest.json`; model OVATION 2020, based on OVATION Prime by P. Newell, JHU/APL) | The live aurora oval near the present moment | Live, through our own function `/api/aurora` (Vercel), which fetches NOAA at most once every ten minutes and caches at the CDN; the browser never calls NOAA | U.S. government work; SWPC states no licence restrictions. NOAA's JSON is open to browsers (CORS `*`) and has no published rate limits; NOAA marks it `max-age=60` | "NOAA Space Weather Prediction Center, OVATION aurora forecast (based on the OVATION Prime model by P. Newell, JHU/APL)", under the layer switch |
+
+- **Why a function, although the browser could fetch NOAA directly:** NOAA's file is about 900 KB (a 1° grid of 65,160 cells). Fetched once per visitor, that is a lot of load on NOAA and a heavy download on a phone. The function keeps only cells with aurora to show (value 3 and above; about 160 KB), fetches at most once every ten minutes, and the CDN serves everyone else. One request per ten minutes per edge cache region, User-Agent naming this site, no retries; if NOAA errors, the last good copy is served, marked stale.
+- **Typical, not live:** more than an hour from the present, the live glow fades out and a typical oval is drawn instead (a moderately active night, after Feldstein's ovals, around the geomagnetic pole from the World Magnetic Model), in grey with dashed edges, and the words say "a typical aurora, not tonight's".
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |
