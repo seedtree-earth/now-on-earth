@@ -163,3 +163,47 @@ describe("people", () => {
     expect(p.consent.shown).toBe(true);
   });
 });
+
+import { PULL_RIM, seasonMarkWords, seasonMarks, springNeap, tidalPull, tideFeatures, tideWords } from "../src/core/index.js";
+
+describe("seasonMarks", () => {
+  it("finds the 2026 solstices and equinoxes to within half an hour", () => {
+    const marks = seasonMarks(utc("2026-01-01T00:00:00Z"), utc("2026-12-31T23:59:00Z"));
+    const expected: Array<[string, string]> = [
+      ["march-equinox", "2026-03-20T14:46:00Z"],
+      ["june-solstice", "2026-06-21T08:24:00Z"],
+      ["september-equinox", "2026-09-23T00:05:00Z"],
+      ["december-solstice", "2026-12-21T20:50:00Z"],
+    ];
+    expect(marks.map((m) => m.kind)).toEqual(expected.map((e) => e[0]));
+    marks.forEach((m, i) => expect(Math.abs(m.date.getTime() - utc(expected[i][1]).getTime())).toBeLessThan(30 * 60000));
+  });
+
+  it("speaks for the hemisphere", () => {
+    expect(seasonMarkWords("december-solstice", -28.8)).toMatch(/longest day/);
+    expect(seasonMarkWords("december-solstice", 51)).toMatch(/shortest day/);
+    expect(seasonMarkWords("september-equinox", -28.8)).toMatch(/spring equinox/);
+  });
+});
+
+describe("tides", () => {
+  it("swells under the moon and opposite, ebbs between", () => {
+    expect(tidalPull(0)).toBeCloseTo(1, 9);
+    expect(tidalPull(180)).toBeCloseTo(1, 9);
+    expect(tidalPull(90)).toBeCloseTo(-0.5, 9);
+    expect(tidalPull(PULL_RIM)).toBeCloseTo(0, 9);
+  });
+
+  it("is strongest at full moon and weakest at the quarter", () => {
+    expect(springNeap(moonState(utc("2024-09-18T02:44:00Z")))).toBeGreaterThan(0.99);
+    expect(springNeap(moonState(utc("2024-09-11T06:06:00Z")))).toBeLessThan(0.45);
+  });
+
+  it("draws swells, a low-water belt and a rim, and speaks of the pull only", () => {
+    const m = moonState(utc("2024-09-18T02:44:00Z"));
+    const kinds = new Set(tideFeatures(m).features.map((f) => f.properties.kind));
+    expect([...kinds].sort()).toEqual(["ebb", "rim", "swell"]);
+    expect(tideWords(m.sublunar, m)).toMatch(/lifting the seas here, in spring tides/);
+    expect(tideWords(m.sublunar, m)).not.toMatch(/\d|high tide|low tide/);
+  });
+});

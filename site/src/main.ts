@@ -13,7 +13,10 @@ import {
   describeLight,
   eventStory,
   moonState,
+  seasonMarkWords,
+  seasonMarks,
   sunState,
+  tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import { DEFAULT_HIDDEN, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
@@ -50,6 +53,7 @@ const els = {
   layers: $<HTMLButtonElement>("layers"),
   layersPanel: $("layers-panel"),
   moonline: $("moonline"),
+  yearMarks: $("year-marks"),
   eventline: $("eventline"),
   eventCredit: $("event-credit"),
   pick: $("pick"),
@@ -101,8 +105,10 @@ function renderWords() {
   const place = located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
-  els.moonline.hidden = !w.moon;
-  if (w.moon) els.moonline.textContent = w.moon;
+  const tides = shownLayers.has("tides") ? tideWords(viewer, moonState(date)) : undefined;
+  const moonText = [w.moon, tides].filter(Boolean).join(" · ");
+  els.moonline.hidden = !moonText;
+  if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
   els.eventline.hidden = !story;
   if (story) els.eventline.textContent = story;
@@ -113,7 +119,11 @@ function renderWords() {
   if (w.sentence !== lastSentence && (!playing || now - lastSpoken > 6000)) {
     lastSentence = w.sentence;
     lastSpoken = now;
-    els.words.textContent = (drift ? `${drift}. ` : "") + w.sentence + (story ? ` Along the east coast, ${story}.` : "");
+    els.words.textContent =
+      (drift ? `${drift}. ` : "") +
+      w.sentence +
+      (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
+      (story ? ` Along the east coast, ${story}.` : "");
   }
   els.globe.setAttribute("aria-label", `A globe lit by the sun. ${w.sentence}`);
   els.scrub.setAttribute("aria-valuetext", `${w.phase}, ${w.sky}`);
@@ -132,6 +142,53 @@ function renderTracks(force = false) {
   const palette = readPalette();
   els.scrub.style.setProperty("--track", dayTrack(base, viewer, palette));
   els.season.style.setProperty("--track", yearTrack(new Date(), viewer, palette));
+  renderMarks();
+}
+
+// ---------------------------------------------------------------- year marks
+
+/**
+ * The solstices and equinoxes within the year slider's reach, placed where
+ * they fall, named for the viewer's hemisphere. Tapping one goes there.
+ */
+const MARK_GLYPH: Record<string, string> = {
+  // The longest day: a full sun.
+  longest: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="currentColor"/></svg>',
+  // The shortest day: an empty ring.
+  shortest: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  // An equinox: half light, half dark.
+  equinox:
+    '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 2a4 4 0 0 1 0 8z" fill="currentColor"/></svg>',
+};
+
+function renderMarks() {
+  const now = Date.now();
+  const marks = seasonMarks(new Date(now - 182 * DAY), new Date(now + 182 * DAY));
+  els.yearMarks.replaceChildren(
+    ...marks.map((m) => {
+      const words = seasonMarkWords(m.kind, viewer.lat);
+      const kind = words.startsWith("the longest") ? "longest" : words.startsWith("the shortest") ? "shortest" : "equinox";
+      const offset = (m.date.getTime() - now) / DAY;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "mark";
+      b.dataset.kind = kind;
+      b.style.setProperty("--at", String((offset + 182) / 364));
+      b.innerHTML = MARK_GLYPH[kind];
+      b.title = words.charAt(0).toUpperCase() + words.slice(1);
+      b.setAttribute("aria-label", `Go to ${words}`);
+      b.addEventListener("click", () => {
+        // Land on the moment itself: the day, and the hour of the turn.
+        const target = m.date.getTime() - now;
+        dayShift = Math.round(target / DAY);
+        offsetMin = Math.max(-720, Math.min(720, Math.round((target - dayShift * DAY) / MIN)));
+        els.season.value = String(dayShift);
+        els.scrub.value = String(offsetMin);
+        push();
+      });
+      return b;
+    }),
+  );
 }
 
 // ---------------------------------------------------------------- push

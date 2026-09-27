@@ -321,6 +321,70 @@ body {
   color: var(--ink-soft);
 }
 
+/* The year's turning points sit just above its track. */
+.track {
+  position: relative;
+  padding-top: 0.85rem;
+  --thumb-r: 0.575rem;
+}
+
+.marks {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 0.95rem;
+}
+
+.mark {
+  position: absolute;
+  top: 0;
+  left: calc(var(--thumb-r) + (100% - 2 * var(--thumb-r)) * var(--at));
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 0.95rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.2s var(--ease-unfurl), transform 0.2s var(--ease-unfurl);
+}
+
+.mark svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  overflow: visible;
+}
+
+/* A hairline from each mark down to the track. */
+.mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.3rem;
+  width: 1px;
+  height: 0.3rem;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.mark:hover,
+.mark:focus-visible {
+  color: var(--accent-strong);
+  transform: translateX(-50%) scale(1.2);
+}
+
+.mark:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.mark[data-kind="longest"] {
+  color: var(--accent-strong);
+}
+
 /* The track carries the light itself: across the day at your place, and
    across the year as the length of your days. No ticks, no numbers. */
 input[type="range"] {

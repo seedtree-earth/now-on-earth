@@ -55,10 +55,14 @@
             <span class="slider-name">The day</span>
             <input id="scrub" type="range" min="-720" max="720" step="1" value="0" />
           </label>
-          <label class="slider">
-            <span class="slider-name">The year</span>
-            <input id="season" type="range" min="-182" max="182" step="1" value="0" />
-          </label>
+          <div class="slider">
+            <span class="slider-name" id="year-name">The year</span>
+            <div class="track">
+              <!-- The year's four turning points, placed where they fall. -->
+              <div class="marks" id="year-marks" role="group" aria-label="Solstices and equinoxes"></div>
+              <input id="season" type="range" min="-182" max="182" step="1" value="0" aria-labelledby="year-name" />
+            </div>
+          </div>
         </div>
         <div id="layers-panel" class="layers" role="group" aria-label="What the globe shows" hidden>
           <label class="switch"><input type="checkbox" data-layer="seasons" checked /><span>The sun's lane and your line</span></label>

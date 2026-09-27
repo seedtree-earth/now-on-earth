@@ -13,6 +13,7 @@ src/core/     pure maths: no DOM, no Mapbox, no network
   seasons.ts    tropics, today's sun track, the viewer's parallel split into lit and dark
   twilight.ts   golden hour and civil, nautical, astronomical twilight as graded bands
   moon.ts       sublunar point, phase and illumination (low-precision Meeus)
+  tides.ts      the moon's pull (P2 shape), spring and neap, in shapes and words
   people.ts     the Presence shape: opt-in only, coarse places, no search
   events.ts     seasonal ecological events, month blending, and the shapes for
                 partnered knowledge and ground-truthing (placeholders)
@@ -92,7 +93,7 @@ So a V2 restyle flows straight into the light. The standalone site mirrors V2's 
 | `seasons` | Tropics, today's sun track, the viewer's line lit and dark | yes |
 | `moon` | The moon over its sublunar point, drawn in its true phase, mirrored for the southern hemisphere | yes |
 | `sun` | The sun point, breathing slowly | yes |
-| `tides` | The moon's pull: two idealised bulges, under the moon and opposite | no |
+| `tides` | The moon's pull: two swells rising toward their crests (under the moon and opposite), a faint low-water belt between, a dashed rim where the pull turns; fuller at spring tides, fainter at neap. The idealised equilibrium tide, not a tide table | no |
 | `people` | People and nodes who chose to be shown, each dot in its own light | no |
 | *event id* | Each `events` entry: a soft seasonal haze, blended month to month | yes, when passed |
 | `partnered-knowledge` | Placeholder. Draws nothing until knowledge is shared with permission | n/a |
@@ -131,7 +132,7 @@ npm run dev                  # http://localhost:5173
 
 With no token, or no WebGL, the page still runs: the words and the sliders follow the light and the globe rests. Keys are never committed. The token comes from the consumer: `VITE_MAPBOX_TOKEN` for this site, the host's own map for the Landscape.
 
-**Controls, all numberless:** the day (scrub twelve hours either way), the year (half a year either way), play and pause, face the sun (the camera follows it), face me, a Layers panel (the seasonal lines, twilight, the moon, the tides, people, finer rings), and morning or night. The slider tracks are drawn from the light itself: the sky over you across the day, and the length of your days across the year.
+**Controls, all numberless:** the day (scrub twelve hours either way), the year (half a year either way, with the solstices and equinoxes marked where they fall: a gold disc for the longest day, an empty ring for the shortest, half-lit for the equinoxes, named for your hemisphere; tap one to go there), play and pause, face the sun (the camera follows it), face me, a Layers panel (the seasonal lines, twilight, the moon, the tides, people, finer rings), and morning or night. The slider tracks are drawn from the light itself: the sky over you across the day, and the length of your days across the year.
 
 **Accessibility:** the face has no numbers, so it speaks. A polite live region describes the light in sentences ("Late afternoon. The sun is low to the west. Early spring, and the days are growing longer. A first quarter moon, high in the east."). The sliders carry the same words as their values. Reduced motion stops the sun's breathing and the camera's easing.
 

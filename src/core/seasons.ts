@@ -4,7 +4,7 @@
  * share of that line IS the viewer's day length, read without a number.
  */
 
-import { type LngLat, type SunState, litHalfArc, wrapLng } from "./sun.js";
+import { type LngLat, type SunState, litHalfArc, sunState, wrapLng } from "./sun.js";
 import type { FeatureCollection, LineCoords, Position } from "./rings.js";
 
 export type SeasonLineKind = "tropic" | "sun-track" | "me-lit" | "me-dark";
@@ -65,4 +65,62 @@ export function seasonLines(
     line("me-dark", parallelArc(viewer.lat, noon + half, noon + 360 - half));
   }
   return { type: "FeatureCollection", features };
+}
+
+// ------------------------------------------------------------ year marks
+
+export type SeasonMarkKind = "march-equinox" | "june-solstice" | "september-equinox" | "december-solstice";
+
+export type SeasonMark = {
+  kind: SeasonMarkKind;
+  date: Date;
+};
+
+const MARKS: Array<{ kind: SeasonMarkKind; longitude: number }> = [
+  { kind: "march-equinox", longitude: 0 },
+  { kind: "june-solstice", longitude: 90 },
+  { kind: "september-equinox", longitude: 180 },
+  { kind: "december-solstice", longitude: 270 },
+];
+
+/** Signed gap, -180..180, from the sun's ecliptic longitude to a target. */
+const gap = (date: Date, target: number) => ((sunState(date).eclipticLongitude - target + 540) % 360) - 180;
+
+/**
+ * The solstices and equinoxes between two dates, each found to within a
+ * minute: the moments the sun's ecliptic longitude crosses 0°, 90°, 180°
+ * and 270°.
+ */
+export function seasonMarks(from: Date, to: Date): SeasonMark[] {
+  const DAY = 86400000;
+  const out: SeasonMark[] = [];
+  for (const { kind, longitude } of MARKS) {
+    for (let t = from.getTime(); t < to.getTime(); t += DAY) {
+      const a = gap(new Date(t), longitude);
+      const b = gap(new Date(t + DAY), longitude);
+      // A crossing is a step from just below to just above; far-side wraps are ignored.
+      if (a < 0 && b >= 0 && b - a < 10) {
+        let lo = t;
+        let hi = t + DAY;
+        while (hi - lo > 60000) {
+          const mid = (lo + hi) / 2;
+          if (gap(new Date(mid), longitude) < 0) lo = mid;
+          else hi = mid;
+        }
+        const date = new Date(Math.round((lo + hi) / 2));
+        if (date >= from && date <= to) out.push({ kind, date });
+      }
+    }
+  }
+  return out.sort((x, y) => x.date.getTime() - y.date.getTime());
+}
+
+/** A mark in words for someone at `lat`: the longest day, the shortest day, or an equinox. */
+export function seasonMarkWords(kind: SeasonMarkKind, lat: number): string {
+  if (kind === "march-equinox" || kind === "september-equinox") {
+    const turn = (kind === "march-equinox") === lat >= 0 ? "spring" : "autumn";
+    return `the ${turn} equinox, when day and night are even`;
+  }
+  const longest = (kind === "june-solstice") === lat >= 0;
+  return longest ? "the longest day, the summer solstice" : "the shortest day, the winter solstice";
 }

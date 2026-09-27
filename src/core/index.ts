@@ -38,8 +38,12 @@ export {
   type SeasonLineKind,
   type SeasonLineFeature,
   type PointFeature,
+  type SeasonMark,
+  type SeasonMarkKind,
   seasonLines,
   parallelArc,
+  seasonMarks,
+  seasonMarkWords,
 } from "./seasons.js";
 
 export {
@@ -82,3 +86,14 @@ export {
   eventStory,
   monthBlend,
 } from "./events.js";
+
+export {
+  type TideFeature,
+  SOLAR_TIDE_RATIO,
+  PULL_RIM,
+  tidalPull,
+  pullRadius,
+  springNeap,
+  tideFeatures,
+  tideWords,
+} from "./tides.js";
