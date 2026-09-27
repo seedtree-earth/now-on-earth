@@ -29,13 +29,19 @@ export type EventLayerOptions = {
 };
 
 export const seasonalEventLayer = (event: SeasonalEvent, options: EventLayerOptions = {}): ClockLayer => {
-  const LAYERS = ["event-heat"];
-  const SOURCES = ["event"];
+  // Each event keeps its own ids, so several can show at once.
+  const HEAT = `event-${event.id}-heat`;
+  const SOURCE = `event-${event.id}`;
+  const LAYERS = [HEAT];
+  const spread = Math.min(2.2, Math.max(1, event.grid / 0.5));
+  const boost = event.glow ?? 1;
+  const SOURCES = [SOURCE];
   let lastKey = "";
 
   function paint(ctx: LayerContext) {
-    const { life } = ctx.palette;
-    ctx.map.setPaintProperty(ctx.id("event-heat"), "heatmap-color", [
+    // An event may ask for its own hue from the palette (e.g. "flight").
+    const life = (event.hue && (ctx.palette as unknown as Record<string, string>)[event.hue]) || ctx.palette.life;
+    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-color", [
       "interpolate",
       ["linear"],
       ["heatmap-density"],
@@ -55,7 +61,7 @@ export const seasonalEventLayer = (event: SeasonalEvent, options: EventLayerOpti
     const key = `${from}|${to}|${t.toFixed(3)}`;
     if (key === lastKey) return;
     lastKey = key;
-    const id = ctx.id("event-heat");
+    const id = ctx.id(HEAT);
     ctx.map.setFilter(id, ["in", ["get", "month"], ["literal", [from, to]]]);
     ctx.map.setPaintProperty(id, "heatmap-weight", [
       "*",
@@ -70,17 +76,18 @@ export const seasonalEventLayer = (event: SeasonalEvent, options: EventLayerOpti
 
     add(ctx, frame) {
       lastKey = "";
-      setSource(ctx, "event", eventFeatures(event));
+      setSource(ctx, SOURCE, eventFeatures(event));
       ctx.map.addLayer(
         {
-          id: ctx.id("event-heat"),
+          id: ctx.id(HEAT),
           type: "heatmap",
-          source: ctx.id("event"),
+          source: ctx.id(SOURCE),
           paint: {
             // Wide and soft on purpose: a season's pattern, not points.
-            "heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 0, 10, 3, 28, 6, 60, 9, 120],
+            // Coarser, sparser grids spread wider, so every dataset reads as a soft haze.
+            "heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 0, 10 * spread, 3, 28 * spread, 6, 60 * spread, 9, 120],
             // Never saturating: a haze that says "around here, this season".
-            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.7, 6, 0.9],
+            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.7 * boost, 6, 0.9 * boost],
             "heatmap-opacity": 0.9,
           },
         },

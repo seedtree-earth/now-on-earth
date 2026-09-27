@@ -75,11 +75,19 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **The pattern it models:** Brierley, A. S. (2014). Diel vertical migration. *Current Biology* 24(22): R1074–R1076. [doi:10.1016/j.cub.2014.08.054](https://doi.org/10.1016/j.cub.2014.08.054). Credited under the switch.
 - **Ocean outline:** a 1° sea mask built locally by `scripts/earth/ocean-mask.mjs` from Natural Earth land at 1:110m (public domain, via world-atlas, ISC). No network requests.
 
+### Bar-tailed Godwits (checked 2026-09-27)
+
+- **eBird directly: not used.** eBird's data terms require Cornell's explicit permission for any commercial use and forbid redistributing the data ([eBird data use](https://support.ebird.org/en/support/solutions/articles/48001078113-ebird-data-privacy-and-data-use)); the Status and Trends products are non-commercial only and must be shown exactly as downloaded ([terms](https://science.ebird.org/en/status-and-trends/products-access-terms-of-use)). Both fall outside our rule, so no eBird key is needed or used.
+- **eBird's observations via GBIF: used.** Cornell publishes the *EOD – eBird Observation Dataset* to GBIF under **CC BY 4.0** ([doi:10.15468/aomfnb](https://doi.org/10.15468/aomfnb)), alongside ALA-origin and other datasets. Citation: Imani J, Audette C, et al. (2025). EOD – eBird Observation Dataset. Cornell Lab of Ornithology. Occurrence dataset https://doi.org/10.15468/aomfnb accessed via GBIF.org.
+- **How:** `scripts/ecology/godwits.mjs` asks GBIF's map service for one binned count map per month (square bins of about 1.4°), licence-filtered to CC0 and CC BY, and keeps the cells in the East Asian–Australasian Flyway (90°E to 140°W). Two searches over the same boxes give the source list and a monthly cross-check (they agree with the maps almost exactly). Every leading dataset is CC BY 4.0; the script stops rather than ship any NC, ND or SA dataset.
+- **Requests:** 2 probes by hand (the taxon key, one test map), then 21 in the build (12 monthly maps, 2 source searches, 7 dataset lookups), one at a time 1.5 s apart, cached; a rebuild makes none.
+- **Result:** 182,018 flyway records. Most in Australia and New Zealand from October to March; the Yellow Sea rising in April; Alaska highest in June. Shown as a soft amber haze with a general line per month, credited under the switch.
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |
 | --- | --- | --- |
-| **eBird** (Cornell Lab; API 2.0 or Status and Trends) | Bird migration | Needs an API key (not yet); eBird terms restrict redistribution of raw data; Status and Trends products have their own licence and citation |
+| **eBird Status and Trends** (Cornell Lab) | Weekly modelled abundance for many species | Non-commercial only; would need Cornell's permission or a change to our licence rule |
 
 
 ## Partnered seasonal knowledge. Placeholder only

@@ -96,7 +96,7 @@ Layers are gathered into four lenses so the clock stays calm by default. Only **
 | Lens | Layers |
 | --- | --- |
 | Light | sun, rings (and finer rings), twilight, moon, tides, the sun's lane, today's sun track, your day line |
-| Life | ecological events (humpbacks), plankton's nightly rise *(a model)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
+| Life | ecological events (humpbacks; Bar-tailed Godwits across the Pacific), plankton's nightly rise *(a model)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
 | Earth's body | the magnetic field (traced from the World Magnetic Model 2025), magnetic north's wandering since 1925 (NOAA NCEI), the aurora (NOAA's live OVATION forecast near now, a typical oval otherwise), the axis's wobble *(later)* |
 | Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), the rain belt, carbon dioxide, fires *(later)* |
 
@@ -171,7 +171,7 @@ A switch in the Layers panel, labelled only "Flat model", swaps the globe for th
 ## Roadmap
 
 - **Done:** the core light (sun, rings, seasons, words); twilight, moon, tides and people; humpback whales on the east coast from ALA and GBIF; the Flat model.
-- **Next · birds:** eBird migration, once there is an API key and its redistribution terms are checked.
+- **Done · birds:** Bar-tailed Godwits along the East Asian–Australasian Flyway, from eBird's observations via GBIF (CC BY 4.0). More species can follow the same script.
 - **Future · community ground-truthing:** people confirm what they actually see by logging sightings on **iNaturalist** (in a SeedTree project), and a build-time script pulls them back: research grade, CC0 or CC BY only, coarsened and aggregated by month and cell exactly like the event data, shown as "what people are seeing this season" beside the long-run pattern. We don't run our own sightings database. The data shapes are drafted (`GroundTruthObservation`, `GroundTruthMonth` in `src/core/events.ts`) and the switch is in the Layers panel, off and marked "to come".
 - **Future · partnered seasonal knowledge:** local and Indigenous seasonal calendars, only in partnership, with permission and on the holders' terms. Never scraped. The shape (`PartneredKnowledge`) and an empty placeholder layer are in place.
 - **Joining the Landscape:** add the package to SeedTree V2 and call `attachNowOnEarth` from the Landscape's map `load` handler, with `fromLandscapeRows` feeding the people layer.

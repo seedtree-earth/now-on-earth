@@ -37,6 +37,10 @@ export type SeasonalEvent = {
   sourcesUrl?: string;
   /** Which lens it belongs to ("life", "earth", "weather"); Life if unset. */
   lens?: string;
+  /** A palette role to colour it by (e.g. "flight"); the Life colour if unset. */
+  hue?: string;
+  /** Multiplies the glow's intensity, for sparse datasets. */
+  glow?: number;
   licences?: string;
   sources?: unknown;
 };

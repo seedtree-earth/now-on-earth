@@ -56,3 +56,29 @@ describe("the humpback dataset", () => {
     for (const line of event.story ?? []) expect(line).not.toMatch(/\d/);
   });
 });
+
+import godwits from "../events/bar-tailed-godwits.json";
+
+describe("the godwit dataset", () => {
+  const event = godwits as unknown as SeasonalEvent;
+  const where = (m: number, test: (lng: number, lat: number) => boolean) =>
+    event.months[m - 1].cells.filter(([lng, lat]) => test(lng, lat)).reduce((s, c) => s + c[2], 0);
+  const auNz = (_: number, lat: number) => lat < -10;
+  const alaska = (lng: number, lat: number) => lat > 50 && lng < -140;
+
+  it("is open data, credited", () => {
+    expect(godwits.licences).toMatch(/CC0 and CC BY/);
+    for (const d of godwits.sources.gbif.datasets) expect(d.licence).toMatch(/publicdomain|by\/4\.0/);
+    expect(godwits.credit).toMatch(/GBIF/);
+  });
+
+  it("follows the flyway: south in January, Alaska in June", () => {
+    expect(where(1, auNz)).toBeGreaterThan(10 * where(1, alaska) + 1000);
+    expect(where(6, alaska)).toBeGreaterThan(1000);
+  });
+
+  it("tells the pattern without numbers", () => {
+    expect(eventStory(event, new Date("2026-04-15T00:00:00Z"))).toMatch(/Yellow Sea/);
+    for (const line of event.story ?? []) expect(line).not.toMatch(/\d/);
+  });
+});

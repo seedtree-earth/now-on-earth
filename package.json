@@ -59,7 +59,8 @@
     "prepublishOnly": "npm run check && npm run build",
     "data:humpbacks": "node scripts/ecology/humpbacks.mjs",
     "data:magnetic": "node scripts/earth/magnetic.mjs",
-    "data:ocean-mask": "node scripts/earth/ocean-mask.mjs"
+    "data:ocean-mask": "node scripts/earth/ocean-mask.mjs",
+    "data:godwits": "node scripts/ecology/godwits.mjs"
   },
   "peerDependencies": {
     "mapbox-gl": "^3.26.0"
@@ -70,11 +71,13 @@
     }
   },
   "devDependencies": {
+    "@mapbox/vector-tile": "^2.0.5",
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^24.19.0",
     "@types/topojson-client": "^3.1.5",
     "d3-geo": "^3.1.1",
     "mapbox-gl": "3.26.0",
+    "pbf": "^4.0.2",
     "topojson-client": "^3.1.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.0",

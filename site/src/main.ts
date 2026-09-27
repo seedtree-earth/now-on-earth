@@ -22,12 +22,14 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
+import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
 import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
 const humpbacks = humpbacksJson as unknown as SeasonalEvent;
+const godwits = godwitsJson as unknown as SeasonalEvent;
 import { askPosition, quietPosition } from "./location";
 import { dayTrack, yearTrack } from "./tracks";
 import { describeFlat } from "./flat/model";
@@ -117,6 +119,22 @@ planktonCredit.className = "credit";
 planktonCredit.innerHTML =
   'A model of a real daily pattern, not data: each night zooplankton rise from the deep to feed near the surface in the dark and sink before dawn (diel vertical migration), drawn here from the light alone over the oceans. See <a href="https://doi.org/10.1016/j.cub.2014.08.054" target="_blank" rel="noopener">Brierley, A. S. (2014), Diel vertical migration, <i>Current Biology</i> 24: R1074–R1076</a>. Ocean outline: Natural Earth.';
 
+/** A credit line for an event dataset, with a link to every source. */
+function creditFor(e: SeasonalEvent): HTMLElement {
+  const p = document.createElement("p");
+  p.className = "credit";
+  p.textContent = `${e.credit ?? ""}. ${e.note ?? ""} `;
+  if (e.sourcesUrl) {
+    const a = document.createElement("a");
+    a.href = e.sourcesUrl;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "All sources and licences";
+    p.append(a);
+  }
+  return p;
+}
+
 /** Finer rings: a setting inside the Light lens rather than a layer. */
 const fineRow = document.createElement("label");
 fineRow.className = "switch";
@@ -142,6 +160,14 @@ const lenses = createLensPanel(
       on: true,
       after: eventCredit,
     },
+    {
+      key: godwits.id,
+      label: "Bar-tailed Godwits across the Pacific",
+      note: "(the seasonal pattern)",
+      built: true,
+      on: true,
+      after: creditFor(godwits),
+    },
     { key: "plankton", label: "Plankton's nightly rise", note: "(a model)", built: true, on: true, after: planktonCredit },
     { key: "people", label: "People and nodes", note: "(sample)", built: true, on: false },
     {
@@ -157,7 +183,7 @@ const lenses = createLensPanel(
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
   {
-    eventLens: { [humpbacks.id]: "life" },
+    eventLens: { [humpbacks.id]: "life", [godwits.id]: "life" },
     extras: { light: [fineRow] },
     onLayer: (key, shown) => {
       clock?.setVisible(key, shown);
@@ -222,8 +248,9 @@ function renderWords() {
         ? "the live aurora forecast is resting; a typical oval shows"
         : "a typical aurora, not tonight's"
     : undefined;
+  const flight = shownLayers.has(godwits.id) ? eventStory(godwits, date) : undefined;
   const plankton = !isFlat() && shownLayers.has("plankton") ? planktonWords(viewer, sunState(date)) : undefined;
-  const lifeAndEarth = [story, plankton, earth, aurora].filter(Boolean).join(" · ");
+  const lifeAndEarth = [story, flight, plankton, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -238,6 +265,7 @@ function renderWords() {
       w.sentence +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
+      (flight ? ` Across the Pacific, ${flight}.` : "") +
       (plankton ? ` ${plankton.charAt(0).toUpperCase()}${plankton.slice(1)}, as the model has it.` : "") +
       (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "") +
       (aurora ? ` ${aurora.charAt(0).toUpperCase()}${aurora.slice(1)}.` : "");
@@ -582,7 +610,7 @@ function buildGlobe() {
     viewer,
     fine,
     people: MOCK_PEOPLE,
-    events: [humpbacks],
+    events: [humpbacks, godwits],
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),
     onPick: showPick,
