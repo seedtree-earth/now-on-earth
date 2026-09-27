@@ -42,6 +42,38 @@ body {
   inset: 0;
 }
 
+/* The flat model's disc, in the globe's place. Dragging turns it. */
+.flat {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+  cursor: grab;
+}
+
+.flat:active {
+  cursor: grabbing;
+}
+
+.flat-credit {
+  position: absolute;
+  right: 0.8rem;
+  bottom: calc(var(--dock-h, 12rem) + 0.4rem);
+  z-index: 2;
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+}
+
+.flat-credit a {
+  color: inherit;
+}
+
+.switch input:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* --- the face: words, never numbers ----------------------------------- */
 
 .face {

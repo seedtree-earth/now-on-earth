@@ -6,6 +6,10 @@
 
 import { type LngLat, dayLengthShare, sunSky, sunState } from "now-on-earth/core";
 import type { Palette } from "now-on-earth/mapbox";
+import { flatDayShare, flatSky } from "./flat/model";
+
+/** Which model's light the tracks show. */
+export type Model = "globe" | "flat";
 
 /**
  * Blend night into day through oklch on the shorter hue path, so the violet
@@ -27,12 +31,19 @@ const MIN = 60000;
 const DAY = 86400000;
 
 /** Sky over the viewer from 12 hours before `centre` to 12 hours after. */
-export function dayTrack(centre: Date, viewer: LngLat, palette: Palette): string {
+export function dayTrack(centre: Date, viewer: LngLat, palette: Palette, model: Model = "globe"): string {
   const { night, day } = palette;
   const stops: string[] = [];
   for (let i = 0; i <= 48; i++) {
     const t = new Date(centre.getTime() + (i * 30 - 720) * MIN);
-    const alt = sunSky(viewer, sunState(t)).altitude;
+    const sun = sunState(t);
+    if (model === "flat") {
+      // Lit or not by the spotlight; brighter the higher the sun stands.
+      const sky = flatSky(viewer, sun);
+      stops.push(mix(night, day, sky.lit ? 0.55 + 0.45 * clamp01(sky.elevation / 60) : 0));
+      continue;
+    }
+    const alt = sunSky(viewer, sun).altitude;
     // Astronomical night up to full day at 8° of altitude, eased.
     stops.push(mix(night, day, Math.pow(clamp01((alt + 18) / 26), 1.4)));
   }
@@ -40,20 +51,23 @@ export function dayTrack(centre: Date, viewer: LngLat, palette: Palette): string
 }
 
 /** Day length at the viewer's latitude across half a year either side. */
-export function yearTrack(centre: Date, viewer: LngLat, palette: Palette): string {
+export function yearTrack(centre: Date, viewer: LngLat, palette: Palette, model: Model = "globe"): string {
+  const share = model === "flat" ? flatDayShare : dayLengthShare;
   const { night, day } = palette;
   // Stretch to this latitude's own shortest and longest days, so a gentle
   // subtropical year still reads from dusk to gold. At the equator, where day
-  // length barely moves, the track stays an even half-light.
+  // length barely moves, the track stays an even half-light. Both models share
+  // the globe's scale, so a model's shorter or longer days show as such.
   const ob = sunState(centre).obliquity;
-  const shortest = dayLengthShare(viewer.lat, viewer.lat >= 0 ? -ob : ob);
-  const longest = dayLengthShare(viewer.lat, viewer.lat >= 0 ? ob : -ob);
+  const ends = [dayLengthShare(viewer.lat, ob), dayLengthShare(viewer.lat, -ob)];
+  const shortest = Math.min(...ends);
+  const longest = Math.max(...ends);
   const range = longest - shortest;
   const stops: string[] = [];
   for (let i = 0; i <= 52; i++) {
     const t = new Date(centre.getTime() + (i * 7 - 182) * DAY);
-    const share = dayLengthShare(viewer.lat, sunState(t).declination);
-    const k = range < 0.02 ? 0.5 : clamp01((share - shortest) / range);
+    const s = share(viewer.lat, sunState(t).declination);
+    const k = range < 0.02 ? 0.5 : clamp01((s - shortest) / range);
     stops.push(mix(night, day, 0.15 + 0.85 * k));
   }
   return gradient(stops);

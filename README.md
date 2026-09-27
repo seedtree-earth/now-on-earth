@@ -138,16 +138,21 @@ With no token, or no WebGL, the page still runs: the words and the sliders follo
 
 **Location** is never asked for on arrival. If the browser has already been given permission it is used quietly; otherwise the clock stands in the Northern Rivers until you press "Face me". It is rounded to about ten kilometres and never leaves the page.
 
+## The Flat model
+
+A switch in the Layers panel, labelled only "Flat model", swaps the globe for the common flat Earth depiction and runs it with the same controls (the day, the year, face the sun, face me), so anyone can compare what each model predicts for their own place. There is no commentary. Off by default; standalone site only (`site/src/flat/`), never part of the Landscape integration.
+
+- **The disc:** a North-Pole-centred azimuthal equidistant map, Antarctica around the rim, drawn on a canvas with d3-geo and Natural Earth land. Drag to turn it. It needs no Mapbox token.
+- **The sun:** a spotlight 3,000 miles above the disc, circling the centre once a day over today's tropic; seen from above it stands over the real subsolar point.
+- **The light:** the spotlight reaches 2·90·sin 45° ≈ 127.3° of arc, calibrated so the equator gets exactly twelve hours at the equinox. Elevation is the flat geometry's, so the sun never goes below the horizon.
+- **The words and tracks** follow the model that is showing: the face describes the disc's light, and the day and year tracks show the disc's day and year (on the globe's scale, so the two can be compared).
+- Every parameter is stated once, in `site/src/flat/model.ts`, and tested beside the globe's predictions in `test/flat.test.ts`.
+
 ## Roadmap
 
-- **Done:** the core light (sun, rings, seasons, words); twilight, moon, tides and people; humpback whales on the east coast from ALA and GBIF.
+- **Done:** the core light (sun, rings, seasons, words); twilight, moon, tides and people; humpback whales on the east coast from ALA and GBIF; the Flat model.
 - **Next · birds:** eBird migration, once there is an API key and its redistribution terms are checked.
 - **Future · community ground-truthing:** people confirm what they actually see by logging sightings on **iNaturalist** (in a SeedTree project), and a build-time script pulls them back: research grade, CC0 or CC BY only, coarsened and aggregated by month and cell exactly like the event data, shown as "what people are seeing this season" beside the long-run pattern. We don't run our own sightings database. The data shapes are drafted (`GroundTruthObservation`, `GroundTruthMonth` in `src/core/events.ts`) and the switch is in the Layers panel, off and marked "to come".
-- **Future · "Flat model" toggle:** switch the globe to the common flat Earth depiction and run it with the same controls (the day, the year, face me), so people can compare what each model predicts for their own place. The only label is "Flat model", with no commentary; the differences show on their own (the midnight sun over Antarctica in December, southern day lengths, a sun that never goes below the horizon). Off by default, standalone site only, never part of the Landscape integration. Design notes:
-  - *Rendering:* Mapbox GL has no azimuthal equidistant projection, so this can't be a layer on the Mapbox globe. It becomes its own view module (same shape: add, update, palette, remove) that draws a North-Pole-centred azimuthal equidistant disc with d3-geo and open Natural Earth land (world-atlas) on a canvas, swapped in for the globe. It needs no token, so it can double as the keyless fallback.
-  - *The sun:* a spotlight at a fixed height above the disc (the commonly quoted figure is about 3,000 miles), circling the pole once a day on the circle of today's declination, so it sits over the Tropic of Cancer in June and the Tropic of Capricorn in December. The plan-view position matches the real subsolar point; the difference is in how the light falls.
-  - *The light:* lit where the spotlight's radius reaches, with that radius set so the equator gets 12 hours at the equinox (the fairest calibration: it matches reality where the model is strongest). The sun's elevation for a viewer is the flat geometry's, so it stays above the horizon.
-  - *Words:* the same describer, fed the model's sky, so the face speaks for whichever model is showing. Parameters (sun height, spotlight calibration) live in one documented place.
 - **Future · partnered seasonal knowledge:** local and Indigenous seasonal calendars, only in partnership, with permission and on the holders' terms. Never scraped. The shape (`PartneredKnowledge`) and an empty placeholder layer are in place.
 - **Joining the Landscape:** add the package to SeedTree V2 and call `attachNowOnEarth` from the Landscape's map `load` handler, with `fromLandscapeRows` feeding the people layer.
 

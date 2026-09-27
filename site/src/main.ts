@@ -26,6 +26,8 @@ import { MOCK_PEOPLE } from "./mock-people";
 const humpbacks = humpbacksJson as unknown as SeasonalEvent;
 import { askPosition, quietPosition } from "./location";
 import { dayTrack, yearTrack } from "./tracks";
+import { describeFlat } from "./flat/model";
+import { createFlatView } from "./flat/view";
 
 const TOKEN: string | undefined = import.meta.env.VITE_MAPBOX_TOKEN;
 const STYLE = "mapbox://styles/mapbox/satellite-streets-v12"; // the Landscape's own style
@@ -53,6 +55,7 @@ const els = {
   layers: $<HTMLButtonElement>("layers"),
   layersPanel: $("layers-panel"),
   moonline: $("moonline"),
+  flatSwitch: $<HTMLInputElement>("flat-model"),
   yearMarks: $("year-marks"),
   eventline: $("eventline"),
   eventCredit: $("event-credit"),
@@ -68,6 +71,9 @@ let playing = false;
 let viewer: LngLat = { ...FALLBACK_VIEWER };
 let located = false;
 let clock: NowOnEarth | null = null;
+/** The flat model's disc, drawn in the globe's place when switched on. */
+const flat = createFlatView(document.querySelector<HTMLElement>(".shell")!);
+const isFlat = () => flat.isShown();
 /** Which layers are on, mirrored here so the words work even without a globe. */
 const shownLayers = new Set(
   ["rings", "twilight", "seasons", "moon", "sun", humpbacks.id].filter((k) => !DEFAULT_HIDDEN.includes(k)),
@@ -99,13 +105,16 @@ let lastSpoken = 0;
 function renderWords() {
   const date = shown();
   const moonOn = shownLayers.has("moon");
-  const w = describeLight(date, viewer, sunState(date), moonOn ? moonState(date) : undefined);
+  // The face speaks for whichever model is showing.
+  const w: { phase: string; sky: string; season: string; days: string; sentence: string; moon?: string } = isFlat()
+    ? describeFlat(date, viewer)
+    : describeLight(date, viewer, sunState(date), moonOn ? moonState(date) : undefined);
   els.phase.textContent = w.phase;
   els.sky.textContent = `${w.sky} · ${w.season} · ${w.days}`;
   const place = located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
-  const tides = shownLayers.has("tides") ? tideWords(viewer, moonState(date)) : undefined;
+  const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
   const moonText = [w.moon, tides].filter(Boolean).join(" · ");
   els.moonline.hidden = !moonText;
   if (moonText) els.moonline.textContent = moonText;
@@ -126,6 +135,7 @@ function renderWords() {
       (story ? ` Along the east coast, ${story}.` : "");
   }
   els.globe.setAttribute("aria-label", `A globe lit by the sun. ${w.sentence}`);
+  flatCanvasLabel(`Flat model. ${w.sentence}`);
   els.scrub.setAttribute("aria-valuetext", `${w.phase}, ${w.sky}`);
   els.season.setAttribute("aria-valuetext", `${w.season}, ${w.days}`);
 }
@@ -136,12 +146,13 @@ let tracksFor = "";
 function renderTracks(force = false) {
   const base = new Date(Date.now() + dayShift * DAY);
   // Redraw when the day, the place or the theme moves on, not every frame.
-  const key = [Math.round(base.getTime() / (10 * MIN)), viewer.lat, viewer.lng, document.documentElement.dataset.theme].join("|");
+  const key = [Math.round(base.getTime() / (10 * MIN)), viewer.lat, viewer.lng, document.documentElement.dataset.theme, isFlat()].join("|");
   if (!force && key === tracksFor) return;
   tracksFor = key;
   const palette = readPalette();
-  els.scrub.style.setProperty("--track", dayTrack(base, viewer, palette));
-  els.season.style.setProperty("--track", yearTrack(new Date(), viewer, palette));
+  const model = isFlat() ? "flat" : "globe";
+  els.scrub.style.setProperty("--track", dayTrack(base, viewer, palette, model));
+  els.season.style.setProperty("--track", yearTrack(new Date(), viewer, palette, model));
   renderMarks();
 }
 
@@ -195,14 +206,19 @@ function renderMarks() {
 
 function push() {
   clock?.setTime(isLive() ? null : shown());
+  if (isFlat()) flat.draw({ sun: sunState(shown()), viewer, lines: shownLayers.has("seasons") });
   renderWords();
   renderTracks();
   els.now.hidden = isLive();
   els.play.setAttribute("aria-pressed", String(playing));
   els.play.querySelector(".btn-label")!.textContent = playing ? "Pause" : "Play";
   els.play.title = playing ? "Hold the sun still" : "Let the sun move";
-  const following = clock?.following() === "sun";
+  const following = isFlat() ? flat.following() : clock?.following() === "sun";
   els.faceSun.setAttribute("aria-pressed", String(following));
+}
+
+function flatCanvasLabel(text: string) {
+  document.querySelector(".flat")?.setAttribute("aria-label", text);
 }
 
 // Live: words and tracks follow the real clock.
@@ -256,10 +272,12 @@ els.now.addEventListener("click", () => {
 });
 
 els.faceSun.addEventListener("click", () => {
-  if (!clock) return;
-  clock.follow(clock.following() === "sun" ? null : "sun");
+  if (isFlat()) flat.follow(!flat.following());
+  else if (clock) clock.follow(clock.following() === "sun" ? null : "sun");
   push();
 });
+// Turning the disc by hand lets go of the sun, as dragging the globe does.
+document.addEventListener("flat:release", () => push());
 
 els.faceMe.addEventListener("click", async () => {
   if (!located) {
@@ -271,6 +289,28 @@ els.faceMe.addEventListener("click", async () => {
     }
   }
   clock?.faceMe();
+  if (isFlat()) flat.faceMe();
+  push();
+});
+
+// The flat model: the disc takes the globe's place; the same controls drive it.
+els.flatSwitch.addEventListener("change", async () => {
+  if (els.flatSwitch.checked) {
+    await flat.show();
+    els.globe.style.visibility = "hidden";
+    els.notice.style.visibility = "hidden";
+  } else {
+    flat.hide();
+    els.globe.style.visibility = "";
+    els.notice.style.visibility = "";
+  }
+  // The moon and tides belong to the globe; their switches rest while the disc shows.
+  for (const k of ["moon", "tides", "twilight", "people"]) {
+    const input = els.layersPanel.querySelector<HTMLInputElement>(`input[data-layer="${k}"]`);
+    if (input) input.disabled = els.flatSwitch.checked;
+  }
+  frameGlobe();
+  renderTracks(true);
   push();
 });
 
@@ -348,6 +388,7 @@ els.theme.addEventListener("click", () => {
   syncThemeButton();
   renderTracks(true);
   setFog();
+  flat.refreshPalette();
 });
 syncThemeButton();
 
@@ -403,6 +444,7 @@ function frameGlobe() {
   const bottom = dockH ? dockH + 12 : 0;
   document.documentElement.style.setProperty("--dock-h", `${Math.round(dockH)}px`);
   const padding = { top, bottom, left: 0, right: 0 };
+  flat.setPadding({ top, bottom });
   if (!map) return { padding, zoom: 1.6 };
   // Globe radius in pixels is worldSize / 2π, with worldSize = 512 · 2^zoom.
   const room = Math.max(160, Math.min(w, h - top - bottom));
@@ -476,6 +518,8 @@ function buildGlobe() {
 // ---------------------------------------------------------------- start
 
 buildGlobe();
+frameGlobe();
+window.addEventListener("resize", () => frameGlobe());
 push();
 quietPosition().then((p) => {
   if (!p) return;
