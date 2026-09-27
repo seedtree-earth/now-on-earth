@@ -309,15 +309,12 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   opacity: 0.7;
 }
 
+/* On a narrow screen the dock spans the width, so Mapbox's wordmark and
+   attribution ride just above it rather than under it. */
 @media (max-width: 720px) {
   .mapboxgl-ctrl-bottom-right,
   .mapboxgl-ctrl-bottom-left {
-    bottom: auto;
-    top: 0;
-  }
-  .mapboxgl-ctrl-bottom-left {
-    top: auto;
-    bottom: calc(11.5rem + env(safe-area-inset-bottom));
+    bottom: calc(var(--dock-h, 12rem) + 0.25rem);
   }
 }
 

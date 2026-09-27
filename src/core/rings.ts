@@ -7,22 +7,23 @@
  * the whole way round the world, and when it swallows a pole the ring is not a
  * closed loop in longitude/latitude at all.
  *
- * So caps are built by sweeping LONGITUDE instead of walking the circle. At
- * each longitude the cap covers one band of latitude, [low, high], solved in
- * closed form. Then:
+ * So each cap's edge is walked evenly around the circle (by bearing from the
+ * centre, so points stay dense where the edge bends hard near a pole) with its
+ * longitude unwrapped as it goes. Then:
  *
- * - A cap that holds no pole spans a finite run of longitudes. Sweep it with
- *   points bunched at the ends (where the edge turns fastest), and cut the run
- *   at ±180 so each piece is an ordinary polygon: the high edge out, the low
- *   edge back.
- * - A cap that holds a pole spans every longitude. Sweep the one free edge from
- *   -180 to 180 and close the polygon along the pole.
+ * - An edge that circles no pole closes on itself. Clip that loop to the
+ *   world's strip, and to the strips either side shifted back in, so a cap
+ *   across ±180 becomes two ordinary polygons.
+ * - An edge that circles a pole gains a full turn of longitude. Cut one turn
+ *   out, from -180 exactly to 180 exactly, and close it along the pole.
  *
- * Every coordinate stays inside [-180, 180] x [-90, 90], with no wrapping for
- * the renderer to guess at.
+ * The day and night caps at the terminator therefore walk the same great
+ * circle point for point, so no gap or overlap opens between them, even where
+ * the terminator passes close to a pole. Every coordinate stays inside
+ * [-180, 180] x [-90, 90], with no wrapping left for the renderer to guess at.
  */
 
-import { type LngLat, wrapLng } from "./sun.js";
+import type { LngLat } from "./sun.js";
 
 const RAD = Math.PI / 180;
 const DEG = 180 / Math.PI;
@@ -38,39 +39,18 @@ export type Cap = {
   edges: LineCoords[];
 };
 
-/** Longitude samples for a full sweep. 2° reads as a smooth curve on a globe. */
-const FULL_STEP = 2;
-/** Samples across a partial sweep (bunched toward its ends). */
-const PARTIAL_SAMPLES = 96;
-
-const clampLat = (x: number) => Math.max(-90, Math.min(90, x));
+/** The latitude where the Web Mercator world ends: atan(sinh(π)). */
+export const MERCATOR_LIMIT = 85.0511287798066;
 
 /**
- * The band of latitude covered by the cap at longitude offset `dLng` (degrees
- * from the centre's meridian). Null when the cap does not reach that meridian.
- *
- * A point is inside when cos(distance) >= cos(radius):
- *   sinφ·sinφ0 + cosφ·cosφ0·cos(dLng) >= cos r
- * i.e. R·cos(φ - α) >= cos r with R, α from the left-hand coefficients.
+ * Where caps that hold a pole are closed, a little inside the Mercator edge.
+ * Mapbox's globe stretches any fill that touches its top or bottom edge across
+ * the whole polar cap, opaque; stopping just short keeps the pole plain.
  */
-function band(lat0: number, radius: number, dLng: number): [number, number] | null {
-  const A = Math.sin(lat0 * RAD);
-  const B = Math.cos(lat0 * RAD) * Math.cos(dLng * RAD);
-  const C = Math.cos(radius * RAD);
-  const R = Math.hypot(A, B);
-  if (R === 0) return null;
-  const q = C / R;
-  if (q > 1) return null;
-  const alpha = Math.atan2(A, B) * DEG;
-  const beta = Math.acos(Math.max(-1, q)) * DEG;
-  let low = alpha - beta;
-  let high = alpha + beta;
-  // The interval can sit up past a pole (alpha near ±180 on the far side);
-  // fold it back into the visible range.
-  if (low > 90) return null;
-  if (high < -90) return null;
-  return [clampLat(low), clampLat(high)];
-}
+export const POLE_CLOSE = 84.8;
+
+/** Points around the edge. 1° of bearing reads as a smooth curve on a globe. */
+const SAMPLES = 360;
 
 /** Does the cap contain the north or south pole? */
 function poles(center: LngLat, radius: number) {
@@ -81,111 +61,145 @@ function poles(center: LngLat, radius: number) {
 }
 
 /**
- * Longitudinal half-width of a cap that holds no pole: the meridian offset at
- * which its edge turns back. From R = C at the tangent meridian.
+ * The cap's edge, walked by bearing from the centre, longitude unwrapped so
+ * each step moves less than half a turn. `n + 1` points: the last is the first
+ * again, carrying whatever whole turn of longitude the walk gained.
  */
-function halfSpan(lat0: number, radius: number): number {
-  const s = Math.sin(lat0 * RAD);
-  const c = Math.cos(lat0 * RAD);
-  const C = Math.cos(radius * RAD);
-  if (c === 0) return 180;
-  const k = (C * C - s * s) / (c * c);
-  if (k <= 0) return 90;
-  return Math.acos(Math.min(1, Math.sqrt(k))) * DEG;
+function edgeWalk(center: LngLat, radius: number, n: number): Position[] {
+  const p1 = center.lat * RAD;
+  const d = radius * RAD;
+  const out: Position[] = [];
+  let prev = center.lng;
+  for (let i = 0; i <= n; i++) {
+    const theta = (2 * Math.PI * i) / n;
+    const sinLat = Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(theta);
+    const lat = Math.asin(Math.max(-1, Math.min(1, sinLat)));
+    let lng =
+      center.lng +
+      Math.atan2(Math.sin(theta) * Math.sin(d) * Math.cos(p1), Math.cos(d) - Math.sin(p1) * Math.sin(lat)) * DEG;
+    // Unwrap against the previous step.
+    lng += 360 * Math.round((prev - lng) / 360);
+    prev = lng;
+    out.push([lng, lat * DEG]);
+  }
+  return out;
 }
 
-/** Split an ascending run of unwrapped longitudes into runs inside [-180, 180]. */
-function cutAtAntimeridian(lngs: number[]): number[][] {
-  const lo = lngs[0];
-  const hi = lngs[lngs.length - 1];
-  const cuts: number[] = [];
-  for (let k = Math.ceil((lo + 180) / 360); k * 360 - 180 < hi; k++) {
-    const x = k * 360 - 180;
-    if (x > lo && x < hi) cuts.push(x);
-  }
-  if (!cuts.length) return [lngs];
-  const runs: number[][] = [];
-  let run: number[] = [];
-  let ci = 0;
-  for (const x of lngs) {
-    while (ci < cuts.length && x > cuts[ci]) {
-      run.push(cuts[ci]);
-      runs.push(run);
-      run = [cuts[ci]];
-      ci++;
+/** Clip a polygon ring to lng >= lo and lng <= hi (Sutherland-Hodgman). */
+function clipStrip(ring: Position[], lo: number, hi: number): Position[] {
+  const clip = (pts: Position[], inside: (p: Position) => boolean, x: number) => {
+    const out: Position[] = [];
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      const ia = inside(a);
+      const ib = inside(b);
+      if (ia) out.push(a);
+      if (ia !== ib) {
+        const t = (x - a[0]) / (b[0] - a[0]);
+        out.push([x, a[1] + (b[1] - a[1]) * t]);
+      }
     }
-    run.push(x);
-  }
-  runs.push(run);
-  return runs;
+    return out;
+  };
+  let pts = clip(ring, (p) => p[0] >= lo, lo);
+  pts = clip(pts, (p) => p[0] <= hi, hi);
+  return pts;
 }
 
-/** Put an unwrapped run back into [-180, 180], keeping its own seam values. */
-function normaliseRun(run: number[]): number[] {
-  const mid = (run[0] + run[run.length - 1]) / 2;
-  const shift = wrapLng(mid) - mid;
-  return run.map((x) => {
-    const y = x + shift;
-    // Keep the ±180 seam on the side this run lives on.
-    return Math.max(-180, Math.min(180, y));
-  });
+/**
+ * Split an unwrapped polyline at every ±180 crossing and shift each piece
+ * back into [-180, 180]. Crossings get an exact point on the seam.
+ */
+function splitLine(pts: Position[]): LineCoords[] {
+  const strip = (x: number) => Math.floor((x + 180) / 360);
+  const shift = (p: Position, k: number): Position => [Math.max(-180, Math.min(180, p[0] - 360 * k)), p[1]];
+  const lines: LineCoords[] = [];
+  let k = strip(pts[0][0]);
+  let line: Position[] = [shift(pts[0], k)];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    let kb = strip(b[0]);
+    // A point sitting exactly on a seam belongs to the strip we came from.
+    if (kb !== k && b[0] === 360 * Math.max(k, kb) - 180) kb = k;
+    while (kb !== k) {
+      const dir = kb > k ? 1 : -1;
+      const x = 360 * (dir > 0 ? k + 1 : k) - 180;
+      const t = (x - a[0]) / (b[0] - a[0]);
+      const seam: Position = [x, a[1] + (b[1] - a[1]) * t];
+      line.push(shift(seam, k));
+      if (line.length > 1) lines.push(line);
+      k += dir;
+      line = [shift(seam, k)];
+    }
+    line.push(shift(b, k));
+  }
+  if (line.length > 1) lines.push(line);
+  return lines;
 }
 
 /** Build a spherical cap of angular `radius` degrees around `center`. */
 export function cap(center: LngLat, radius: number): Cap {
   if (radius <= 0) return { polygons: [], edges: [] };
   const { north, south } = poles(center, radius);
+  const turns = north || south ? (north && south ? 0 : 1) : 0;
 
-  if (north || south) {
-    // Sweep every longitude; one edge is free, the other is the pole.
-    const low: Position[] = [];
-    const high: Position[] = [];
-    for (let lng = -180; lng <= 180 + 1e-9; lng += FULL_STEP) {
-      const b = band(center.lat, radius, lng - center.lng);
-      if (!b) continue;
-      low.push([lng, b[0]]);
-      high.push([lng, b[1]]);
+  // Walk the edge; if a pass skims a pole so closely that one step's
+  // longitude becomes ambiguous, walk again more finely.
+  let walk = edgeWalk(center, radius, SAMPLES);
+  for (let n = SAMPLES * 4; n <= SAMPLES * 64; n *= 4) {
+    const gained = Math.round(Math.abs(walk[walk.length - 1][0] - walk[0][0]) / 360);
+    if (gained === turns) break;
+    walk = edgeWalk(center, radius, n);
+  }
+
+  if (turns === 0) {
+    // A closed loop: clip it into each strip of the world it touches.
+    const loop = walk.slice(0, -1);
+    const xs = loop.map((p) => p[0]);
+    const polygons: PolygonCoords[] = [];
+    const kMin = Math.floor((Math.min(...xs) + 180) / 360);
+    const kMax = Math.floor((Math.max(...xs) + 180) / 360);
+    for (let k = kMin; k <= kMax; k++) {
+      const piece = clipStrip(loop, 360 * k - 180, 360 * k + 180);
+      if (piece.length < 3) continue;
+      const ring = piece.map(([x, y]): Position => [x - 360 * k, Math.max(-POLE_CLOSE, Math.min(POLE_CLOSE, y))]);
+      ring.push(ring[0]);
+      polygons.push([ring]);
     }
-    if (north && south) {
-      // Only possible past a hemisphere; the free edges are both in play.
-      return {
-        polygons: [[[...low, ...high.slice().reverse(), low[0]]]],
-        edges: [low, high],
-      };
+    return { polygons, edges: splitLine(walk) };
+  }
+
+  // One pole inside: the walk gains a full turn. Make it run eastward, lay
+  // two turns end to end, and cut exactly one turn from -180 to 180.
+  let run = walk;
+  if (run[run.length - 1][0] < run[0][0]) run = run.slice().reverse();
+  const turn = run[run.length - 1][0] - run[0][0]; // 360
+  const twice: Position[] = [...run, ...run.slice(1).map(([x, y]): Position => [x + turn, y])];
+  const start = 360 * Math.ceil((twice[0][0] + 180) / 360) - 180; // first seam at or after the walk's start
+  const edge: Position[] = [];
+  for (let i = 1; i < twice.length; i++) {
+    const a = twice[i - 1];
+    const b = twice[i];
+    for (const seam of [start, start + 360]) {
+      if (a[0] < seam && b[0] >= seam) {
+        const t = (seam - a[0]) / (b[0] - a[0]);
+        edge.push([seam, a[1] + (b[1] - a[1]) * t]);
+      }
     }
-    const edge = north ? low : high;
-    const poleLat = north ? 90 : -90;
-    const ring: Position[] = [...edge, [180, poleLat], [-180, poleLat], edge[0]];
-    return { polygons: [[ring]], edges: [edge] };
+    if (b[0] > start && b[0] < start + 360) edge.push(b);
   }
-
-  // No pole: a finite run of longitudes, bunched toward the turning points.
-  const span = halfSpan(center.lat, radius);
-  const lngs: number[] = [];
-  for (let i = 0; i <= PARTIAL_SAMPLES; i++) {
-    const t = -Math.cos((Math.PI * i) / PARTIAL_SAMPLES); // -1 .. 1
-    lngs.push(center.lng + span * t);
-  }
-
-  const polygons: PolygonCoords[] = [];
-  const edges: LineCoords[] = [];
-  for (const run of cutAtAntimeridian(lngs)) {
-    const high: Position[] = [];
-    const low: Position[] = [];
-    const out = normaliseRun(run);
-    run.forEach((x, i) => {
-      const b = band(center.lat, radius, x - center.lng);
-      // At the exact turning point rounding can leave the band empty; the
-      // edge meets itself there, so collapse onto the centre latitude line.
-      const [lo, hi] = b ?? [center.lat, center.lat];
-      high.push([out[i], hi]);
-      low.push([out[i], lo]);
-    });
-    if (high.length < 2) continue;
-    polygons.push([[...high, ...low.slice().reverse(), high[0]]]);
-    edges.push(high, low);
-  }
-  return { polygons, edges };
+  if (twice[0][0] === start) edge.unshift(twice[0]);
+  const shiftBy = start + 180;
+  const line = edge.map(([x, y]): Position => [x - shiftBy, Math.max(-POLE_CLOSE, Math.min(POLE_CLOSE, y))]);
+  // Close short of the pole (see POLE_CLOSE): a vertex at ±90 sits at
+  // infinity in Mercator, and one on the Mercator edge makes Mapbox paint the
+  // whole polar cap as a solid, unblended disc.
+  const poleLat = north ? POLE_CLOSE : -POLE_CLOSE;
+  // Close past the pole: east end to the world's edge, back west, to the start.
+  const ring: Position[] = [...line, [180, poleLat], [-180, poleLat], line[0]];
+  return { polygons: [[ring]], edges: [line] };
 }
 
 export type RingKind = "day" | "night";

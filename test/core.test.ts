@@ -87,9 +87,9 @@ describe("cap", () => {
     const c = cap({ lng: 30, lat: 70 }, 40);
     expect(c.polygons.length).toBe(1);
     const ring = c.polygons[0][0];
-    expect(ring.some((p) => p[1] === 90)).toBe(true);
+    expect(ring.some((p) => Math.abs(p[1] - 84.8) < 1e-9)).toBe(true);
     for (const p of ring) expect(inRange(p)).toBe(true);
-    expect(insideCap([-150, 85], c)).toBe(true); // across the pole
+    expect(insideCap([-150, 84.5], c)).toBe(true); // across the pole
     expect(insideCap([30, 20], c)).toBe(false);
   });
 
@@ -97,7 +97,7 @@ describe("cap", () => {
     const center = { lng: -40, lat: -15 };
     const c = cap(center, 45);
     for (let lng = -180; lng < 180; lng += 7) {
-      for (let lat = -85; lat <= 85; lat += 7) {
+      for (let lat = -84; lat <= 84; lat += 7) {
         const d = angularDistance(center, { lng, lat });
         if (Math.abs(d - 45) < 1.5) continue; // too near the edge to judge
         expect(insideCap([lng, lat], c)).toBe(d < 45);
@@ -114,6 +114,35 @@ describe("cap", () => {
       expect(insideCap([s.antisolar.lng, s.antisolar.lat], c)).toBe(false);
     }
   });
+});
+
+describe("terminator seam", () => {
+  // Day and night caps meet on one great circle. Every point on Earth, polar
+  // regions included, must fall in exactly one of them: no gap, no overlap.
+  const cases: Array<[string, { lng: number; lat: number }]> = [
+    ["just past the September equinox", { lng: 61.3, lat: -1.5 }],
+    ["a hair off the equinox, skimming both poles", { lng: -172.4, lat: 0.03 }],
+    ["the June solstice, across the antimeridian", { lng: 178.9, lat: 23.44 }],
+    ["the December solstice", { lng: -3.2, lat: -23.44 }],
+  ];
+  for (const [name, sun] of cases) {
+    it(name, () => {
+      const anti = { lng: sun.lng > 0 ? sun.lng - 180 : sun.lng + 180, lat: -sun.lat };
+      const day = cap(sun, 90);
+      const night = cap(anti, 90);
+      for (const poly of [...day.polygons, ...night.polygons]) for (const p of poly[0]) expect(inRange(p)).toBe(true);
+      for (let lng = -179; lng < 180; lng += 4) {
+        for (let lat = -84.5; lat <= 84.5; lat += 2.5) {
+          const d = angularDistance(sun, { lng, lat });
+          if (Math.abs(d - 90) < 0.4) continue; // on the line itself
+          const inDay = insideCap([lng, lat], day);
+          const inNight = insideCap([lng, lat], night);
+          expect(inDay !== inNight, `${lng},${lat}`).toBe(true);
+          expect(inDay).toBe(d < 90);
+        }
+      }
+    });
+  }
 });
 
 describe("rings", () => {

@@ -255,6 +255,34 @@ function notice(text: string) {
   els.notice.querySelector("p")!.textContent = text;
 }
 
+/**
+ * Frame the globe in the open space between the words and the dock, and size
+ * it to fit, so on a phone the dock never hides half the Earth. Once a person
+ * zooms, the zoom is theirs; the padding still follows the layout.
+ */
+let userZoomed = false;
+
+function frameGlobe() {
+  const dock = document.querySelector<HTMLElement>(".dock")!.getBoundingClientRect();
+  const face = document.querySelector<HTMLElement>(".face")!.getBoundingClientRect();
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const narrow = w < 720;
+  // A hidden dock or face measures zero; it then takes no room.
+  const top = narrow && face.height ? Math.max(0, face.bottom - 24) : 0;
+  const dockH = dock.height ? h - dock.top : 0;
+  const bottom = dockH ? dockH + 12 : 0;
+  document.documentElement.style.setProperty("--dock-h", `${Math.round(dockH)}px`);
+  const padding = { top, bottom, left: 0, right: 0 };
+  if (!map) return { padding, zoom: 1.6 };
+  // Globe radius in pixels is worldSize / 2π, with worldSize = 512 · 2^zoom.
+  const room = Math.max(160, Math.min(w, h - top - bottom));
+  const zoom = Math.max(0.2, Math.log2((0.4 * room * 2 * Math.PI) / 512));
+  map.setPadding(padding);
+  if (!userZoomed && Number.isFinite(zoom)) map.setZoom(zoom);
+  return { padding, zoom };
+}
+
 function buildGlobe() {
   if (!TOKEN) {
     notice("The globe is resting until it has a Mapbox token · the words above still follow the light.");
@@ -265,14 +293,13 @@ function buildGlobe() {
     return;
   }
   mapboxgl.accessToken = TOKEN;
-  const narrow = window.matchMedia("(max-width: 720px)").matches;
   try {
     map = new mapboxgl.Map({
       container: els.globe,
       style: STYLE,
       projection: "globe",
       center: [viewer.lng, viewer.lat],
-      zoom: narrow ? 0.9 : 1.6,
+      zoom: 1.2,
       attributionControl: true,
     });
   } catch (err) {
@@ -282,18 +309,30 @@ function buildGlobe() {
   }
   map.getCanvas().setAttribute("aria-hidden", "true");
   map.on("style.load", setFog);
-  map.once("load", () => {
-    if (!map) return;
-    clock = attachNowOnEarth(map, { viewer, fine });
-    clock.subscribe(() => {
-      const following = clock?.following() === "sun";
-      if (els.faceSun.getAttribute("aria-pressed") !== String(following)) {
-        els.faceSun.setAttribute("aria-pressed", String(following));
-      }
-    });
-    push();
+  map.on("zoomstart", (e) => {
+    if ((e as { originalEvent?: Event }).originalEvent) userZoomed = true;
   });
-  new ResizeObserver(() => map?.resize()).observe(els.globe);
+  frameGlobe();
+  // Attach at once: the clock waits for the style itself, so the light arrives
+  // with the style rather than after every imagery tile has loaded.
+  clock = attachNowOnEarth(map, { viewer, fine });
+  // Dev only: a handle for poking at the globe from the console.
+  if (import.meta.env.DEV) Object.assign(window, { __noe: { map, clock } });
+  clock.subscribe(() => {
+    const following = clock?.following() === "sun";
+    if (els.faceSun.getAttribute("aria-pressed") !== String(following)) {
+      els.faceSun.setAttribute("aria-pressed", String(following));
+    }
+  });
+  push();
+  // Re-frame when the window or the dock changes size (the dock grows a row
+  // on a phone when the Now button appears).
+  const ro = new ResizeObserver(() => {
+    map?.resize();
+    frameGlobe();
+  });
+  ro.observe(els.globe);
+  ro.observe(document.querySelector<HTMLElement>(".dock")!);
 }
 
 // ---------------------------------------------------------------- start
