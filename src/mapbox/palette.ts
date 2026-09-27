@@ -30,6 +30,8 @@ export type Palette = {
   field: string;
   /** The aurora's green. Clock token: --noe-aurora. */
   aurora: string;
+  /** Plankton's bioluminescent blue. Clock token: --noe-plankton. */
+  plankton: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -52,6 +54,7 @@ export const TOKENS: PaletteTokens = {
   life: "--noe-life",
   field: "--noe-field",
   aurora: "--noe-aurora",
+  plankton: "--noe-plankton",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -66,6 +69,7 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   life: "#3f9e8f",
   field: "#8fa6dc",
   aurora: "#3fcf8e",
+  plankton: "#4fb8d6",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -80,6 +84,7 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   life: "#7fd6c4",
   field: "#a9bdf0",
   aurora: "#6dffb0",
+  plankton: "#7fe3ff",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -129,6 +134,7 @@ export function readPalette(
     life: pick("life"),
     field: pick("field"),
     aurora: pick("aurora"),
+    plankton: pick("plankton"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),

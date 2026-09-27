@@ -121,3 +121,12 @@ export {
   typicalOvalEdges,
   auroraWords,
 } from "./aurora.js";
+
+export {
+  type PlanktonPhase,
+  type PlanktonFeature,
+  isOcean,
+  planktonAt,
+  planktonField,
+  planktonWords,
+} from "./plankton.js";

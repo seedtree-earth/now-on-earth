@@ -58,7 +58,8 @@
     "check": "npm run typecheck && npm run check:boundaries && npm run check:copy && npm test",
     "prepublishOnly": "npm run check && npm run build",
     "data:humpbacks": "node scripts/ecology/humpbacks.mjs",
-    "data:magnetic": "node scripts/earth/magnetic.mjs"
+    "data:magnetic": "node scripts/earth/magnetic.mjs",
+    "data:ocean-mask": "node scripts/earth/ocean-mask.mjs"
   },
   "peerDependencies": {
     "mapbox-gl": "^3.26.0"

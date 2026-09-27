@@ -12,6 +12,7 @@ import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
+import { planktonLayer } from "./layers/plankton.js";
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
@@ -110,6 +111,7 @@ export const defaultLayers = (
   opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions } = {},
 ): ClockLayer[] => [
   seaIceLayer(),
+  planktonLayer(),
   tidesLayer(),
   ringsLayer(),
   twilightLayer(),
