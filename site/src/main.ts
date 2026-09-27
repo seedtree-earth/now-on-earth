@@ -17,6 +17,7 @@ import {
   planktonWords,
   moonState,
   seasonMarkWords,
+  typicalAurora,
   seasonMarks,
   sunState,
   tideWords,
@@ -25,6 +26,8 @@ import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
 import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
+import { GUIDE, LENS_TITLES } from "./guide";
+import { hoverItems } from "./hover";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -58,6 +61,9 @@ const els = {
   faceSun: $<HTMLButtonElement>("face-sun"),
   faceMe: $<HTMLButtonElement>("face-me"),
   layers: $<HTMLButtonElement>("layers"),
+  guide: $<HTMLButtonElement>("guide"),
+  guidePanel: $("guide-panel"),
+  tip: $("hover-tip"),
   layersPanel: $("layers-panel"),
   moonline: $("moonline"),
   flatSwitch: $<HTMLInputElement>("flat-model"),
@@ -469,7 +475,116 @@ els.layers.addEventListener("click", () => {
   const open = els.layersPanel.hidden;
   els.layersPanel.hidden = !open;
   els.layers.setAttribute("aria-expanded", String(open));
+  if (open) {
+    els.guidePanel.hidden = true;
+    els.guide.setAttribute("aria-expanded", "false");
+  }
 });
+
+// ---------------------------------------------------------------- guide
+
+/** The Guide: every element, grouped as the lenses are, with its swatch and source. */
+function renderGuide() {
+  const groups = ["light", "life", "earth", "weather", "controls"] as const;
+  els.guidePanel.replaceChildren(
+    ...groups.flatMap((lens) => {
+      const entries = GUIDE.filter((g) => g.lens === lens);
+      if (!entries.length) return [];
+      const h = document.createElement("h2");
+      h.textContent = LENS_TITLES[lens];
+      const dl = document.createElement("dl");
+      for (const g of entries) {
+        const item = document.createElement("div");
+        item.className = "guide-item";
+        const sw = document.createElement("span");
+        sw.className = "swatch";
+        sw.setAttribute("aria-hidden", "true");
+        if (g.swatch) {
+          sw.style.setProperty("--c", g.swatch);
+          sw.style.background = g.mark === "glow" ? `radial-gradient(circle, ${g.swatch}, transparent 70%)` : g.swatch;
+        }
+        if (g.mark) sw.dataset.mark = g.mark;
+        if (g.mark === "number") sw.textContent = "3";
+        if (!g.swatch && !g.mark) sw.style.visibility = "hidden";
+        const dt = document.createElement("dt");
+        dt.textContent = g.title;
+        const dd = document.createElement("dd");
+        dd.textContent = g.body;
+        if (g.source) {
+          const src = document.createElement("span");
+          src.className = "source";
+          src.textContent = g.source;
+          dd.append(src);
+        }
+        item.append(sw, dt, dd);
+        dl.append(item);
+      }
+      return [h, dl];
+    }),
+  );
+}
+renderGuide();
+
+els.guide.addEventListener("click", () => {
+  const open = els.guidePanel.hidden;
+  els.guidePanel.hidden = !open;
+  els.guide.setAttribute("aria-expanded", String(open));
+  if (open) {
+    els.layersPanel.hidden = true;
+    els.layers.setAttribute("aria-expanded", "false");
+  }
+});
+
+// ---------------------------------------------------------------- hover
+
+let typicalCache: { key: number; points: Array<[number, number, number]> } | null = null;
+function auroraForHover(date: Date) {
+  if (auroraMode === "live" && auroraLive) return { live: true, points: auroraLive.points };
+  const key = Math.round(date.getTime() / 600000);
+  if (typicalCache?.key !== key) typicalCache = { key, points: typicalAurora(date, sunState(date)) };
+  return { live: false, points: typicalCache.points };
+}
+
+function hideTip() {
+  els.tip.hidden = true;
+}
+
+/** Say what is under the pointer, beside it. */
+function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: number }) {
+  if (!map || isFlat()) return hideTip();
+  const date = shown();
+  const items = hoverItems({
+    map,
+    point,
+    at: { lng: lngLat.lng, lat: lngLat.lat },
+    date,
+    sun: sunState(date),
+    moon: moonState(date),
+    viewer,
+    shows: (k) => shownLayers.has(k),
+    events: [humpbacks, godwits],
+    aurora: auroraForHover(date),
+  });
+  if (!items.length) return hideTip();
+  els.tip.replaceChildren(
+    ...items.map((it) => {
+      const p = document.createElement("p");
+      const b = document.createElement("strong");
+      b.textContent = it.title;
+      const span = document.createElement("span");
+      span.textContent = it.detail;
+      p.append(b, span);
+      return p;
+    }),
+  );
+  els.tip.hidden = false;
+  // Beside the pointer, kept inside the window.
+  const r = els.tip.getBoundingClientRect();
+  const x = Math.min(point.x + 16, window.innerWidth - r.width - 8);
+  const y = point.y + 16 + r.height > window.innerHeight - 8 ? point.y - r.height - 12 : point.y + 16;
+  els.tip.style.left = `${Math.max(8, x)}px`;
+  els.tip.style.top = `${Math.max(8, y)}px`;
+}
 
 // A person or node, when their dot is hovered or tapped.
 function showPick(p: PresencePick | null) {
@@ -602,6 +717,22 @@ function buildGlobe() {
     return;
   }
   map.getCanvas().setAttribute("aria-hidden", "true");
+  // Hover (or tap, on a touch screen) to hear what is under the pointer.
+  let pending = 0;
+  map.on("mousemove", (e) => {
+    if (pending) cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(() => showTip(e.point, e.lngLat));
+  });
+  // A tap shows it for a few seconds; there is no pointer to move away.
+  let tapTimer = 0;
+  map.on("click", (e) => {
+    showTip(e.point, e.lngLat);
+    clearTimeout(tapTimer);
+    tapTimer = window.setTimeout(hideTip, 5000);
+  });
+  map.on("mouseout", hideTip);
+  map.on("dragstart", hideTip);
+  map.on("zoomstart", hideTip);
   map.on("style.load", setFog);
   map.on("zoomstart", (e) => {
     if ((e as { originalEvent?: Event }).originalEvent) userZoomed = true;

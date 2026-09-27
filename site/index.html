@@ -41,6 +41,9 @@
         <p class="where" id="where" aria-hidden="true">&nbsp;</p>
       </header>
 
+      <!-- What is under the pointer: a visual extra; the Guide says the same in full. -->
+      <div id="hover-tip" class="hover-tip" aria-hidden="true" hidden></div>
+
       <!-- A person or node dot, when hovered or tapped. -->
       <aside id="pick" class="pick" aria-live="polite" hidden></aside>
 
@@ -64,6 +67,7 @@
             </div>
           </div>
         </div>
+        <div id="guide-panel" class="guide" role="region" aria-label="Guide to the clock" hidden></div>
         <div id="layers-panel" class="layers" role="group" aria-label="What the globe shows" hidden>
           <!-- The lenses are built from the layer list in lens-panel.ts. -->
           <div id="lenses" class="lenses"></div>
@@ -87,6 +91,10 @@
           <button id="face-me" class="btn" type="button" title="Come back to where you are">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.6" /><circle cx="12" cy="10" r="2.4" /></svg>
             <span class="btn-label">Face me</span>
+          </button>
+          <button id="guide" class="btn" type="button" aria-expanded="false" aria-controls="guide-panel" title="What everything means">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5" /><circle cx="12" cy="7.8" r="0.6" fill="currentColor" /></svg>
+            <span class="btn-label">Guide</span>
           </button>
           <button id="layers" class="btn" type="button" aria-expanded="false" aria-controls="layers-panel" title="What the globe shows">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 4 3 8.5l9 4.5 9-4.5z" /><path d="m3 12.5 9 4.5 9-4.5" /><path d="m3 16.5 9 4.5 9-4.5" /></svg>
