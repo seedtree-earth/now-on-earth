@@ -6,9 +6,21 @@
 
 import "./styles.css";
 import mapboxgl from "mapbox-gl";
-import { FALLBACK_VIEWER, type LngLat, describeLight, moonState, sunState } from "now-on-earth/core";
+import {
+  FALLBACK_VIEWER,
+  type LngLat,
+  type SeasonalEvent,
+  describeLight,
+  eventStory,
+  moonState,
+  sunState,
+} from "now-on-earth/core";
+import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import { DEFAULT_HIDDEN, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
 import { MOCK_PEOPLE } from "./mock-people";
+
+/** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
+const humpbacks = humpbacksJson as unknown as SeasonalEvent;
 import { askPosition, quietPosition } from "./location";
 import { dayTrack, yearTrack } from "./tracks";
 
@@ -38,6 +50,8 @@ const els = {
   layers: $<HTMLButtonElement>("layers"),
   layersPanel: $("layers-panel"),
   moonline: $("moonline"),
+  eventline: $("eventline"),
+  eventCredit: $("event-credit"),
   pick: $("pick"),
   theme: $<HTMLButtonElement>("theme"),
 };
@@ -51,7 +65,9 @@ let viewer: LngLat = { ...FALLBACK_VIEWER };
 let located = false;
 let clock: NowOnEarth | null = null;
 /** Which layers are on, mirrored here so the words work even without a globe. */
-const shownLayers = new Set(["rings", "twilight", "seasons", "moon", "sun"].filter((k) => !DEFAULT_HIDDEN.includes(k)));
+const shownLayers = new Set(
+  ["rings", "twilight", "seasons", "moon", "sun", humpbacks.id].filter((k) => !DEFAULT_HIDDEN.includes(k)),
+);
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
 const isLive = () => !playing && offsetMin === 0 && dayShift === 0;
@@ -87,6 +103,9 @@ function renderWords() {
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
   els.moonline.hidden = !w.moon;
   if (w.moon) els.moonline.textContent = w.moon;
+  const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
+  els.eventline.hidden = !story;
+  if (story) els.eventline.textContent = story;
 
   // Screen readers hear a change of light, not every frame of it: while the
   // sun is playing, at most one sentence every six seconds.
@@ -94,7 +113,7 @@ function renderWords() {
   if (w.sentence !== lastSentence && (!playing || now - lastSpoken > 6000)) {
     lastSentence = w.sentence;
     lastSpoken = now;
-    els.words.textContent = (drift ? `${drift}. ` : "") + w.sentence;
+    els.words.textContent = (drift ? `${drift}. ` : "") + w.sentence + (story ? ` Along the east coast, ${story}.` : "");
   }
   els.globe.setAttribute("aria-label", `A globe lit by the sun. ${w.sentence}`);
   els.scrub.setAttribute("aria-valuetext", `${w.phase}, ${w.sky}`);
@@ -221,6 +240,19 @@ for (const input of els.layersPanel.querySelectorAll<HTMLInputElement>("input[da
   });
 }
 
+// Credit the sources in words, with a link to every dataset and licence.
+{
+  els.eventCredit.textContent = `${humpbacks.credit ?? ""}. ${humpbacks.note ?? ""} `;
+  if (humpbacks.sourcesUrl) {
+    const a = document.createElement("a");
+    a.href = humpbacks.sourcesUrl;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "All sources and licences";
+    els.eventCredit.append(a);
+  }
+}
+
 // A person or node, when their dot is hovered or tapped.
 function showPick(p: PresencePick | null) {
   if (!p) {
@@ -341,6 +373,8 @@ function buildGlobe() {
       center: [viewer.lng, viewer.lat],
       zoom: 1.2,
       attributionControl: true,
+      // Always-visible credit for the event data, beside Mapbox's own.
+      customAttribution: `Humpback sightings: <a href="https://www.ala.org.au" target="_blank" rel="noopener">Atlas of Living Australia</a>, <a href="https://www.gbif.org" target="_blank" rel="noopener">GBIF.org</a> and contributing datasets (<a href="${humpbacks.sourcesUrl}" target="_blank" rel="noopener">sources</a>)`,
     });
   } catch (err) {
     console.warn("[now-on-earth] globe could not start", err);
@@ -359,7 +393,8 @@ function buildGlobe() {
     viewer,
     fine,
     people: MOCK_PEOPLE,
-    hidden: ["rings", "twilight", "seasons", "moon", "sun", "tides", "people"].filter((k) => !shownLayers.has(k)),
+    events: [humpbacks],
+    hidden: ["rings", "twilight", "seasons", "moon", "sun", "tides", "people", humpbacks.id].filter((k) => !shownLayers.has(k)),
     onPick: showPick,
   });
   // Dev only: a handle for poking at the globe from the console.

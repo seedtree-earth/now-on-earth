@@ -24,6 +24,8 @@ export type Palette = {
   dusk: string;
   /** Moonlight: the moon, its phase, the tides. Clock token: --noe-moon. */
   moon: string;
+  /** Living things: ecological events. Clock token: --noe-life. */
+  life: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -43,6 +45,7 @@ export const TOKENS: PaletteTokens = {
   glow: "--noe-glow",
   dusk: "--noe-dusk",
   moon: "--noe-moon",
+  life: "--noe-life",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -54,6 +57,7 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   glow: "#fff4d6",
   dusk: "#d9826b",
   moon: "#dfe4ee",
+  life: "#3f9e8f",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -65,6 +69,7 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   glow: "#fff0c8",
   dusk: "#e59274",
   moon: "#e9edf6",
+  life: "#7fd6c4",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -111,6 +116,7 @@ export function readPalette(
     glow: pick("glow"),
     dusk: pick("dusk"),
     moon: pick("moon"),
+    life: pick("life"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),

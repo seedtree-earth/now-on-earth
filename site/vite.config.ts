@@ -15,6 +15,7 @@ export default defineConfig({
     alias: {
       "now-on-earth/core": here("../src/core/index.ts"),
       "now-on-earth/mapbox": here("../src/mapbox/index.ts"),
+      "now-on-earth/events": here("../events"),
     },
   },
   build: {

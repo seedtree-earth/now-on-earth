@@ -7,8 +7,9 @@
  */
 
 import type { Map as MapboxMap } from "mapbox-gl";
-import { FALLBACK_VIEWER, type LngLat, type Presence, moonState, sunState } from "../core/index.js";
+import { FALLBACK_VIEWER, type LngLat, type Presence, type SeasonalEvent, moonState, sunState } from "../core/index.js";
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
+import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { moonLayer } from "./layers/moon.js";
 import { peopleLayer } from "./layers/people.js";
 import { ringsLayer } from "./layers/rings.js";
@@ -30,6 +31,8 @@ export type NowOnEarthOptions = {
   fine?: boolean;
   /** People and nodes who chose to be shown. Only `consent.shown` ones are drawn. */
   people?: Presence[];
+  /** Seasonal ecological events (built by scripts/ecology/), drawn under the lines. */
+  events?: SeasonalEvent[];
   /** A person or node dot was hovered or tapped (null on leave). */
   onPick?: (pick: PresencePick | null) => void;
   /**
@@ -81,10 +84,14 @@ export type NowOnEarth = {
   destroy(): void;
 };
 
-export const defaultLayers = (opts: { onPick?: (pick: PresencePick | null) => void } = {}): ClockLayer[] => [
+export const defaultLayers = (
+  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[] } = {},
+): ClockLayer[] => [
   tidesLayer(),
   ringsLayer(),
   twilightLayer(),
+  ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
+  partneredKnowledgeLayer(),
   seasonsLayer(),
   peopleLayer({ onPick: opts.onPick }),
   moonLayer(),
@@ -103,7 +110,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const prefix = options.prefix ?? "noe-";
   const themeEl = options.themeElement ?? document.documentElement;
   const tokens = { ...TOKENS, ...options.tokens };
-  const mods = options.layers ?? defaultLayers({ onPick: options.onPick });
+  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events });
   const hidden = options.hidden ?? DEFAULT_HIDDEN;
   const visible = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
   const listeners = new Set<(f: Frame) => void>();

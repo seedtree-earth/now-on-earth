@@ -18,7 +18,8 @@
 //   node scripts/ecology/humpbacks.mjs             fetch (or read cache) and write JSON
 //
 // Licences: only CC0 and CC BY records are counted (no NonCommercial,
-// NoDerivatives, ShareAlike, unspecified or custom terms). See DATA_SOURCES.md.
+// NoDerivatives, ShareAlike, unspecified or custom terms), and only from
+// datasets whose own licence is open too. See DATA_SOURCES.md.
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -35,7 +36,7 @@ const USER_AGENT = "now-on-earth/0.1 (+https://github.com/seedtree-earth/now-on-
 const THROTTLE_MS = 1500;
 /** Look up citation metadata only for sources carrying at least this share. */
 const CITE_SHARE = 0.01;
-const CITE_MAX = 8;
+const CITE_MAX = 8; // GBIF datasets; every ALA source is looked up, for its licence
 
 const SPECIES = "Megaptera novaeangliae";
 /** The east coast, Torres Strait to southern Tasmania, out past the shelf. */
@@ -122,41 +123,25 @@ function stop(message) {
   process.exit(1);
 }
 
+/** NonCommercial, NoDerivatives, ShareAlike or custom terms, in any spelling. */
+const restrictive = (licence) => !!licence && /(^|[^a-z])(nc|nd|sa)([^a-z]|$)|custom/i.test(licence);
+
 const facet = (body, name) => body?.facetResults?.find((f) => f.fieldName === name)?.fieldResult ?? [];
 
 // ----------------------------------------------------------------- run
 
 console.log(`Humpback whales · ${DRY ? "dry run (nothing fetched)" : "building"}`);
 
-// 1. ALA: each month's sightings, counted per 0.1° cell.
-const months = [];
-for (let m = 1; m <= 12; m++) {
-  const body = await get(alaUrl([["fq", `month:"${m}"`], ["facets", "point-0.1"], ["flimit", "10000"]]), `ALA month ${m} grid`);
-  const cells = facet(body, "point-0.1").map((c) => {
-    const [lat, lng] = c.label.split(",").map(Number);
-    return [lng, lat, c.count];
-  });
-  months.push({ month: m, records: body?.totalRecords ?? 0, cells });
-}
-
-// 2. ALA: which data resources the counted records come from, for credit.
-const alaSourcesBody = await get(alaUrl([["facets", "dataResourceUid"], ["flimit", "500"]]), "ALA sources");
-const alaTotal = alaSourcesBody?.totalRecords ?? 0;
-const alaResources = facet(alaSourcesBody, "dataResourceUid")
-  .map((r) => ({ uid: (r.fq?.match(/"([^"]+)"/) ?? [])[1] ?? r.label, name: r.label, records: r.count }))
+// 1. ALA: every data resource behind the open-licence records.
+const alaAllBody = await get(alaUrl([["facets", "dataResourceUid"], ["flimit", "500"]]), "ALA sources");
+const alaAll = facet(alaAllBody, "dataResourceUid")
+  .map((r) => ({ uid: (r.fq?.match(/"([^"]+)"/) ?? [])[1] ?? r.label, field: r.fq?.split(":")[0] ?? "data_resource_uid", name: r.label, records: r.count }))
   .sort((a, b) => b.records - a.records);
 
-// 3. GBIF: the same question, as an independent check of the monthly shape,
-//    and the datasets behind it for DOIs.
-const gbifBody = await get(gbifUrl([["facet", "month"], ["facet", "datasetKey"], ["facetLimit", "200"]]), "GBIF months and datasets");
-const gbifFacet = (name) => gbifBody?.facets?.find((f) => f.field === name)?.counts ?? [];
-const gbifTotal = gbifBody?.count ?? 0;
-const gbifMonths = Array.from({ length: 12 }, (_, i) => Number(gbifFacet("MONTH").find((c) => Number(c.name) === i + 1)?.count ?? 0));
-const gbifDatasets = gbifFacet("DATASET_KEY").map((d) => ({ key: d.name, records: d.count }));
-
-// 4. Citation metadata for the sources that carry the weight.
-const citeAla = alaResources.filter((r) => alaTotal && r.records / alaTotal >= CITE_SHARE).slice(0, CITE_MAX);
-for (const r of citeAla) {
+// 2. The licence of every one of those datasets. A record tagged CC0 inside a
+//    dataset published as NonCommercial (as Happywhale's are) is read by the
+//    stricter of the two: the dataset's terms win.
+for (const r of alaAll) {
   const meta = await get(`${ALA_COLLECTORY}${encodeURIComponent(r.uid)}`, `ALA source ${r.uid}`);
   if (meta) {
     r.name = meta.name ?? r.name;
@@ -166,6 +151,39 @@ for (const r of citeAla) {
     r.url = `https://collections.ala.org.au/public/show/${r.uid}`;
   }
 }
+const excluded = alaAll.filter((r) => restrictive(r.licence));
+const exclusion = excluded.length
+  ? [["fq", `-${excluded[0].field}:(${excluded.map((r) => `"${r.uid}"`).join(" OR ")})`]]
+  : [];
+
+// 3. ALA: each month's sightings from open datasets only, counted per 0.1° cell.
+const months = [];
+for (let m = 1; m <= 12; m++) {
+  const body = await get(
+    alaUrl([...exclusion, ["fq", `month:"${m}"`], ["facets", "point-0.1"], ["flimit", "10000"]]),
+    `ALA month ${m} grid`,
+  );
+  const cells = facet(body, "point-0.1").map((c) => {
+    const [lat, lng] = c.label.split(",").map(Number);
+    return [lng, lat, c.count];
+  });
+  months.push({ month: m, records: body?.totalRecords ?? 0, cells });
+}
+
+// 4. ALA: the sources that remain, for credit.
+const alaKeptBody = await get(alaUrl([...exclusion, ["facets", "dataResourceUid"], ["flimit", "500"]]), "ALA sources kept");
+const alaTotal = alaKeptBody?.totalRecords ?? 0;
+const keptUids = new Set(facet(alaKeptBody, "dataResourceUid").map((r) => (r.fq?.match(/"([^"]+)"/) ?? [])[1] ?? r.label));
+const alaResources = alaAll.filter((r) => keptUids.has(r.uid));
+
+// 5. GBIF: the same question, as an independent check of the monthly shape,
+//    and the datasets behind it for DOIs.
+const gbifBody = await get(gbifUrl([["facet", "month"], ["facet", "datasetKey"], ["facetLimit", "200"]]), "GBIF months and datasets");
+const gbifFacet = (body, name) => body?.facets?.find((f) => f.field === name)?.counts ?? [];
+const monthly = (body) => Array.from({ length: 12 }, (_, i) => Number(gbifFacet(body, "MONTH").find((c) => Number(c.name) === i + 1)?.count ?? 0));
+let gbifTotal = gbifBody?.count ?? 0;
+const gbifMonths = monthly(gbifBody);
+const gbifDatasets = gbifFacet(gbifBody, "DATASET_KEY").map((d) => ({ key: d.name, records: d.count }));
 const citeGbif = gbifDatasets.filter((d) => gbifTotal && d.records / gbifTotal >= CITE_SHARE).slice(0, CITE_MAX);
 for (const d of citeGbif) {
   const meta = await get(`${GBIF_DATASET}${d.key}`, `GBIF dataset ${d.key.slice(0, 8)}`);
@@ -177,11 +195,18 @@ for (const d of citeGbif) {
     d.url = `https://www.gbif.org/dataset/${d.key}`;
   }
 }
+// Take restrictive datasets out of GBIF's monthly check too, one request each.
+const gbifExcluded = citeGbif.filter((d) => restrictive(d.licence));
+for (const d of gbifExcluded) {
+  const body = await get(gbifUrl([["datasetKey", d.key], ["facet", "month"]]), `GBIF months without ${d.key.slice(0, 8)}`);
+  monthly(body).forEach((n, i) => (gbifMonths[i] -= n));
+  gbifTotal -= body?.count ?? 0;
+}
+const gbifKept = citeGbif.filter((d) => !restrictive(d.licence));
 
 if (DRY) {
-  const fixed = planned.length;
-  console.log(`\nWould make ${fixed} request(s) now, plus up to ${2 * CITE_MAX} citation lookups once the source lists are known`);
-  console.log(`(at least ${THROTTLE_MS / 1000}s apart, so roughly ${Math.ceil(((fixed + 2 * CITE_MAX) * THROTTLE_MS) / 1000)}s at most).`);
+  console.log(`
+Would make ${planned.length} request(s) now (more may follow once licences are known).`);
   for (const p of planned) console.log(`  · ${p}`);
   process.exit(0);
 }
@@ -210,6 +235,26 @@ const track = months.map(({ month, cells }) => {
   return { month, lat: Math.round(median[1] * 100) / 100, lng: Math.round(lng * 100) / 100, records: total };
 });
 
+// The words the layer speaks: the general, well-known shape of the migration,
+// month by month. A pattern, never a claim about where any whale is.
+const STORY = [
+  "the humpbacks are away in the far south, feeding in Antarctic waters",
+  "the humpbacks are away in the far south, feeding in Antarctic waters",
+  "the humpbacks are away in the far south, feeding in Antarctic waters",
+  "the humpbacks are gathering in the far south, soon to travel north",
+  "the first humpbacks are travelling north along this coast",
+  "humpbacks travel north along this coast in winter",
+  "humpbacks travel north along this coast in winter",
+  "humpbacks rest in the warm northern waters, where calves are born",
+  "humpbacks turn for home, some with new calves",
+  "humpbacks head south along this coast with their calves",
+  "humpbacks head south along this coast with their calves",
+  "the last humpbacks are leaving for Antarctic waters",
+];
+
+const leading = alaResources.slice(0, 3).map((r) => r.name);
+const CREDIT = `Sightings via the Atlas of Living Australia and GBIF.org, from ${leading.join(", ")} and others · CC0 and CC BY records`;
+
 const out = {
   id: "humpback-whales-east-australia",
   name: "Humpback whales",
@@ -218,11 +263,16 @@ const out = {
   generated: new Date().toISOString(),
   grid: 0.1,
   bbox: BBOX,
-  licences: "CC0 and CC BY records only",
+  story: STORY,
+  credit: CREDIT,
+  note: "A general seasonal pattern, not tracks. Sightings gather where people look: headlands, whale-watching towns and survey routes.",
+  sourcesUrl: "https://github.com/seedtree-earth/now-on-earth/blob/main/DATA_SOURCES.md",
+  licences: "CC0 and CC BY records only, from datasets whose own licence is also CC0 or CC BY",
+  excluded: excluded.map(({ uid, name, licence, records }) => ({ uid, name, licence, records })),
   months,
   track,
   crossCheck: {
-    note: "GBIF carries many of the same datasets as ALA, so it is used as an independent check of the monthly shape, not added to the counts.",
+    note: "GBIF carries many of the same datasets as ALA, so it is used as an independent check of the monthly shape, not added to the counts. Restrictively licensed datasets are taken out of both.",
     alaMonthly: months.map((m) => m.records),
     gbifMonthly: gbifMonths,
     alaTotal,
@@ -249,7 +299,7 @@ const out = {
       url: "https://www.gbif.org",
       query: gbifUrl([]),
       records: gbifTotal,
-      datasets: citeGbif,
+      datasets: gbifKept,
     },
   },
   requests: { network, cached },

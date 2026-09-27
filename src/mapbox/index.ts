@@ -18,6 +18,7 @@ export { sunLayer } from "./layers/sun.js";
 export { twilightLayer } from "./layers/twilight.js";
 export { moonLayer } from "./layers/moon.js";
 export { tidesLayer } from "./layers/tides.js";
+export { seasonalEventLayer, partneredKnowledgeLayer, type EventLayerOptions } from "./layers/events.js";
 export { peopleLayer, type PeopleLayerOptions, type PresencePick } from "./layers/people.js";
 export { readPalette, isDark, TOKENS, type Palette, type PaletteTokens } from "./palette.js";
 export type { ClockLayer, Frame, LayerContext } from "./types.js";

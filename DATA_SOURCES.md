@@ -30,12 +30,15 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 
 ### How we use them
 
-- **Only CC0 and CC BY records are counted.** NonCommercial, NoDerivatives, ShareAlike, custom and unspecified records are excluded in the query itself, so SeedTree can use the result anywhere. (Of about 34,800 ALA humpback records on the east coast, about 24,000 are CC0 or CC BY.)
+- **Only CC0 and CC BY records, from datasets that are open too.** Record licences are filtered in the query (no NonCommercial, NoDerivatives, ShareAlike, custom or unspecified records). Then every contributing dataset's own licence is looked up, and any dataset published under NC, ND or SA terms is excluded whole, even if its records are tagged CC0: the stricter licence wins.
+- **Excluded on that rule:** *Happywhale · Humpback whale in South Pacific Ocean* (CC BY-NC dataset, 16,702 records tagged CC0). It is by far the largest source; leaving it out keeps the pattern shape but thins it.
+- **Result:** 7,320 ALA records from 20 open datasets, in 2,123 month-cells. GBIF's independent monthly totals (7,463 records, Happywhale removed the same way) track ALA's closely. One kept dataset, *Entangled Wildlife Australia* (54 records), has a dataset licence recorded only as "other"; its records are CC0 or CC BY and it is not NC, ND or SA, so it stays under the rule as written. Worth confirming with the provider.
 - **Aggregates, not records.** The script asks for counts per 0.1° grid cell per month (facets), so no individual sighting, observer or exact point is stored or shipped.
 - **ALA is the source of the pattern; GBIF is a cross-check.** GBIF carries many of the same datasets as ALA (Happywhale, iNaturalist and others), so adding the two would count sightings twice. GBIF's monthly totals are stored beside ALA's as an independent check, and GBIF supplies DOIs for the main datasets.
 - **Credit** is shown in the app whenever the layer is on (ALA, GBIF and the leading data resources), and the full source list, with each resource's licence and citation, is written into the JSON.
-- **Politeness:** at most about 30 requests per full build (14 data queries plus up to 16 citation lookups), at least 1.5 s apart, with a User-Agent naming this repo. Responses are cached in `scripts/ecology/.cache/` (not committed), so reruns make no requests. Any 429 or error stops the run with no retries.
-- Before writing the script, 4 count-only requests (no records) were made by hand to size the data and confirm grid facets work.
+- **Politeness:** one request at a time, at least 1.5 s apart, with a User-Agent naming this repo. Responses are cached in `scripts/ecology/.cache/` (not committed), so reruns make no requests. Any 429 or error stops the run with no retries.
+- **Requests made so far (2026-09-27):** 4 count-only probes by hand; a first build of 22 requests; a strict-licence rebuild of 30 (21 dataset licence lookups in all, 12 monthly grids, the kept-source list, one GBIF adjustment). 56 in total, none refused. A clean rebuild from cache makes 0.
+- **Shown honestly:** as a broad, soft seasonal haze blended month to month, never points or tracks, with a note that sightings gather where people look. The UI credits ALA, GBIF.org and the leading datasets whenever the layer is on (in the Layers panel and the globe's attribution line), and links here for every dataset and licence.
 
 ### Parked
 

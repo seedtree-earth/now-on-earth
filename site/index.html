@@ -37,6 +37,7 @@
         <h1 class="phase" id="phase" aria-hidden="true">&nbsp;</h1>
         <p class="sky" id="sky" aria-hidden="true">&nbsp;</p>
         <p class="moonline" id="moonline" aria-hidden="true" hidden></p>
+        <p class="eventline" id="eventline" aria-hidden="true" hidden></p>
         <p class="where" id="where" aria-hidden="true">&nbsp;</p>
       </header>
 
@@ -66,6 +67,14 @@
           <label class="switch"><input type="checkbox" data-layer="tides" /><span>The moon's pull on the oceans</span></label>
           <label class="switch"><input type="checkbox" data-layer="people" /><span>People and nodes <em>(sample)</em></span></label>
           <label class="switch"><input type="checkbox" id="fine" /><span>Finer rings</span></label>
+          <div class="panel-group">
+            <p class="panel-head">Life through the year</p>
+            <label class="switch"><input type="checkbox" data-layer="humpback-whales-east-australia" checked /><span>Humpback whales on the east coast <em>(the seasonal pattern)</em></span></label>
+            <p class="credit" id="event-credit"></p>
+            <!-- Placeholders: these switches stay off until their layers exist. -->
+            <label class="switch is-coming"><input type="checkbox" disabled /><span>Seasonal knowledge, shared in partnership <em>· to come, with permission</em></span></label>
+            <label class="switch is-coming"><input type="checkbox" disabled /><span>What people are seeing this season <em>· to come, via iNaturalist</em></span></label>
+          </div>
         </div>
         <div class="buttons">
           <button id="play" class="btn" type="button" aria-pressed="false" title="Let the sun move">

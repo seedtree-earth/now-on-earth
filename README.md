@@ -14,6 +14,8 @@ src/core/     pure maths: no DOM, no Mapbox, no network
   twilight.ts   golden hour and civil, nautical, astronomical twilight as graded bands
   moon.ts       sublunar point, phase and illumination (low-precision Meeus)
   people.ts     the Presence shape: opt-in only, coarse places, no search
+  events.ts     seasonal ecological events, month blending, and the shapes for
+                partnered knowledge and ground-truthing (placeholders)
   describe.ts   the light in words ("late afternoon · the sun is low to the west")
 src/mapbox/   the light as layers on any Mapbox GL v3 map
   attach.ts     attachNowOnEarth(map, options) → controller
@@ -21,7 +23,8 @@ src/mapbox/   the light as layers on any Mapbox GL v3 map
                 seasons, people, moon, sun
   palette.ts    colours read from the host page's CSS tokens
 site/         the standalone clock (Vite), built on the package's public exports
-scripts/      boundary and copy checks; phase 3 data builds will live here
+scripts/      boundary and copy checks, and ecology/ build scripts
+events/       static event data built by those scripts (humpback-whales.json)
 DATA_SOURCES.md  every dataset, its licence and its credit
 ```
 
@@ -91,6 +94,24 @@ So a V2 restyle flows straight into the light. The standalone site mirrors V2's 
 | `sun` | The sun point, breathing slowly | yes |
 | `tides` | The moon's pull: two idealised bulges, under the moon and opposite | no |
 | `people` | People and nodes who chose to be shown, each dot in its own light | no |
+| *event id* | Each `events` entry: a soft seasonal haze, blended month to month | yes, when passed |
+| `partnered-knowledge` | Placeholder. Draws nothing until knowledge is shared with permission | n/a |
+
+### Ecological events
+
+```ts
+import humpbacks from "now-on-earth/events/humpback-whales.json";
+attachNowOnEarth(map, { events: [humpbacks] });
+```
+
+Event data is built ahead of time, never fetched in the browser:
+
+```bash
+npm run data:humpbacks -- --dry-run   # list the requests, fetch nothing
+npm run data:humpbacks                # fetch (or read cache) and write events/
+```
+
+The dataset carries its own words (a general line per month), a credit line and a note on what it can't say. It's shown as a general seasonal pattern, not tracks. See [DATA_SOURCES.md](DATA_SOURCES.md) for the licence rules and every source.
 
 ### People: the line the layer holds
 
@@ -115,6 +136,14 @@ With no token, or no WebGL, the page still runs: the words and the sliders follo
 **Accessibility:** the face has no numbers, so it speaks. A polite live region describes the light in sentences ("Late afternoon. The sun is low to the west. Early spring, and the days are growing longer. A first quarter moon, high in the east."). The sliders carry the same words as their values. Reduced motion stops the sun's breathing and the camera's easing.
 
 **Location** is never asked for on arrival. If the browser has already been given permission it is used quietly; otherwise the clock stands in the Northern Rivers until you press "Face me". It is rounded to about ten kilometres and never leaves the page.
+
+## Roadmap
+
+- **Done:** the core light (sun, rings, seasons, words); twilight, moon, tides and people; humpback whales on the east coast from ALA and GBIF.
+- **Next · birds:** eBird migration, once there is an API key and its redistribution terms are checked.
+- **Future · community ground-truthing:** people confirm what they actually see by logging sightings on **iNaturalist** (in a SeedTree project), and a build-time script pulls them back: research grade, CC0 or CC BY only, coarsened and aggregated by month and cell exactly like the event data, shown as "what people are seeing this season" beside the long-run pattern. We don't run our own sightings database. The data shapes are drafted (`GroundTruthObservation`, `GroundTruthMonth` in `src/core/events.ts`) and the switch is in the Layers panel, off and marked "to come".
+- **Future · partnered seasonal knowledge:** local and Indigenous seasonal calendars, only in partnership, with permission and on the holders' terms. Never scraped. The shape (`PartneredKnowledge`) and an empty placeholder layer are in place.
+- **Joining the Landscape:** add the package to SeedTree V2 and call `attachNowOnEarth` from the Landscape's map `load` handler, with `fromLandscapeRows` feeding the people layer.
 
 ## Checks
 

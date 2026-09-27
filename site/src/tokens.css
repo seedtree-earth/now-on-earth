@@ -11,7 +11,7 @@
    if V2's names change.
 
    The --noe-* tokens are the clock's own (V2 has no night violet, sun glow,
-   dusk rose, moonlight or viewer teal yet). V2 can define them to override.
+   dusk rose, moonlight, living-things sea green or viewer teal yet). V2 can define them to override.
    ========================================================================== */
 
 :root {
@@ -44,6 +44,7 @@
   --noe-glow: #fff4d6;
   --noe-dusk: #d9826b;
   --noe-moon: #dfe4ee;
+  --noe-life: #3f9e8f;
   --noe-me: #2a9d9a;
 
   color-scheme: light;
@@ -70,6 +71,7 @@
   --noe-glow: #fff0c8;
   --noe-dusk: #e59274;
   --noe-moon: #e9edf6;
+  --noe-life: #7fd6c4;
   --noe-me: #5cc8c2;
 
   color-scheme: dark;

@@ -70,3 +70,15 @@ export {
 
 /** Northern Rivers, NSW: where the clock stands when it cannot ask. */
 export const FALLBACK_VIEWER = { lng: 153.3, lat: -28.8 } as const;
+
+export {
+  type SeasonalEvent,
+  type EventMonth,
+  type EventFeature,
+  type PartneredKnowledge,
+  type GroundTruthObservation,
+  type GroundTruthMonth,
+  eventFeatures,
+  eventStory,
+  monthBlend,
+} from "./events.js";

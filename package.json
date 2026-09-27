@@ -36,10 +36,12 @@
       "types": "./dist/mapbox/index.d.ts",
       "import": "./dist/mapbox/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./events/*": "./events/*"
   },
   "files": [
     "dist",
+    "events",
     "DATA_SOURCES.md",
     "README.md",
     "LICENSE"
@@ -54,7 +56,8 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check:copy": "node scripts/check-copy.mjs",
     "check": "npm run typecheck && npm run check:boundaries && npm run check:copy && npm test",
-    "prepublishOnly": "npm run check && npm run build"
+    "prepublishOnly": "npm run check && npm run build",
+    "data:humpbacks": "node scripts/ecology/humpbacks.mjs"
   },
   "peerDependencies": {
     "mapbox-gl": "^3.26.0"

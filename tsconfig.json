@@ -15,7 +15,8 @@
     "types": ["vite/client", "node"],
     "paths": {
       "now-on-earth/core": ["./src/core/index.ts"],
-      "now-on-earth/mapbox": ["./src/mapbox/index.ts"]
+      "now-on-earth/mapbox": ["./src/mapbox/index.ts"],
+      "now-on-earth/events/*": ["./events/*"]
     }
   },
   "include": ["src", "site/src", "site/vite.config.ts", "test", "tsup.config.ts"]

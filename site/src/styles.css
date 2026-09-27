@@ -103,6 +103,55 @@ body {
   text-transform: uppercase;
 }
 
+.eventline {
+  margin: 0.2rem 0 0;
+  font-size: var(--fs-body-s);
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.eventline::first-letter {
+  text-transform: uppercase;
+}
+
+.panel-group {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed color-mix(in oklab, var(--line) 80%, transparent);
+}
+
+.panel-head {
+  margin: 0;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.credit {
+  margin: -0.1rem 0 0.25rem 2.7rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--ink-faint);
+}
+
+.credit a {
+  color: inherit;
+}
+
+.switch.is-coming {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.switch.is-coming input {
+  cursor: default;
+}
+
 /* A person or node, in their own light. */
 .pick {
   position: absolute;
@@ -143,6 +192,10 @@ body {
   margin: 0.7rem 0 0.1rem;
   padding: 0.7rem 0.2rem 0.2rem;
   border-top: 1px solid color-mix(in oklab, var(--line) 80%, transparent);
+  /* On a short screen the panel scrolls rather than pushing the globe away. */
+  max-height: min(24rem, 42svh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .switch {
