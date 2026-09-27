@@ -145,7 +145,10 @@ const lenses = createLensPanel(
   $("lenses"),
   [
     { key: "sun", label: "The sun", built: true, on: true },
-    { key: "rings", label: "Rings of light", built: true, on: true },
+    { key: "day-light", label: "Daylight", note: "(the sun's gold)", built: true, on: true },
+    { key: "night-shade", label: "Night shade", built: true, on: true },
+    { key: "hour-rings", label: "Hour rings", built: true, on: true },
+    { key: "hour-numbers", label: "Hour numbers", note: "(hours from the sun, for counting time differences)", built: true, on: true },
     { key: "twilight", label: "Twilight and golden hour", built: true, on: true },
     { key: "moon", label: "The moon", built: true, on: true },
     { key: "tides", label: "The moon's pull on the oceans", built: true, on: false },
@@ -449,7 +452,7 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "rings", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "plankton"], els.flatSwitch.checked);
+  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "plankton"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();

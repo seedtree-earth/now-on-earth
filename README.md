@@ -1,6 +1,6 @@
 # Now on Earth
 
-A clock that tells time by light instead of digits. The globe shows where the sun is overhead, rings of light spreading from it an hour of the Earth's turn apart, and rings of night closing in on midnight on the far side. There are no numbers, hands or time zones on the face. You find yourself on the globe and read the hour by where you sit in the light.
+A clock that tells time by light instead of digits. The globe shows where the sun is overhead, rings of light spreading from it an hour of the Earth's turn apart, and rings of night closing in on midnight on the far side. There are no hands or time zones on the face. You find yourself on the globe and read the hour by where you sit in the light. An optional hour count (on by default, and switchable off for a wholly numberless face) sets a small number in each hour band, so the difference between two places can be counted.
 
 Now on Earth is its own site, and it is built to become a base layer of **the Landscape** on SeedTree.
 
@@ -95,7 +95,7 @@ Layers are gathered into four lenses so the clock stays calm by default. Only **
 
 | Lens | Layers |
 | --- | --- |
-| Light | sun, rings (and finer rings), twilight, moon, tides, the sun's lane, today's sun track, your day line |
+| Light | sun, daylight (the gold), night shade (the violet), hour rings (and finer rings), hour numbers, twilight, moon, tides, the sun's lane, today's sun track, your day line; every one its own switch |
 | Life | ecological events (humpbacks; Bar-tailed Godwits across the Pacific), plankton's nightly rise *(a model)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
 | Earth's body | the magnetic field (traced from the World Magnetic Model 2025), magnetic north's wandering since 1925 (NOAA NCEI), the aurora (NOAA's live OVATION forecast near now, a typical oval otherwise), the axis's wobble *(later)* |
 | Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), the rain belt, carbon dioxide, fires *(later)* |
@@ -106,7 +106,10 @@ The Flat model is a separate switch, outside the lenses.
 
 | Key | What it shows | On by default |
 | --- | --- | --- |
-| `rings` | Gold hour rings round the sun, paling toward it; violet rings closing on midnight | yes |
+| `day-light` | Gold caps round the sun every hour band, paling toward it | yes |
+| `night-shade` | Violet caps closing on midnight | yes |
+| `hour-rings` | The hairline edges of the hour bands, the terminator firmest | yes |
+| `hour-numbers` | A small count in each band: 1 to 6 from the sun through the day, 7 to 12 across the night to midnight | yes |
 | `twilight` | Golden hour warming to rose, then civil, nautical and astronomical twilight cooling to violet | yes |
 | `lane` | The tropics: the sun's lane | yes |
 | `sun-track` | Today's parallel under the sun | yes |
@@ -152,9 +155,9 @@ npm run dev                  # http://localhost:5173
 
 With no token, or no WebGL, the page still runs: the words and the sliders follow the light and the globe rests. Keys are never committed. The token comes from the consumer: `VITE_MAPBOX_TOKEN` for this site, the host's own map for the Landscape.
 
-**Controls, all numberless:** the day (scrub twelve hours either way), the year (half a year either way, with the solstices and equinoxes marked where they fall: a gold disc for the longest day, an empty ring for the shortest, half-lit for the equinoxes, named for your hemisphere; tap one to go there), play and pause, face the sun (the camera follows it), face me, a Layers panel (the seasonal lines, twilight, the moon, the tides, people, finer rings), and morning or night. The slider tracks are drawn from the light itself: the sky over you across the day, and the length of your days across the year.
+**Controls, numberless:** the day (scrub twelve hours either way), the year (half a year either way, with the solstices and equinoxes marked where they fall: a gold disc for the longest day, an empty ring for the shortest, half-lit for the equinoxes, named for your hemisphere; tap one to go there), play and pause, face the sun (the camera follows it), face me, a Layers panel (the seasonal lines, twilight, the moon, the tides, people, finer rings), and morning or night. The slider tracks are drawn from the light itself: the sky over you across the day, and the length of your days across the year.
 
-**Accessibility:** the face has no numbers, so it speaks. A polite live region describes the light in sentences ("Late afternoon. The sun is low to the west. Early spring, and the days are growing longer. A first quarter moon, high in the east."). The sliders carry the same words as their values. Reduced motion stops the sun's breathing and the camera's easing.
+**Accessibility:** the face is read by its light, so it speaks. A polite live region describes the light in sentences ("Late afternoon. The sun is low to the west. Early spring, and the days are growing longer. A first quarter moon, high in the east."). The sliders carry the same words as their values. Reduced motion stops the sun's breathing and the camera's easing.
 
 **Location** is never asked for on arrival. If the browser has already been given permission it is used quietly; otherwise the clock stands in the Northern Rivers until you press "Face me". It is rounded to about ten kilometres and never leaves the page.
 

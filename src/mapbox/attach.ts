@@ -16,7 +16,7 @@ import { planktonLayer } from "./layers/plankton.js";
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
-import { ringsLayer } from "./layers/rings.js";
+import { dayLightLayer, hourNumbersLayer, hourRingsLayer, nightShadeLayer } from "./layers/rings.js";
 import { dayLineLayer, laneLayer, sunTrackLayer } from "./layers/seasons.js";
 import { LENSES, type LensId, lensOf } from "./lenses.js";
 import { sunLayer } from "./layers/sun.js";
@@ -113,7 +113,9 @@ export const defaultLayers = (
   seaIceLayer(),
   planktonLayer(),
   tidesLayer(),
-  ringsLayer(),
+  nightShadeLayer(),
+  dayLightLayer(),
+  hourRingsLayer(),
   twilightLayer(),
   auroraLayer(opts.aurora),
   ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
@@ -121,6 +123,7 @@ export const defaultLayers = (
   laneLayer(),
   sunTrackLayer(),
   dayLineLayer(),
+  hourNumbersLayer(),
   peopleLayer({ onPick: opts.onPick }),
   moonLayer(),
   sunLayer(),

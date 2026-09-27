@@ -240,3 +240,23 @@ describe("sea ice and snow months", () => {
     expect(productDate(SNOW, 10, 2022)).toBe("2021-10-01");
   });
 });
+
+import { hourNumberPoints } from "../src/mapbox/layers/rings.js";
+
+describe("hour numbers", () => {
+  for (const iso of ["2026-03-20T12:00:00Z", "2026-06-21T03:00:00Z", "2026-12-21T18:00:00Z"]) {
+    it(`sit inside their own hour band (${iso.slice(0, 10)})`, () => {
+      const date = utc(iso);
+      const sun = sunState(date);
+      const fc = hourNumberPoints({ date, sun, moon: moonState(date), viewer: { lng: 0, lat: 0 }, fine: false, people: [] });
+      expect(fc.features.length).toBe(24); // every hour, both sides of the sun
+      for (const f of fc.features) {
+        const [lng, lat] = f.geometry.coordinates as [number, number];
+        const n = Number(f.properties.n);
+        const d = angularDistance(sun.subsolar, { lng, lat });
+        expect(d).toBeGreaterThan((n - 1) * 15);
+        expect(d).toBeLessThan(n * 15);
+      }
+    });
+  }
+});

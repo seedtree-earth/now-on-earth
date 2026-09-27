@@ -30,7 +30,7 @@ export type LayerContext = {
  * when the theme turns, and removes every trace on `remove`.
  */
 export interface ClockLayer {
-  /** Stable key used to toggle the layer, e.g. "rings". */
+  /** Stable key used to toggle the layer, e.g. "day-light". */
   readonly key: string;
   /** Plain-words name for UI toggles and screen readers. */
   readonly label: string;

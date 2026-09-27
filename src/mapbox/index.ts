@@ -12,7 +12,7 @@ export {
   type Follow,
   type LayerState,
 } from "./attach.js";
-export { ringsLayer } from "./layers/rings.js";
+export { dayLightLayer, nightShadeLayer, hourRingsLayer, hourNumbersLayer, hourNumberPoints } from "./layers/rings.js";
 export { laneLayer, sunTrackLayer, dayLineLayer } from "./layers/seasons.js";
 export { LENSES, lensOf, type Lens, type LensId } from "./lenses.js";
 export { sunLayer } from "./layers/sun.js";
