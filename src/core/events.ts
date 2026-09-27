@@ -35,6 +35,8 @@ export type SeasonalEvent = {
   note?: string;
   /** Where the full source list and licences live. */
   sourcesUrl?: string;
+  /** Which lens it belongs to ("life", "earth", "weather"); Life if unset. */
+  lens?: string;
   licences?: string;
   sources?: unknown;
 };

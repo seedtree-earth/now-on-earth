@@ -13,7 +13,8 @@ import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js"
 import { moonLayer } from "./layers/moon.js";
 import { peopleLayer } from "./layers/people.js";
 import { ringsLayer } from "./layers/rings.js";
-import { seasonsLayer } from "./layers/seasons.js";
+import { dayLineLayer, laneLayer, sunTrackLayer } from "./layers/seasons.js";
+import { LENSES, type LensId, lensOf } from "./lenses.js";
 import { sunLayer } from "./layers/sun.js";
 import { tidesLayer } from "./layers/tides.js";
 import { twilightLayer } from "./layers/twilight.js";
@@ -36,12 +37,17 @@ export type NowOnEarthOptions = {
   /** A person or node dot was hovered or tapped (null on leave). */
   onPick?: (pick: PresencePick | null) => void;
   /**
-   * Layer modules, bottom to top. Defaults to tides, rings, twilight, seasons,
-   * people, moon, sun. Pass your own list to add, drop or reorder layers.
+   * Layer modules, bottom to top. Defaults to every built layer (see
+   * defaultLayers). Pass your own list to add, drop or reorder layers.
    */
   layers?: ClockLayer[];
-  /** Layer keys to start hidden. Defaults to tides and people. */
+  /** Layer keys whose own switch starts off. Defaults to tides and people. */
   hidden?: string[];
+  /**
+   * Which lenses start on. Defaults to Light only. A layer shows when its lens
+   * is on and its own switch is on.
+   */
+  lenses?: Partial<Record<LensId, boolean>>;
   /**
    * Host layer to slot the clock beneath (the Landscape passes its pin layer,
    * e.g. "clusters"). Unset: beneath the style's first label layer. Null: on top.
@@ -59,7 +65,15 @@ export type NowOnEarthOptions = {
   liveIntervalMs?: number;
 };
 
-export type LayerState = { key: string; label: string; visible: boolean };
+export type LayerState = {
+  key: string;
+  label: string;
+  lens: LensId;
+  /** The layer's own switch. */
+  on: boolean;
+  /** On and in an open lens: actually drawn. */
+  visible: boolean;
+};
 
 export type NowOnEarth = {
   /** Show a fixed moment, or `null` to return to live. */
@@ -68,8 +82,11 @@ export type NowOnEarth = {
   setViewer(viewer: LngLat): void;
   setFine(fine: boolean): void;
   setPeople(people: Presence[]): void;
+  /** A layer's own switch. It shows only while its lens is on too. */
   setVisible(key: string, visible: boolean): void;
   layers(): LayerState[];
+  setLens(lens: LensId, on: boolean): void;
+  lensOn(lens: LensId): boolean;
   /** Keep the camera on the sun as it moves, or stop. */
   follow(mode: Follow): void;
   following(): Follow;
@@ -92,7 +109,9 @@ export const defaultLayers = (
   twilightLayer(),
   ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
   partneredKnowledgeLayer(),
-  seasonsLayer(),
+  laneLayer(),
+  sunTrackLayer(),
+  dayLineLayer(),
   peopleLayer({ onPick: opts.onPick }),
   moonLayer(),
   sunLayer(),
@@ -112,7 +131,12 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const tokens = { ...TOKENS, ...options.tokens };
   const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events });
   const hidden = options.hidden ?? DEFAULT_HIDDEN;
-  const visible = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
+  const chosen = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
+  const eventLens = Object.fromEntries((options.events ?? []).map((e) => [e.id, (e.lens ?? "life") as LensId]));
+  const lensState = new Map(LENSES.map((l) => [l.id, options.lenses?.[l.id] ?? l.on]));
+  const lensOfKey = (key: string) => lensOf(key, eventLens);
+  /** Drawn: its own switch on, and its lens open. */
+  const shows = (key: string) => (chosen.get(key) ?? true) && (lensState.get(lensOfKey(key)) ?? true);
   const listeners = new Set<(f: Frame) => void>();
   const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -148,7 +172,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
     current = makeFrame();
     for (const m of mods) {
       m.add(ctx, current);
-      m.setVisible(ctx, visible.get(m.key) ?? true);
+      m.setVisible(ctx, shows(m.key));
     }
     added = true;
     emit();
@@ -158,7 +182,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
     pending = 0;
     if (destroyed || !added) return;
     current = makeFrame();
-    for (const m of mods) if (visible.get(m.key)) m.update(ctx, current);
+    for (const m of mods) if (shows(m.key)) m.update(ctx, current);
     if (followMode === "sun") {
       map.jumpTo({ center: [current.sun.subsolar.lng, current.sun.subsolar.lat] });
     }
@@ -182,7 +206,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
     raf = requestAnimationFrame(loop);
     if (!added || now - lastTick < 50) return;
     lastTick = now;
-    for (const m of mods) if (visible.get(m.key)) m.tick?.(ctx, now);
+    for (const m of mods) if (shows(m.key)) m.tick?.(ctx, now);
   };
   raf = requestAnimationFrame(loop);
 
@@ -195,6 +219,20 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   themeWatch.observe(themeEl, { attributes: true, attributeFilter: ["data-theme", "class", "style"] });
   const scheme = typeof matchMedia !== "undefined" ? matchMedia("(prefers-color-scheme: dark)") : null;
   scheme?.addEventListener("change", refreshPalette);
+
+  function applyVisibility(keys: string[]) {
+    if (added) {
+      const frame = makeFrame();
+      for (const key of keys) {
+        const m = mods.find((x) => x.key === key);
+        if (!m) continue;
+        const v = shows(key);
+        m.setVisible(ctx, v);
+        if (v) m.update(ctx, frame);
+      }
+    }
+    emit();
+  }
 
   // A person dragging the globe has taken the camera; stop following.
   const release = () => {
@@ -228,15 +266,16 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
       schedule();
     },
     setVisible(key, v) {
-      visible.set(key, v);
-      const m = mods.find((x) => x.key === key);
-      if (m && added) {
-        m.setVisible(ctx, v);
-        if (v) m.update(ctx, makeFrame());
-      }
-      emit();
+      chosen.set(key, v);
+      applyVisibility([key]);
     },
-    layers: () => mods.map((m) => ({ key: m.key, label: m.label, visible: visible.get(m.key) ?? true })),
+    layers: () =>
+      mods.map((m) => ({ key: m.key, label: m.label, lens: lensOfKey(m.key), on: chosen.get(m.key) ?? true, visible: shows(m.key) })),
+    setLens(lens, on) {
+      lensState.set(lens, on);
+      applyVisibility(mods.filter((m) => lensOfKey(m.key) === lens).map((m) => m.key));
+    },
+    lensOn: (lens) => lensState.get(lens) ?? false,
     follow(mode) {
       followMode = mode;
       if (mode === "sun") {

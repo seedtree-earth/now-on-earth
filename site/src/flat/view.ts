@@ -16,7 +16,7 @@ import { SPOTLIGHT_REACH, flatDayShare } from "./model";
 
 const RAD = Math.PI / 180;
 
-export type FlatFrame = { sun: SunState; viewer: LngLat; lines: boolean };
+export type FlatFrame = { sun: SunState; viewer: LngLat; lane: boolean; track: boolean; dayLine: boolean };
 
 export type FlatView = {
   /** Show the disc (loads land outlines the first time). */
@@ -141,7 +141,7 @@ export function createFlatView(container: HTMLElement): FlatView {
   function render() {
     pending = 0;
     if (!shown || !frame) return;
-    const { sun, viewer, lines } = frame;
+    const { sun, viewer, lane, track, dayLine } = frame;
     if (followSun) turnTo(sun.subsolar.lng);
     else if (faceOnFirstDraw) turnTo(viewer.lng);
     faceOnFirstDraw = false;
@@ -213,26 +213,33 @@ export function createFlatView(container: HTMLElement): FlatView {
     g.fill();
     g.restore();
 
-    if (lines) {
-      const circle = (lat: number) => () => g.arc(cx, cy, px(90 - lat), 0, 2 * Math.PI);
+    const circle = (lat: number) => () => g.arc(cx, cy, px(90 - lat), 0, 2 * Math.PI);
+    if (lane || track) {
       g.save();
       g.strokeStyle = pal.day;
       g.lineWidth = 1.1;
       g.globalAlpha = 0.7;
       g.setLineDash([4, 4]);
-      for (const lat of [sun.obliquity, -sun.obliquity]) {
+      if (lane) {
+        for (const lat of [sun.obliquity, -sun.obliquity]) {
+          g.beginPath();
+          circle(lat)();
+          g.stroke();
+        }
+      }
+      if (track) {
+        g.setLineDash([0.5, 4]);
+        g.lineCap = "round";
+        g.lineWidth = 1.8;
+        g.globalAlpha = 0.85;
         g.beginPath();
-        circle(lat)();
+        circle(sun.declination)();
         g.stroke();
       }
-      g.setLineDash([0.5, 4]);
-      g.lineCap = "round";
-      g.lineWidth = 1.8;
-      g.globalAlpha = 0.85;
-      g.beginPath();
-      circle(sun.declination)();
-      g.stroke();
       g.restore();
+    }
+
+    if (dayLine) {
 
       // The viewer's own circle, bright where the light reaches it today.
       const a = 90 - viewer.lat;

@@ -13,7 +13,8 @@ export {
   type LayerState,
 } from "./attach.js";
 export { ringsLayer } from "./layers/rings.js";
-export { seasonsLayer } from "./layers/seasons.js";
+export { laneLayer, sunTrackLayer, dayLineLayer } from "./layers/seasons.js";
+export { LENSES, lensOf, type Lens, type LensId } from "./lenses.js";
 export { sunLayer } from "./layers/sun.js";
 export { twilightLayer } from "./layers/twilight.js";
 export { moonLayer } from "./layers/moon.js";

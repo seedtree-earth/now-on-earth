@@ -84,13 +84,28 @@ Nothing is hard-coded in the layers. They read SeedTree V2's own tokens off the 
 
 So a V2 restyle flows straight into the light. The standalone site mirrors V2's values in `site/src/tokens.css`.
 
+### Lenses
+
+Layers are gathered into four lenses so the clock stays calm by default. Only **Light** is on at first; each lens is a switch for the whole way of looking, and opens to show its own layers. A layer is drawn when its lens is on and its own switch is on (`setLens`, `lensOn`, and `lenses` in the options; the grouping lives in `src/mapbox/lenses.ts`).
+
+| Lens | Layers |
+| --- | --- |
+| Light | sun, rings (and finer rings), twilight, moon, tides, the sun's lane, today's sun track, your day line |
+| Life | ecological events (humpbacks), plankton's nightly rise *(to come)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
+| Earth's body | the magnetic field, magnetic north's wandering, the aurora *(to come)*, the axis's wobble *(later)* |
+| Weather and ice | sea ice and snow *(to come)*, the rain belt, carbon dioxide, fires *(later)* |
+
+The Flat model is a separate switch, outside the lenses.
+
 ### The layers
 
 | Key | What it shows | On by default |
 | --- | --- | --- |
 | `rings` | Gold hour rings round the sun, paling toward it; violet rings closing on midnight | yes |
 | `twilight` | Golden hour warming to rose, then civil, nautical and astronomical twilight cooling to violet | yes |
-| `seasons` | Tropics, today's sun track, the viewer's line lit and dark | yes |
+| `lane` | The tropics: the sun's lane | yes |
+| `sun-track` | Today's parallel under the sun | yes |
+| `day-line` | The viewer's line, lit and dark, and their dot | yes |
 | `moon` | The moon over its sublunar point, drawn in its true phase, mirrored for the southern hemisphere | yes |
 | `sun` | The sun point, breathing slowly | yes |
 | `tides` | The moon's pull: two swells rising toward their crests (under the moon and opposite), a faint low-water belt between, a dashed rim where the pull turns; fuller at spring tides, fainter at neap. The idealised equilibrium tide, not a tide table | no |

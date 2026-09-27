@@ -19,7 +19,8 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
-import { DEFAULT_HIDDEN, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { createLensPanel } from "./lens-panel";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -51,14 +52,12 @@ const els = {
   now: $<HTMLButtonElement>("now"),
   faceSun: $<HTMLButtonElement>("face-sun"),
   faceMe: $<HTMLButtonElement>("face-me"),
-  fine: $<HTMLInputElement>("fine"),
   layers: $<HTMLButtonElement>("layers"),
   layersPanel: $("layers-panel"),
   moonline: $("moonline"),
   flatSwitch: $<HTMLInputElement>("flat-model"),
   yearMarks: $("year-marks"),
   eventline: $("eventline"),
-  eventCredit: $("event-credit"),
   pick: $("pick"),
   theme: $<HTMLButtonElement>("theme"),
 };
@@ -74,10 +73,76 @@ let clock: NowOnEarth | null = null;
 /** The flat model's disc, drawn in the globe's place when switched on. */
 const flat = createFlatView(document.querySelector<HTMLElement>(".shell")!);
 const isFlat = () => flat.isShown();
-/** Which layers are on, mirrored here so the words work even without a globe. */
-const shownLayers = new Set(
-  ["rings", "twilight", "seasons", "moon", "sun", humpbacks.id].filter((k) => !DEFAULT_HIDDEN.includes(k)),
+// ---------------------------------------------------------------- lenses
+
+/** The credit that sits under the humpback switch, with a link to every source. */
+const eventCredit = document.createElement("p");
+eventCredit.className = "credit";
+eventCredit.textContent = `${humpbacks.credit ?? ""}. ${humpbacks.note ?? ""} `;
+if (humpbacks.sourcesUrl) {
+  const a = document.createElement("a");
+  a.href = humpbacks.sourcesUrl;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = "All sources and licences";
+  eventCredit.append(a);
+}
+
+/** Finer rings: a setting inside the Light lens rather than a layer. */
+const fineRow = document.createElement("label");
+fineRow.className = "switch";
+fineRow.innerHTML = '<input type="checkbox" id="fine" /><span>Finer rings</span>';
+const fineInput = fineRow.querySelector("input")!;
+
+const lenses = createLensPanel(
+  $("lenses"),
+  [
+    { key: "sun", label: "The sun", built: true, on: true },
+    { key: "rings", label: "Rings of light", built: true, on: true },
+    { key: "twilight", label: "Twilight and golden hour", built: true, on: true },
+    { key: "moon", label: "The moon", built: true, on: true },
+    { key: "tides", label: "The moon's pull on the oceans", built: true, on: false },
+    { key: "lane", label: "The sun's lane", built: true, on: true },
+    { key: "sun-track", label: "Today's sun track", built: true, on: true },
+    { key: "day-line", label: "Your day line", built: true, on: true },
+    {
+      key: humpbacks.id,
+      label: "Humpback whales on the east coast",
+      note: "(the seasonal pattern)",
+      built: true,
+      on: true,
+      after: eventCredit,
+    },
+    { key: "plankton", label: "Plankton's nightly rise", built: false, on: true },
+    { key: "people", label: "People and nodes", note: "(sample)", built: true, on: false },
+    {
+      key: "partnered-knowledge",
+      label: "Seasonal knowledge, shared in partnership",
+      note: "· to come, with permission",
+      built: false,
+      on: false,
+    },
+    { key: "magnetic-field", label: "The magnetic field", built: false, on: true },
+    { key: "magnetic-poles", label: "Magnetic north's wandering", built: false, on: true },
+    { key: "aurora", label: "The aurora", built: false, on: true },
+    { key: "sea-ice", label: "Sea ice and snow", built: false, on: true },
+  ],
+  {
+    eventLens: { [humpbacks.id]: "life" },
+    extras: { light: [fineRow] },
+    onLayer: (key, shown) => {
+      clock?.setVisible(key, shown);
+      push();
+    },
+    onLens: (lens, on) => {
+      clock?.setLens(lens, on);
+      push();
+    },
+  },
 );
+/** What is showing, so the words work even without a globe. */
+const shownLayers = { has: (key: string) => lenses.isShown(key) };
+
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
 const isLive = () => !playing && offsetMin === 0 && dayShift === 0;
@@ -206,7 +271,15 @@ function renderMarks() {
 
 function push() {
   clock?.setTime(isLive() ? null : shown());
-  if (isFlat()) flat.draw({ sun: sunState(shown()), viewer, lines: shownLayers.has("seasons") });
+  if (isFlat()) {
+    flat.draw({
+      sun: sunState(shown()),
+      viewer,
+      lane: shownLayers.has("lane"),
+      track: shownLayers.has("sun-track"),
+      dayLine: shownLayers.has("day-line"),
+    });
+  }
   renderWords();
   renderTracks();
   els.now.hidden = isLive();
@@ -305,18 +378,15 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  for (const k of ["moon", "tides", "twilight", "people"]) {
-    const input = els.layersPanel.querySelector<HTMLInputElement>(`input[data-layer="${k}"]`);
-    if (input) input.disabled = els.flatSwitch.checked;
-  }
+  lenses.setLocked(["moon", "tides", "twilight", "people", "rings"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();
 });
 
 let fine = false;
-els.fine.addEventListener("change", () => {
-  fine = els.fine.checked;
+fineInput.addEventListener("change", () => {
+  fine = fineInput.checked;
   clock?.setFine(fine);
 });
 
@@ -326,29 +396,6 @@ els.layers.addEventListener("click", () => {
   els.layersPanel.hidden = !open;
   els.layers.setAttribute("aria-expanded", String(open));
 });
-for (const input of els.layersPanel.querySelectorAll<HTMLInputElement>("input[data-layer]")) {
-  const key = input.dataset.layer!;
-  input.checked = shownLayers.has(key);
-  input.addEventListener("change", () => {
-    if (input.checked) shownLayers.add(key);
-    else shownLayers.delete(key);
-    clock?.setVisible(key, input.checked);
-    push();
-  });
-}
-
-// Credit the sources in words, with a link to every dataset and licence.
-{
-  els.eventCredit.textContent = `${humpbacks.credit ?? ""}. ${humpbacks.note ?? ""} `;
-  if (humpbacks.sourcesUrl) {
-    const a = document.createElement("a");
-    a.href = humpbacks.sourcesUrl;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.textContent = "All sources and licences";
-    els.eventCredit.append(a);
-  }
-}
 
 // A person or node, when their dot is hovered or tapped.
 function showPick(p: PresencePick | null) {
@@ -493,7 +540,8 @@ function buildGlobe() {
     fine,
     people: MOCK_PEOPLE,
     events: [humpbacks],
-    hidden: ["rings", "twilight", "seasons", "moon", "sun", "tides", "people", humpbacks.id].filter((k) => !shownLayers.has(k)),
+    hidden: lenses.offKeys(),
+    lenses: lenses.lensStates(),
     onPick: showPick,
   });
   // Dev only: a handle for poking at the globe from the console.

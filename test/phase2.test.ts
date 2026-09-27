@@ -207,3 +207,19 @@ describe("tides", () => {
     expect(tideWords(m.sublunar, m)).not.toMatch(/\d|high tide|low tide/);
   });
 });
+
+import { LENSES, lensOf } from "../src/mapbox/lenses.js";
+
+describe("lenses", () => {
+  it("opens only Light by default", () => {
+    expect(LENSES.filter((l) => l.on).map((l) => l.id)).toEqual(["light"]);
+  });
+  it("places every layer in exactly one lens, and events in Life", () => {
+    const all = LENSES.flatMap((l) => l.layers);
+    expect(new Set(all).size).toBe(all.length);
+    expect(lensOf("moon")).toBe("light");
+    expect(lensOf("sea-ice")).toBe("weather");
+    expect(lensOf("aurora")).toBe("earth");
+    expect(lensOf("humpback-whales-east-australia")).toBe("life");
+  });
+});

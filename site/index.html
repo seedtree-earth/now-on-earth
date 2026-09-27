@@ -65,20 +65,8 @@
           </div>
         </div>
         <div id="layers-panel" class="layers" role="group" aria-label="What the globe shows" hidden>
-          <label class="switch"><input type="checkbox" data-layer="seasons" checked /><span>The sun's lane and your line</span></label>
-          <label class="switch"><input type="checkbox" data-layer="twilight" checked /><span>Twilight and golden hour</span></label>
-          <label class="switch"><input type="checkbox" data-layer="moon" checked /><span>The moon</span></label>
-          <label class="switch"><input type="checkbox" data-layer="tides" /><span>The moon's pull on the oceans</span></label>
-          <label class="switch"><input type="checkbox" data-layer="people" /><span>People and nodes <em>(sample)</em></span></label>
-          <label class="switch"><input type="checkbox" id="fine" /><span>Finer rings</span></label>
-          <div class="panel-group">
-            <p class="panel-head">Life through the year</p>
-            <label class="switch"><input type="checkbox" data-layer="humpback-whales-east-australia" checked /><span>Humpback whales on the east coast <em>(the seasonal pattern)</em></span></label>
-            <p class="credit" id="event-credit"></p>
-            <!-- Placeholders: these switches stay off until their layers exist. -->
-            <label class="switch is-coming"><input type="checkbox" disabled /><span>Seasonal knowledge, shared in partnership <em>· to come, with permission</em></span></label>
-            <label class="switch is-coming"><input type="checkbox" disabled /><span>What people are seeing this season <em>· to come, via iNaturalist</em></span></label>
-          </div>
+          <!-- The lenses are built from the layer list in lens-panel.ts. -->
+          <div id="lenses" class="lenses"></div>
           <div class="panel-group">
             <label class="switch"><input type="checkbox" id="flat-model" /><span>Flat model</span></label>
           </div>
