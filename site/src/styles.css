@@ -213,10 +213,6 @@ body {
     color-mix(in oklab, var(--bg) 78%, transparent) 45%,
     transparent 100%
   );
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  mask-image: radial-gradient(ellipse 75% 85% at 30% 45%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 85% at 30% 45%, #000 40%, transparent 100%);
 }
 
 .notice {

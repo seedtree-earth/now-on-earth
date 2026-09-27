@@ -8,3 +8,4 @@ site/dist/
 *.log
 .DS_Store
 desktop.ini
+scripts/ecology/.cache/

@@ -105,7 +105,7 @@ Each layer is a factory returning a `ClockLayer`: `add`, `update`, `applyPalette
 ```bash
 npm install
 cp .env.example .env.local   # then add a public Mapbox token (pk.*)
-npm run dev                  # http://localhost:5178
+npm run dev                  # http://localhost:5173
 ```
 
 With no token, or no WebGL, the page still runs: the words and the sliders follow the light and the globe rests. Keys are never committed. The token comes from the consumer: `VITE_MAPBOX_TOKEN` for this site, the host's own map for the Landscape.

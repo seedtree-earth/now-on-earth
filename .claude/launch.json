@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "clock", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5178 }
+    { "name": "clock", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5173 }
   ]
 }

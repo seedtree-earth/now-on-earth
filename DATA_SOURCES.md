@@ -17,17 +17,32 @@ Every dataset gets a row **before** it is used. Planned sources are listed too, 
 
 No personal data is collected. The viewer's position, when they choose to share it, is rounded to about ten kilometres and never leaves the page.
 
-## Planned (phase 3: ecological events). Not yet in use
+## Phase 3: ecological events
 
-The build-time script will turn dated, located occurrence records into seasonal patterns by month, written to static JSON. The browser never calls these APIs. Terms, rate limits and required citations **must be re-checked against each provider's current documentation** before the first fetch, and this table updated with what was confirmed and when.
+A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occurrence records into seasonal patterns by month, written to static JSON (`events/humpback-whales.json`). The browser never calls these APIs.
+
+### Terms checked on 2026-09-27
+
+| Source | Access | Rate limits | Licence of records | Attribution required |
+| --- | --- | --- | --- | --- |
+| **Atlas of Living Australia** (occurrence search, `api.ala.org.au/occurrences`; collectory metadata, `collections.ala.org.au/ws`) | Open, no key: "Most of our APIs do not require authentication" ([ALA support](https://support.ala.org.au/support/solutions/articles/6000261502-how-to-access-ala-apis)). JWTs only for sensitive or private data. | None published. We treat it as fair use: facet queries only, one at a time, 1.5 s apart, cached, stop on any error. | Set per data resource by each provider. For the humpback query: CC0, CC BY (3.0 AU, 4.0), and a large share of CC BY-NC, BY-NC-SA, BY-NC-ND, BY-SA, BY-ND, custom and unspecified. | [ALA terms of use](https://www.ala.org.au/terms-of-use/): users must "acknowledge, reference or attribute the relevant Data Provider (using any specific attribution wording they may have provided)" in any derived work, and must honour each provider's own terms. |
+| **GBIF** (occurrence search, `api.gbif.org/v1/occurrence/search`; dataset metadata, `/v1/dataset`) | Open, no key for search. | Dynamic: "Rapid or numerous queries to search APIs may be rate limited, depending on our server load" (HTTP 429); for long jobs use the download API ([GBIF API docs](https://techdocs.gbif.org/en/openapi/)). Search pages cap at 300 records and an offset of 100,000. GBIF asks for a User-Agent naming the app. | Per dataset: CC0 1.0, CC BY 4.0 or CC BY-NC 4.0. | Cite the datasets used (dataset citation text and DOI), per the GBIF data user agreement. |
+
+### How we use them
+
+- **Only CC0 and CC BY records are counted.** NonCommercial, NoDerivatives, ShareAlike, custom and unspecified records are excluded in the query itself, so SeedTree can use the result anywhere. (Of about 34,800 ALA humpback records on the east coast, about 24,000 are CC0 or CC BY.)
+- **Aggregates, not records.** The script asks for counts per 0.1° grid cell per month (facets), so no individual sighting, observer or exact point is stored or shipped.
+- **ALA is the source of the pattern; GBIF is a cross-check.** GBIF carries many of the same datasets as ALA (Happywhale, iNaturalist and others), so adding the two would count sightings twice. GBIF's monthly totals are stored beside ALA's as an independent check, and GBIF supplies DOIs for the main datasets.
+- **Credit** is shown in the app whenever the layer is on (ALA, GBIF and the leading data resources), and the full source list, with each resource's licence and citation, is written into the JSON.
+- **Politeness:** at most about 30 requests per full build (14 data queries plus up to 16 citation lookups), at least 1.5 s apart, with a User-Agent naming this repo. Responses are cached in `scripts/ecology/.cache/` (not committed), so reruns make no requests. Any 429 or error stops the run with no retries.
+- Before writing the script, 4 count-only requests (no records) were made by hand to size the data and confirm grid facets work.
+
+### Parked
 
 | Source | Intended use | What to confirm before use |
 | --- | --- | --- |
-| **Atlas of Living Australia** (biocache / occurrence API) | Australian occurrences, starting with humpback whales (*Megaptera novaeangliae*) on the east coast | API key or anonymous limits; per-record licences (mostly CC BY / CC BY-NC by data resource); citation and DOI for downloads |
-| **GBIF** (occurrence search and download API) | Global occurrences; cross-check for the whale hero dataset | Per-record licences (CC0 / CC BY / CC BY-NC); citing a download DOI; rate limits on search vs. download |
-| **eBird** (Cornell Lab; API 2.0 or Status and Trends) | Bird migration, if feasible | API key; eBird terms restrict redistribution of raw data; Status and Trends products have their own licence and citation |
+| **eBird** (Cornell Lab; API 2.0 or Status and Trends) | Bird migration | Needs an API key (not yet); eBird terms restrict redistribution of raw data; Status and Trends products have their own licence and citation |
 
-Records under a **NonCommercial** licence (CC BY-NC) will be filtered out or carved out explicitly, and each rendered event layer will credit its sources in the UI.
 
 ## Partnered seasonal knowledge. Placeholder only
 
