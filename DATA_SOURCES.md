@@ -14,6 +14,7 @@ Every dataset gets a row **before** it is used. Planned sources are listed too, 
 | **Lunar position** (low-precision theory: leading periodic terms of Jean Meeus, *Astronomical Algorithms*, ch. 47) | Sublunar point, phase, the tidal bulges | Nothing fetched: computed locally | Published algorithm; independent implementation in `src/core/moon.ts` | Courtesy credit in the README |
 | **Mock people and nodes** (`site/src/mock-people.ts`) | Demo of the people layer on the standalone site | Bundled | Fictional; no real people or organisations; coarse, well-known regions only | Labelled "sample" in the UI and "Mock node" on every dot |
 | **Natural Earth** land outlines, 1:50m (via the `world-atlas` package, ISC) | The Flat model's disc (standalone site only) | Bundled, loaded when the Flat model is first shown | Natural Earth is public domain; world-atlas is ISC | "Land: Natural Earth", shown under the disc |
+| **NASA GIBS** (Global Imagery Browse Services), WMTS tiles in EPSG:3857: `MODIS_Terra_L3_Snow_Cover_Monthly_Average_Pct` and `AMSRU2_Sea_Ice_Concentration_12km` | Sea ice and snow (Weather and ice lens) | Live, tiles loaded by the map in the browser as you view (no key; CORS open). Checked 2026-09-27 | NASA imagery, open for any use; no published rate limits | The GIBS acknowledgement, shown under the layer switch: "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." Plus "NASA GIBS" in the map's attribution line while the layer is on |
 | **Fraunces** (Undercase Type) and **Instrument Sans** (Instrument) | Type, matching SeedTree V2 | Google Fonts, standalone site only | [SIL Open Font License 1.1](https://openfontlicense.org) | Not required in-app; listed here |
 
 No personal data is collected. The viewer's position, when they choose to share it, is rounded to about ten kilometres and never leaves the page.
@@ -40,6 +41,14 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Politeness:** one request at a time, at least 1.5 s apart, with a User-Agent naming this repo. Responses are cached in `scripts/ecology/.cache/` (not committed), so reruns make no requests. Any 429 or error stops the run with no retries.
 - **Requests made so far (2026-09-27):** 4 count-only probes by hand; a first build of 22 requests; a strict-licence rebuild of 30 (21 dataset licence lookups in all, 12 monthly grids, the kept-source list, one GBIF adjustment). 56 in total, none refused. A clean rebuild from cache makes 0.
 - **Shown honestly:** as a broad, soft seasonal haze blended month to month, never points or tracks, with a note that sightings gather where people look. The UI credits ALA, GBIF.org and the leading datasets whenever the layer is on (in the Layers panel and the globe's attribution line), and links here for every dataset and licence.
+
+### Sea ice and snow (checked 2026-09-27)
+
+- **Chosen: NASA GIBS**, over the NSIDC Sea Ice Index, because it covers snow as well as sea ice.
+- **Sea ice:** AMSR2 (GCOM-W1) sea ice concentration, 12 km, daily; the 15th of each month is shown. Microwave, so it sees through cloud and polar night. GHRSST MUR25 was ruled out (open water drawn opaque, rainbow scale), as was MODIS sea ice (gaps under cloud and in the polar night). The AMSR2 series in GIBS ends on 1 September 2025, so each month is taken from the most recent year held. AMSR2 does not observe the area right around the North Pole (the "pole hole").
+- **Snow:** MODIS/Terra monthly average snow cover, March 2000 to August 2026 (with a few missing months, skipped).
+- **Drawn** as soft white: any sea ice as one white; snow graded by cover, read back from NASA's colour scale. Months crossfade as the year slider turns.
+- **Requests:** none at build time. While the layer is on, the map fetches GIBS tiles for the two months either side of the date, at the zoom in view (a few dozen small PNGs), and the browser caches them. Before building, 1 capabilities document and 4 colour-key files were read by hand to choose layers.
 
 ### Parked
 

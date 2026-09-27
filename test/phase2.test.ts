@@ -223,3 +223,20 @@ describe("lenses", () => {
     expect(lensOf("humpback-whales-east-australia")).toBe("life");
   });
 });
+
+import { ICE, SNOW, productDate } from "../src/mapbox/layers/sea-ice.js";
+
+describe("sea ice and snow months", () => {
+  it("uses the month's own year when GIBS holds it", () => {
+    expect(productDate(SNOW, 3, 2026)).toBe("2026-03-01");
+    expect(productDate(ICE, 3, 2025)).toBe("2025-03-15");
+  });
+  it("steps back to the latest year it holds", () => {
+    expect(productDate(SNOW, 11, 2026)).toBe("2025-11-01");
+    expect(productDate(ICE, 9, 2026)).toBe("2024-09-15");
+    expect(productDate(ICE, 3, 2027)).toBe("2025-03-15");
+  });
+  it("skips known gaps", () => {
+    expect(productDate(SNOW, 10, 2022)).toBe("2021-10-01");
+  });
+});

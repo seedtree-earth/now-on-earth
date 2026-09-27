@@ -93,7 +93,7 @@ Layers are gathered into four lenses so the clock stays calm by default. Only **
 | Light | sun, rings (and finer rings), twilight, moon, tides, the sun's lane, today's sun track, your day line |
 | Life | ecological events (humpbacks), plankton's nightly rise *(to come)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
 | Earth's body | the magnetic field, magnetic north's wandering, the aurora *(to come)*, the axis's wobble *(later)* |
-| Weather and ice | sea ice and snow *(to come)*, the rain belt, carbon dioxide, fires *(later)* |
+| Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), the rain belt, carbon dioxide, fires *(later)* |
 
 The Flat model is a separate switch, outside the lenses.
 

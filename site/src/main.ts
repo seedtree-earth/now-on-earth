@@ -19,7 +19,7 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
-import { type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
 import { MOCK_PEOPLE } from "./mock-people";
 
@@ -88,6 +88,11 @@ if (humpbacks.sourcesUrl) {
   eventCredit.append(a);
 }
 
+/** NASA's acknowledgement, under the sea ice switch. */
+const iceCredit = document.createElement("p");
+iceCredit.className = "credit";
+iceCredit.textContent = `Snow: MODIS/Terra monthly snow cover. Sea ice: AMSR2 sea ice concentration, GCOM-W1 (the series in GIBS ends in September 2025). ${GIBS_ACKNOWLEDGEMENT}`;
+
 /** Finer rings: a setting inside the Light lens rather than a layer. */
 const fineRow = document.createElement("label");
 fineRow.className = "switch";
@@ -125,7 +130,7 @@ const lenses = createLensPanel(
     { key: "magnetic-field", label: "The magnetic field", built: false, on: true },
     { key: "magnetic-poles", label: "Magnetic north's wandering", built: false, on: true },
     { key: "aurora", label: "The aurora", built: false, on: true },
-    { key: "sea-ice", label: "Sea ice and snow", built: false, on: true },
+    { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
   {
     eventLens: { [humpbacks.id]: "life" },

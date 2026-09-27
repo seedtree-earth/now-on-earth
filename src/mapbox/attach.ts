@@ -11,6 +11,7 @@ import { FALLBACK_VIEWER, type LngLat, type Presence, type SeasonalEvent, moonSt
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { moonLayer } from "./layers/moon.js";
+import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
 import { ringsLayer } from "./layers/rings.js";
 import { dayLineLayer, laneLayer, sunTrackLayer } from "./layers/seasons.js";
@@ -104,6 +105,7 @@ export type NowOnEarth = {
 export const defaultLayers = (
   opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[] } = {},
 ): ClockLayer[] => [
+  seaIceLayer(),
   tidesLayer(),
   ringsLayer(),
   twilightLayer(),
