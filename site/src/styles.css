@@ -91,13 +91,132 @@ body {
   margin-top: 0.2rem;
 }
 
+.moonline {
+  margin: 0.2rem 0 0;
+  font-size: var(--fs-body-s);
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.moonline::first-letter {
+  text-transform: uppercase;
+}
+
+/* A person or node, in their own light. */
+.pick {
+  position: absolute;
+  right: max(1.25rem, env(safe-area-inset-right));
+  top: max(1.25rem, env(safe-area-inset-top));
+  max-width: 17rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--bg) 84%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  z-index: 4;
+  font-size: var(--fs-body-s);
+}
+
+.pick strong {
+  display: block;
+  font-family: var(--font-fraunces);
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+.pick span {
+  color: var(--ink-soft);
+}
+
+.pick a {
+  color: var(--accent-strong);
+}
+
+/* What the globe shows: quiet switches that fold out of the dock. */
+.layers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.35rem 1rem;
+  margin: 0.7rem 0 0.1rem;
+  padding: 0.7rem 0.2rem 0.2rem;
+  border-top: 1px solid color-mix(in oklab, var(--line) 80%, transparent);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: var(--fs-body-s);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.switch em {
+  font-style: normal;
+  color: var(--ink-faint);
+}
+
+.switch input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  width: 2.1rem;
+  height: 1.2rem;
+  margin: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ink) 16%, transparent);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.25s var(--ease-unfurl);
+}
+
+.switch input::after {
+  content: "";
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.25s var(--ease-unfurl);
+}
+
+.switch input:checked {
+  background: color-mix(in oklab, var(--accent) 75%, var(--bg));
+}
+
+.switch input:checked::after {
+  transform: translateX(0.9rem);
+}
+
+.switch input:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
 /* The face floats over imagery; a soft wash keeps it legible without a slab. */
 .face::before {
   content: "";
   position: absolute;
-  inset: -2.5rem -4rem -2rem -2.5rem;
+  inset: -3rem -6rem -3rem -3rem;
   z-index: -1;
-  background: radial-gradient(ellipse at 20% 30%, color-mix(in oklab, var(--bg) 82%, transparent), transparent 70%);
+  /* Strong enough to read over bright imagery when the globe is zoomed in,
+     soft enough at its edges to leave no slab. */
+  background: radial-gradient(
+    ellipse 75% 85% at 30% 45%,
+    color-mix(in oklab, var(--bg) 92%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 78%, transparent) 45%,
+    transparent 100%
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  mask-image: radial-gradient(ellipse 75% 85% at 30% 45%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 85% at 30% 45%, #000 40%, transparent 100%);
 }
 
 .notice {
@@ -248,7 +367,8 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   outline-offset: 2px;
 }
 
-.btn[aria-pressed="true"] {
+.btn[aria-pressed="true"],
+.btn[aria-expanded="true"] {
   background: color-mix(in oklab, var(--accent) 26%, var(--bg));
   border-color: color-mix(in oklab, var(--accent) 60%, transparent);
 }
@@ -323,5 +443,15 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   *::before,
   *::after {
     transition: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .pick {
+    top: auto;
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+    bottom: calc(var(--dock-h, 12rem) + 2.2rem);
   }
 }

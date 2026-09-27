@@ -6,8 +6,9 @@
 
 import "./styles.css";
 import mapboxgl from "mapbox-gl";
-import { FALLBACK_VIEWER, type LngLat, describeLight } from "now-on-earth/core";
-import { type NowOnEarth, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { FALLBACK_VIEWER, type LngLat, describeLight, moonState, sunState } from "now-on-earth/core";
+import { DEFAULT_HIDDEN, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { MOCK_PEOPLE } from "./mock-people";
 import { askPosition, quietPosition } from "./location";
 import { dayTrack, yearTrack } from "./tracks";
 
@@ -33,8 +34,11 @@ const els = {
   now: $<HTMLButtonElement>("now"),
   faceSun: $<HTMLButtonElement>("face-sun"),
   faceMe: $<HTMLButtonElement>("face-me"),
-  fine: $<HTMLButtonElement>("fine"),
-  seasons: $<HTMLButtonElement>("seasons"),
+  fine: $<HTMLInputElement>("fine"),
+  layers: $<HTMLButtonElement>("layers"),
+  layersPanel: $("layers-panel"),
+  moonline: $("moonline"),
+  pick: $("pick"),
   theme: $<HTMLButtonElement>("theme"),
 };
 
@@ -46,6 +50,8 @@ let playing = false;
 let viewer: LngLat = { ...FALLBACK_VIEWER };
 let located = false;
 let clock: NowOnEarth | null = null;
+/** Which layers are on, mirrored here so the words work even without a globe. */
+const shownLayers = new Set(["rings", "twilight", "seasons", "moon", "sun"].filter((k) => !DEFAULT_HIDDEN.includes(k)));
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
 const isLive = () => !playing && offsetMin === 0 && dayShift === 0;
@@ -72,12 +78,15 @@ let lastSpoken = 0;
 
 function renderWords() {
   const date = shown();
-  const w = describeLight(date, viewer);
+  const moonOn = shownLayers.has("moon");
+  const w = describeLight(date, viewer, sunState(date), moonOn ? moonState(date) : undefined);
   els.phase.textContent = w.phase;
   els.sky.textContent = `${w.sky} · ${w.season} · ${w.days}`;
   const place = located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
+  els.moonline.hidden = !w.moon;
+  if (w.moon) els.moonline.textContent = w.moon;
 
   // Screen readers hear a change of light, not every frame of it: while the
   // sun is playing, at most one sentence every six seconds.
@@ -190,17 +199,48 @@ els.faceMe.addEventListener("click", async () => {
 });
 
 let fine = false;
-els.fine.addEventListener("click", () => {
-  fine = !fine;
+els.fine.addEventListener("change", () => {
+  fine = els.fine.checked;
   clock?.setFine(fine);
-  els.fine.setAttribute("aria-pressed", String(fine));
 });
 
-els.seasons.addEventListener("click", () => {
-  const on = els.seasons.getAttribute("aria-pressed") !== "true";
-  clock?.setVisible("seasons", on);
-  els.seasons.setAttribute("aria-pressed", String(on));
+// What the globe shows: each switch toggles one self-contained layer.
+els.layers.addEventListener("click", () => {
+  const open = els.layersPanel.hidden;
+  els.layersPanel.hidden = !open;
+  els.layers.setAttribute("aria-expanded", String(open));
 });
+for (const input of els.layersPanel.querySelectorAll<HTMLInputElement>("input[data-layer]")) {
+  const key = input.dataset.layer!;
+  input.checked = shownLayers.has(key);
+  input.addEventListener("change", () => {
+    if (input.checked) shownLayers.add(key);
+    else shownLayers.delete(key);
+    clock?.setVisible(key, input.checked);
+    push();
+  });
+}
+
+// A person or node, when their dot is hovered or tapped.
+function showPick(p: PresencePick | null) {
+  if (!p) {
+    els.pick.hidden = true;
+    return;
+  }
+  els.pick.hidden = false;
+  els.pick.replaceChildren();
+  const name = document.createElement("strong");
+  name.textContent = p.name;
+  const light = document.createElement("span");
+  light.textContent = p.placeName ? `${p.phase} in ${p.placeName}` : p.phase;
+  els.pick.append(name, light);
+  if (p.href) {
+    const a = document.createElement("a");
+    a.href = p.href;
+    a.textContent = "Visit on the Landscape";
+    els.pick.append(document.createElement("br"), a);
+  }
+}
 
 // Theme: the same key and attribute as SeedTree V2.
 function syncThemeButton() {
@@ -315,7 +355,13 @@ function buildGlobe() {
   frameGlobe();
   // Attach at once: the clock waits for the style itself, so the light arrives
   // with the style rather than after every imagery tile has loaded.
-  clock = attachNowOnEarth(map, { viewer, fine });
+  clock = attachNowOnEarth(map, {
+    viewer,
+    fine,
+    people: MOCK_PEOPLE,
+    hidden: ["rings", "twilight", "seasons", "moon", "sun", "tides", "people"].filter((k) => !shownLayers.has(k)),
+    onPick: showPick,
+  });
   // Dev only: a handle for poking at the globe from the console.
   if (import.meta.env.DEV) Object.assign(window, { __noe: { map, clock } });
   clock.subscribe(() => {

@@ -18,6 +18,12 @@ export type Palette = {
   day: string;
   /** Night rings. Clock token: --noe-night. */
   night: string;
+  /** Pale warm light the day rings lift toward near the sun. Clock token: --noe-glow. */
+  glow: string;
+  /** Rose of golden hour and twilight. Clock token: --noe-dusk. */
+  dusk: string;
+  /** Moonlight: the moon, its phase, the tides. Clock token: --noe-moon. */
+  moon: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -34,6 +40,9 @@ export type PaletteTokens = { [K in Exclude<keyof Palette, "dark">]: string };
 export const TOKENS: PaletteTokens = {
   day: "--accent",
   night: "--noe-night",
+  glow: "--noe-glow",
+  dusk: "--noe-dusk",
+  moon: "--noe-moon",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -42,6 +51,9 @@ export const TOKENS: PaletteTokens = {
 const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   day: "#d99a2e",
   night: "#2d2350",
+  glow: "#fff4d6",
+  dusk: "#d9826b",
+  moon: "#dfe4ee",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -50,6 +62,9 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
 const FALLBACK_DARK: Omit<Palette, "dark"> = {
   day: "#f0c05a",
   night: "#120d24",
+  glow: "#fff0c8",
+  dusk: "#e59274",
+  moon: "#e9edf6",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -93,6 +108,9 @@ export function readPalette(
   return {
     day: pick("day"),
     night: pick("night"),
+    glow: pick("glow"),
+    dusk: pick("dusk"),
+    moon: pick("moon"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),

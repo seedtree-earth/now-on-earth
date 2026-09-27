@@ -1,7 +1,8 @@
 /**
  * Day and night rings. Gold caps around the sun every hour of the Earth's turn
  * (15°, or 5° in fine mode) out to the terminator, stacked so the light deepens
- * toward the sun; violet caps around the antisolar point, deepening toward
+ * toward the sun, and paling from gold to a warm white glow as it nears it, so
+ * the heart of the day reads as light rather than a darker gold; violet caps around the antisolar point, deepening toward
  * local midnight. Hour rings keep a slightly firmer hairline in fine mode so
  * the hours still read through the finer steps.
  */
@@ -33,7 +34,16 @@ function paintFills(ctx: LayerContext, fine: boolean) {
   const count = fine ? 18 : 6;
   const peak = ctx.palette.dark ? PEAK.dark : PEAK.light;
   const m = ctx.map;
-  m.setPaintProperty(ctx.id("rings-day-fill"), "fill-color", ctx.palette.day);
+  // Gold at the terminator, lifting through lab space to glow at the sun.
+  m.setPaintProperty(ctx.id("rings-day-fill"), "fill-color", [
+    "interpolate-lab",
+    ["linear"],
+    ["get", "radius"],
+    5,
+    ctx.palette.glow,
+    90,
+    ctx.palette.day,
+  ]);
   m.setPaintProperty(ctx.id("rings-day-fill"), "fill-opacity", stackedOpacity(count, peak.day));
   m.setPaintProperty(ctx.id("rings-night-fill"), "fill-color", ctx.palette.night);
   m.setPaintProperty(ctx.id("rings-night-fill"), "fill-opacity", stackedOpacity(count, peak.night));

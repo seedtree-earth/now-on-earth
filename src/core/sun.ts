@@ -119,13 +119,22 @@ export type SunSky = {
 
 /** Where the sun sits in the sky for someone standing at `at`. */
 export function sunSky(at: LngLat, sun: SunState): SunSky {
-  const hourAngle = wrapLng(at.lng - sun.subsolar.lng);
-  const altitude = 90 - angularDistance(at, sun.subsolar);
+  return skyOf(at, sun.subsolar);
+}
 
-  // Initial bearing from the observer toward the subsolar point.
+/**
+ * Where any body sits in the sky, given the point on Earth it stands over.
+ * Geocentric: ignores parallax, which matters only for the moon and only by
+ * about a degree, far below what the face shows.
+ */
+export function skyOf(at: LngLat, sub: LngLat): SunSky {
+  const hourAngle = wrapLng(at.lng - sub.lng);
+  const altitude = 90 - angularDistance(at, sub);
+
+  // Initial bearing from the observer toward the sub-point.
   const p1 = at.lat * RAD;
-  const p2 = sun.subsolar.lat * RAD;
-  const dl = (sun.subsolar.lng - at.lng) * RAD;
+  const p2 = sub.lat * RAD;
+  const dl = (sub.lng - at.lng) * RAD;
   const yy = Math.sin(dl) * Math.cos(p2);
   const xx = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
   const azimuth = ((Math.atan2(yy, xx) * DEG) % 360 + 360) % 360;

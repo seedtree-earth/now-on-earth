@@ -202,6 +202,50 @@ export function cap(center: LngLat, radius: number): Cap {
   return { polygons: [[ring]], edges: [line] };
 }
 
+/** Ray-cast point in a lng/lat ring (valid for our cut, in-range rings). */
+function inRing(pt: Position, ring: Position[]): boolean {
+  let hit = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > pt[1] !== yj > pt[1] && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+
+/**
+ * A band between two circles around one centre: every point from `inner` to
+ * `outer` degrees of arc away. Both radii must be at most 90 (for bands past
+ * a hemisphere, band the opposite point instead: [a, b] from the sun is
+ * [180 - b, 180 - a] from the antisolar point).
+ *
+ * When both circles hold the same pole, both edges run the full width of the
+ * world and the band is the strip between them. Otherwise the inner cap's
+ * pieces become holes in whichever outer piece holds them.
+ */
+export function band(center: LngLat, inner: number, outer: number): PolygonCoords[] {
+  const out = cap(center, outer);
+  if (inner <= 0) return out.polygons;
+  const inn = cap(center, inner);
+  const po = poles(center, outer);
+  const pi = poles(center, inner);
+  if ((po.north || po.south) && (pi.north || pi.south)) {
+    const a = out.edges[0];
+    const b = inn.edges[0];
+    return [[[...a, ...b.slice().reverse(), a[0]]]];
+  }
+  return out.polygons.map((poly) => {
+    const holes = inn.polygons
+      .map((h) => h[0])
+      .filter((h) => {
+        const n = h.length - 1;
+        const mid: Position = [h.slice(0, n).reduce((s, p) => s + p[0], 0) / n, h.slice(0, n).reduce((s, p) => s + p[1], 0) / n];
+        return inRing(mid, poly[0]);
+      });
+    return [poly[0], ...holes];
+  });
+}
+
 export type RingKind = "day" | "night";
 
 export type RingFeature = {

@@ -7,12 +7,17 @@
  */
 
 import type { Map as MapboxMap } from "mapbox-gl";
-import { FALLBACK_VIEWER, type LngLat, sunState } from "../core/index.js";
+import { FALLBACK_VIEWER, type LngLat, type Presence, moonState, sunState } from "../core/index.js";
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
+import { moonLayer } from "./layers/moon.js";
+import { peopleLayer } from "./layers/people.js";
 import { ringsLayer } from "./layers/rings.js";
 import { seasonsLayer } from "./layers/seasons.js";
 import { sunLayer } from "./layers/sun.js";
+import { tidesLayer } from "./layers/tides.js";
+import { twilightLayer } from "./layers/twilight.js";
 import type { ClockLayer, Frame, LayerContext } from "./types.js";
+import type { PresencePick } from "./layers/people.js";
 
 export type Follow = "sun" | null;
 
@@ -23,12 +28,16 @@ export type NowOnEarthOptions = {
   viewer?: LngLat;
   /** 5° rings instead of 15°. */
   fine?: boolean;
+  /** People and nodes who chose to be shown. Only `consent.shown` ones are drawn. */
+  people?: Presence[];
+  /** A person or node dot was hovered or tapped (null on leave). */
+  onPick?: (pick: PresencePick | null) => void;
   /**
-   * Layer modules, bottom to top. Defaults to rings, seasons, sun. Pass your
-   * own list to add, drop or reorder layers.
+   * Layer modules, bottom to top. Defaults to tides, rings, twilight, seasons,
+   * people, moon, sun. Pass your own list to add, drop or reorder layers.
    */
   layers?: ClockLayer[];
-  /** Layer keys to start hidden. */
+  /** Layer keys to start hidden. Defaults to tides and people. */
   hidden?: string[];
   /**
    * Host layer to slot the clock beneath (the Landscape passes its pin layer,
@@ -55,6 +64,7 @@ export type NowOnEarth = {
   isLive(): boolean;
   setViewer(viewer: LngLat): void;
   setFine(fine: boolean): void;
+  setPeople(people: Presence[]): void;
   setVisible(key: string, visible: boolean): void;
   layers(): LayerState[];
   /** Keep the camera on the sun as it moves, or stop. */
@@ -71,7 +81,18 @@ export type NowOnEarth = {
   destroy(): void;
 };
 
-export const defaultLayers = (): ClockLayer[] => [ringsLayer(), seasonsLayer(), sunLayer()];
+export const defaultLayers = (opts: { onPick?: (pick: PresencePick | null) => void } = {}): ClockLayer[] => [
+  tidesLayer(),
+  ringsLayer(),
+  twilightLayer(),
+  seasonsLayer(),
+  peopleLayer({ onPick: opts.onPick }),
+  moonLayer(),
+  sunLayer(),
+];
+
+/** Quiet by default: tides and people are there to be switched on. */
+export const DEFAULT_HIDDEN = ["tides", "people"];
 
 function firstLabelLayer(map: MapboxMap): string | undefined {
   const layers = map.getStyle()?.layers ?? [];
@@ -82,14 +103,16 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const prefix = options.prefix ?? "noe-";
   const themeEl = options.themeElement ?? document.documentElement;
   const tokens = { ...TOKENS, ...options.tokens };
-  const mods = options.layers ?? defaultLayers();
-  const visible = new Map(mods.map((m) => [m.key, !(options.hidden ?? []).includes(m.key)]));
+  const mods = options.layers ?? defaultLayers({ onPick: options.onPick });
+  const hidden = options.hidden ?? DEFAULT_HIDDEN;
+  const visible = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
   const listeners = new Set<(f: Frame) => void>();
   const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   let fixed: Date | null = options.time ?? null;
   let viewer: LngLat = options.viewer ?? { ...FALLBACK_VIEWER };
   let fine = options.fine ?? false;
+  let people: Presence[] = options.people ?? [];
   let followMode: Follow = null;
   let added = false;
   let destroyed = false;
@@ -105,7 +128,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
 
   const makeFrame = (): Frame => {
     const date = fixed ?? new Date();
-    return { date, sun: sunState(date), viewer, fine };
+    return { date, sun: sunState(date), moon: moonState(date), viewer, fine, people };
   };
   let current = makeFrame();
 
@@ -191,6 +214,10 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
     },
     setFine(f) {
       fine = f;
+      schedule();
+    },
+    setPeople(p) {
+      people = p;
       schedule();
     },
     setVisible(key, v) {

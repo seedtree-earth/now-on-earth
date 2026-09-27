@@ -11,6 +11,7 @@ export {
   type SunSky,
   sunState,
   sunSky,
+  skyOf,
   angularDistance,
   dayLengthShare,
   litHalfArc,
@@ -28,6 +29,7 @@ export {
   type RingEdgeFeature,
   type FeatureCollection,
   cap,
+  band,
   rings,
   stackedOpacity,
 } from "./rings.js";
@@ -47,7 +49,24 @@ export {
   skyWords,
   seasonWords,
   compassWord,
+  moonWords,
 } from "./describe.js";
+
+export { type TwilightKind, type TwilightFeature, TWILIGHT_STEP, twilightBands } from "./twilight.js";
+
+export { type MoonState, type MoonPhase, moonState, phaseName, gmst } from "./moon.js";
+
+export {
+  type Presence,
+  type PresenceKind,
+  type PresenceFeature,
+  type LandscapeRow,
+  PRESENCE_PRECISION,
+  coarsen,
+  consenting,
+  presenceFeatures,
+  fromLandscapeRows,
+} from "./people.js";
 
 /** Northern Rivers, NSW: where the clock stands when it cannot ask. */
 export const FALLBACK_VIEWER = { lng: 153.3, lat: -28.8 } as const;

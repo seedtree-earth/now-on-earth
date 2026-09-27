@@ -9,7 +9,8 @@
  * in through the partnered layer, with permission, not be inferred by code.
  */
 
-import { type LngLat, type SunState, dayLengthShare, sunSky, sunState } from "./sun.js";
+import { type LngLat, type SunState, dayLengthShare, skyOf, sunSky, sunState } from "./sun.js";
+import type { MoonState } from "./moon.js";
 
 export type LightWords = {
   /** "late afternoon", "dawn", "the middle of the night" */
@@ -20,6 +21,8 @@ export type LightWords = {
   season: string;
   /** "the days are growing longer" / "the sun does not set today" */
   days: string;
+  /** "a waxing crescent moon, low in the west" (only when a moon is given). */
+  moon?: string;
   /** Everything as sentences, for screen readers. */
   sentence: string;
   /** A short caption for the face, joined with mid dots. */
@@ -105,21 +108,41 @@ function dayWords(date: Date, at: LngLat, sun: SunState): string {
   return next > share ? "the days are growing longer" : "the days are growing shorter";
 }
 
+/** The moon for someone at `at`: its phase, and where it sits if it is up. */
+export function moonWords(at: LngLat, moon: MoonState): string {
+  if (moon.phase === "new") return "the moon is new, lost in the sun's glare";
+  const sky = skyOf(at, moon.sublunar);
+  const name = moon.phase === "full" ? "a full moon" : `a ${moon.phase} moon`;
+  if (sky.altitude < -0.5) return `${name}, below the horizon`;
+  const dir = compassWord(sky.azimuth);
+  if (sky.altitude > 75) return `${name}, almost overhead`;
+  const height = sky.altitude < 15 ? "low" : sky.altitude < 45 ? "partway up" : "high";
+  return `${name}, ${height} in the ${dir}`;
+}
+
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export function describeLight(date: Date, at: LngLat, sun: SunState = sunState(date)): LightWords {
+export function describeLight(
+  date: Date,
+  at: LngLat,
+  sun: SunState = sunState(date),
+  moon?: MoonState,
+): LightWords {
   const sky = sunSky(at, sun);
   const halfDay = dayLengthShare(at.lat, sun.declination) * 180;
   const phase = phaseWord(sky.altitude, sky.hourAngle, halfDay);
   const skyText = skyWords(sky.altitude, sky.azimuth, sky.hourAngle);
   const season = seasonWords(date, at);
   const days = dayWords(date, at, sun);
+  const moonText = moon ? moonWords(at, moon) : undefined;
   return {
     phase,
     sky: skyText,
     season,
     days,
-    sentence: `${cap(phase)}. ${cap(skyText)}. ${cap(season)}, and ${days}.`,
+    moon: moonText,
+    sentence:
+      `${cap(phase)}. ${cap(skyText)}. ${cap(season)}, and ${days}.` + (moonText ? ` ${cap(moonText)}.` : ""),
     caption: `${phase} · ${season}`,
   };
 }
