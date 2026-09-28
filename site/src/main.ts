@@ -27,7 +27,8 @@ import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
 import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
 import { GUIDE, LENS_TITLES } from "./guide";
-import { hoverItems } from "./hover";
+import { type HoverItem, hoverItems } from "./hover";
+import { flatHoverItems } from "./flat/hover";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -43,8 +44,8 @@ const STYLE = "mapbox://styles/mapbox/satellite-streets-v12"; // the Landscape's
 
 const MIN = 60000;
 const DAY = 86400000;
-/** Playing, the sun crosses an hour of sky every second: a day in 24 seconds. */
-const PLAY_MINUTES_PER_SECOND = 60;
+/** Playing, the sun crosses two hours of sky every second: a full turn in twelve seconds, and each turn carries the year on by a day. */
+const PLAY_MINUTES_PER_SECOND = 120;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const els = {
@@ -83,6 +84,7 @@ let located = false;
 let clock: NowOnEarth | null = null;
 /** The flat model's disc, drawn in the globe's place when switched on. */
 const flat = createFlatView(document.querySelector<HTMLElement>(".shell")!);
+if (import.meta.env.DEV) Object.assign(window, { __flat: flat });
 const isFlat = () => flat.isShown();
 // ---------------------------------------------------------------- lenses
 
@@ -549,6 +551,43 @@ function hideTip() {
   els.tip.hidden = true;
 }
 
+/** Fill the pop-up and set it beside the pointer, kept inside the window. */
+function placeTip(point: { x: number; y: number }, items: HoverItem[]) {
+  if (!items.length) return hideTip();
+  els.tip.replaceChildren(
+    ...items.map((it) => {
+      const p = document.createElement("p");
+      const b = document.createElement("strong");
+      b.textContent = it.title;
+      const span = document.createElement("span");
+      span.textContent = it.detail;
+      p.append(b, span);
+      return p;
+    }),
+  );
+  els.tip.hidden = false;
+  const r = els.tip.getBoundingClientRect();
+  const x = Math.min(point.x + 16, window.innerWidth - r.width - 8);
+  const y = point.y + 16 + r.height > window.innerHeight - 8 ? point.y - r.height - 12 : point.y + 16;
+  els.tip.style.left = `${Math.max(8, x)}px`;
+  els.tip.style.top = `${Math.max(8, y)}px`;
+}
+
+// The Flat model speaks for itself on its own disc.
+let flatTapTimer = 0;
+flat.onPoint((point, at, tap) => {
+  if (!at || !isFlat()) {
+    if (!tap) hideTip();
+    return;
+  }
+  const date = shown();
+  placeTip(point, flatHoverItems(flat, point, at, sunState(date), viewer, (k) => shownLayers.has(k)));
+  if (tap) {
+    clearTimeout(flatTapTimer);
+    flatTapTimer = window.setTimeout(hideTip, 5000);
+  }
+});
+
 /** Say what is under the pointer, beside it. */
 function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: number }) {
   if (!map || isFlat()) return hideTip();
@@ -565,25 +604,7 @@ function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: nu
     events: [humpbacks, godwits],
     aurora: auroraForHover(date),
   });
-  if (!items.length) return hideTip();
-  els.tip.replaceChildren(
-    ...items.map((it) => {
-      const p = document.createElement("p");
-      const b = document.createElement("strong");
-      b.textContent = it.title;
-      const span = document.createElement("span");
-      span.textContent = it.detail;
-      p.append(b, span);
-      return p;
-    }),
-  );
-  els.tip.hidden = false;
-  // Beside the pointer, kept inside the window.
-  const r = els.tip.getBoundingClientRect();
-  const x = Math.min(point.x + 16, window.innerWidth - r.width - 8);
-  const y = point.y + 16 + r.height > window.innerHeight - 8 ? point.y - r.height - 12 : point.y + 16;
-  els.tip.style.left = `${Math.max(8, x)}px`;
-  els.tip.style.top = `${Math.max(8, y)}px`;
+  placeTip(point, items);
 }
 
 // A person or node, when their dot is hovered or tapped.

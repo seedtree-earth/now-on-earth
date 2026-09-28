@@ -106,7 +106,7 @@ export function flatDayShare(lat: number, declination: number): number {
 
 export type FlatWords = { phase: string; sky: string; season: string; days: string; sentence: string };
 
-function phaseWord(sky: FlatSky, share: number): string {
+export function flatPhaseWord(sky: FlatSky, share: number): string {
   const morning = sky.hourAngle < 0;
   const half = share * 180; // hour angle at the edge of the light
   if (!sky.lit) {
@@ -123,7 +123,7 @@ function phaseWord(sky: FlatSky, share: number): string {
   return "late afternoon";
 }
 
-function skyWords(sky: FlatSky): string {
+export function flatSkyWords(sky: FlatSky): string {
   const dir = compassWord(sky.azimuth);
   const where =
     sky.elevation > 75
@@ -157,8 +157,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export function describeFlat(date: Date, at: LngLat, sun: SunState = sunState(date)): FlatWords {
   const sky = flatSky(at, sun);
   const share = flatDayShare(at.lat, sun.declination);
-  const phase = phaseWord(sky, share);
-  const skyText = skyWords(sky);
+  const phase = flatPhaseWord(sky, share);
+  const skyText = flatSkyWords(sky);
   const season = seasonWords(date, at);
   const days = dayWords(date, at, sun);
   return {

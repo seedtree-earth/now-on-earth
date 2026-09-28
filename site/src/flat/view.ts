@@ -32,6 +32,14 @@ export type FlatView = {
   /** Room taken by the words above and the dock below. */
   setPadding(p: { top: number; bottom: number }): void;
   refreshPalette(): void;
+  /**
+   * Told what is under the pointer as it moves (and on a tap): the screen
+   * point, and the place on the disc there (null off the disc or while dragging).
+   */
+  onPoint(cb: (point: { x: number; y: number }, at: LngLat | null, tap: boolean) => void): void;
+  /** Where a place is drawn on screen, and the disc's centre and scale, for hit tests. */
+  screenOf(at: LngLat): { x: number; y: number } | null;
+  geometry(): { cx: number; cy: number; discR: number; pxPerDegree: number };
 };
 
 type Colours = Palette & { ocean: string; land: string };
@@ -313,18 +321,43 @@ export function createFlatView(container: HTMLElement): FlatView {
 
   // ---------------------------------------------------------- turning by hand
 
+  /** The pointer in the canvas's own CSS pixels, whatever the page's scale. */
+  function local(e: PointerEvent) {
+    const r = canvas.getBoundingClientRect();
+    const k = r.width ? canvas.clientWidth / r.width : 1;
+    return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k };
+  }
+
   let dragFrom: number | null = null;
+  let downAt: { x: number; y: number } | null = null;
+  let pointCb: ((point: { x: number; y: number }, at: LngLat | null, tap: boolean) => void) | null = null;
+
+  /** The place on the disc under a screen point, or null off the disc. */
+  function placeAt(x: number, y: number): LngLat | null {
+    const { cx, cy, discR } = layout();
+    if (Math.hypot(x - cx, y - cy) > discR) return null;
+    const ll = projection().invert?.([x, y]);
+    return ll ? { lng: ll[0], lat: ll[1] } : null;
+  }
+
   canvas.addEventListener("pointerdown", (e) => {
     const { cx, cy } = layout();
-    dragFrom = Math.atan2(e.offsetY - cy, e.offsetX - cx);
+    const p = local(e);
+    downAt = p;
+    dragFrom = Math.atan2(p.y - cy, p.x - cx);
     canvas.setPointerCapture(e.pointerId);
     followSun = false;
     canvas.dispatchEvent(new CustomEvent("flat:release", { bubbles: true }));
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (dragFrom === null) return;
+    const p = local(e);
+    if (dragFrom === null) {
+      pointCb?.(p, placeAt(p.x, p.y), false);
+      return;
+    }
+    pointCb?.(p, null, false);
     const { cx, cy } = layout();
-    const now = Math.atan2(e.offsetY - cy, e.offsetX - cx);
+    const now = Math.atan2(p.y - cy, p.x - cx);
     const a = screenAngle(0);
     const b = screenAngle(1);
     const perDegree = Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -334,8 +367,17 @@ export function createFlatView(container: HTMLElement): FlatView {
     schedule();
   });
   const end = () => (dragFrom = null);
-  canvas.addEventListener("pointerup", end);
+  canvas.addEventListener("pointerup", (e) => {
+    end();
+    const p = local(e);
+    // A press that barely moved is a tap: say what is there.
+    if (downAt && Math.hypot(p.x - downAt.x, p.y - downAt.y) < 5) {
+      pointCb?.(p, placeAt(p.x, p.y), true);
+    }
+    downAt = null;
+  });
   canvas.addEventListener("pointercancel", end);
+  canvas.addEventListener("pointerleave", () => pointCb?.({ x: 0, y: 0 }, null, false));
 
   new ResizeObserver(schedule).observe(container);
 
@@ -383,6 +425,17 @@ export function createFlatView(container: HTMLElement): FlatView {
       pal = colours();
       landKey = "";
       schedule();
+    },
+    onPoint(cb) {
+      pointCb = cb;
+    },
+    screenOf(at) {
+      const p = projection()([at.lng, at.lat]);
+      return p ? { x: p[0], y: p[1] } : null;
+    },
+    geometry() {
+      const { cx, cy, discR, scale } = layout();
+      return { cx, cy, discR, pxPerDegree: (Math.PI / 180) * scale };
     },
   };
 }
