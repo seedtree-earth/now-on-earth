@@ -75,6 +75,11 @@
             <label class="switch"><input type="checkbox" id="flat-model" /><span>Flat model</span></label>
           </div>
         </div>
+        <!-- The pace of play: shown while the sun is moving. -->
+        <label class="slider pace" id="pace-row" hidden>
+          <span class="slider-name">Pace <em id="pace-word">days</em></span>
+          <input id="pace" type="range" min="0" max="4" step="1" value="2" />
+        </label>
         <div class="buttons">
           <button id="play" class="btn" type="button" aria-pressed="false" title="Let the sun move">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5.5v13l10.5-6.5z" /><path class="i-pause" d="M7.5 5.5h3v13h-3zM13.5 5.5h3v13h-3z" /></svg>

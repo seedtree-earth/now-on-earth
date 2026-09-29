@@ -44,8 +44,22 @@ const STYLE = "mapbox://styles/mapbox/satellite-streets-v12"; // the Landscape's
 
 const MIN = 60000;
 const DAY = 86400000;
-/** Playing, the sun crosses two hours of sky every second: a full turn in twelve seconds, and each turn carries the year on by a day. */
-const PLAY_MINUTES_PER_SECOND = 120;
+/**
+ * The pace of play. The first four run time straight on (each full turn of
+ * the sun carries the year on by a day, as it really does). At the fastest,
+ * Seasons, the hour is held and the days step on, so the year's slow changes
+ * show without the sun spinning into a blur.
+ */
+type Pace = { word: string; say: string; minutesPerSecond?: number; daysPerSecond?: number };
+const PACES: Pace[] = [
+  { word: "as it is", say: "as it is, in real time", minutesPerSecond: 1 / 60 },
+  { word: "hours", say: "an hour of sky every second", minutesPerSecond: 60 },
+  { word: "days", say: "a full turn of the sun every twelve seconds", minutesPerSecond: 120 },
+  { word: "weeks", say: "about a week every second", minutesPerSecond: 7 * 1440 },
+  { word: "seasons", say: "the year in about a minute, your hour held", daysPerSecond: 6 },
+];
+let pace = 2;
+let seasonCarry = 0;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const els = {
@@ -58,6 +72,9 @@ const els = {
   scrub: $<HTMLInputElement>("scrub"),
   season: $<HTMLInputElement>("season"),
   play: $<HTMLButtonElement>("play"),
+  pace: $<HTMLInputElement>("pace"),
+  paceRow: $("pace-row"),
+  paceWord: $("pace-word"),
   now: $<HTMLButtonElement>("now"),
   faceSun: $<HTMLButtonElement>("face-sun"),
   faceMe: $<HTMLButtonElement>("face-me"),
@@ -366,6 +383,8 @@ function push() {
   renderTracks();
   els.now.hidden = isLive();
   els.play.setAttribute("aria-pressed", String(playing));
+  els.paceRow.hidden = !playing;
+  els.play.setAttribute("aria-label", playing ? `Pause. Playing at ${PACES[pace].say}.` : "Play");
   els.play.querySelector(".btn-label")!.textContent = playing ? "Pause" : "Play";
   els.play.title = playing ? "Hold the sun still" : "Let the sun move";
   const following = isFlat() ? flat.following() : clock?.following() === "sun";
@@ -387,17 +406,30 @@ function playLoop(t: number) {
   if (!playing) return;
   const dt = lastFrame ? Math.min(100, t - lastFrame) : 16;
   lastFrame = t;
-  offsetMin += (dt / 1000) * PLAY_MINUTES_PER_SECOND;
-  if (offsetMin > 720) {
-    offsetMin -= 1440;
-    dayShift += 1;
-    if (dayShift > 182) dayShift -= 365;
-    els.season.value = String(dayShift);
+  const p = PACES[pace];
+  if (p.daysPerSecond) {
+    // Seasons: whole days only, so the sun keeps your hour.
+    seasonCarry += (dt / 1000) * p.daysPerSecond;
+    const whole = Math.floor(seasonCarry);
+    seasonCarry -= whole;
+    dayShift += whole;
+  } else {
+    offsetMin += (dt / 1000) * (p.minutesPerSecond ?? 0);
+    // Each full turn past the end of the day slider carries the year on a day.
+    while (offsetMin > 720) {
+      offsetMin -= 1440;
+      dayShift += 1;
+    }
   }
+  while (dayShift > 182) dayShift -= 365;
+  els.season.value = String(dayShift);
   els.scrub.value = String(Math.round(offsetMin));
   push();
   requestAnimationFrame(playLoop);
 }
+
+// Dev only: step the play loop by hand (a hidden tab runs no animation frames).
+if (import.meta.env.DEV) Object.assign(window, { __playLoop: playLoop });
 
 // ---------------------------------------------------------------- controls
 
@@ -409,6 +441,19 @@ els.season.addEventListener("input", () => {
   dayShift = Number(els.season.value);
   push();
 });
+
+// The pace, named in words for the eye and the ear.
+function syncPace() {
+  els.paceWord.textContent = PACES[pace].word;
+  els.pace.setAttribute("aria-valuetext", PACES[pace].say);
+}
+els.pace.addEventListener("input", () => {
+  pace = Number(els.pace.value);
+  seasonCarry = 0;
+  syncPace();
+  push();
+});
+syncPace();
 
 els.play.addEventListener("click", () => {
   playing = !playing;

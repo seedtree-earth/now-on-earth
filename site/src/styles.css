@@ -802,3 +802,19 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
 .hover-tip span {
   color: var(--ink-soft);
 }
+
+/* The pace of play: five stops, named in words. */
+.pace {
+  margin-top: 0.55rem;
+}
+
+.pace .slider-name em {
+  font-style: normal;
+  font-family: var(--font-instrument);
+  color: var(--ink-faint);
+  margin-left: 0.25rem;
+}
+
+#pace {
+  --track: linear-gradient(90deg, color-mix(in oklab, var(--accent) 25%, var(--bg-2)), var(--accent));
+}
