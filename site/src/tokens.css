@@ -49,6 +49,9 @@
   --noe-aurora: #3fcf8e;
   --noe-plankton: #4fb8d6;
   --noe-flight: #d0913f;
+  --noe-quake: #b2455a;
+  --noe-ember: #c9442c;
+  --noe-fire: #e58a35;
   --noe-me: #2a9d9a;
 
   color-scheme: light;
@@ -80,6 +83,9 @@
   --noe-aurora: #6dffb0;
   --noe-plankton: #7fe3ff;
   --noe-flight: #f2c98a;
+  --noe-quake: #e27a8c;
+  --noe-ember: #ff6a45;
+  --noe-fire: #ffab5c;
   --noe-me: #5cc8c2;
 
   color-scheme: dark;

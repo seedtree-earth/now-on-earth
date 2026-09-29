@@ -14,6 +14,12 @@ import {
   eventStory,
   auroraWords,
   compassWords,
+  firesAt,
+  fireWords,
+  quakesAt,
+  quakeWords,
+  volcanoesAt,
+  volcanoWords,
   planktonWords,
   moonState,
   seasonMarkWords,
@@ -24,7 +30,7 @@ import {
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
-import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, readPalette } from "now-on-earth/mapbox";
+import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, hazardsFor, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
 import { GUIDE, LENS_TITLES } from "./guide";
 import { type HoverItem, hoverItems } from "./hover";
@@ -160,6 +166,17 @@ function creditFor(e: SeasonalEvent): HTMLElement {
   return p;
 }
 
+/** Credits for the live hazard layers. */
+const credit = (text: string) => {
+  const p = document.createElement("p");
+  p.className = "credit";
+  p.textContent = text;
+  return p;
+};
+const quakeCredit = credit("Live from the U.S. Geological Survey: the past month's significant earthquakes. For warnings, follow local authorities.");
+const volcanoCredit = credit("Live from the Global Disaster Alert and Coordination System, GDACS: eruptions rated orange or red in the past year.");
+const fireCredit = credit("Live from the Global Disaster Alert and Coordination System, GDACS: wildfires rated orange or red in the past two months. GDACS alerts do not replace official warnings.");
+
 /** Finer rings: a setting inside the Light lens rather than a layer. */
 const fineRow = document.createElement("label");
 fineRow.className = "switch";
@@ -207,6 +224,9 @@ const lenses = createLensPanel(
     },
     { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
     { key: "magnetic-poles", label: "Magnetic north's wandering", note: "(since 1925)", built: true, on: true, after: magCredit },
+    { key: "earthquakes", label: "Major earthquakes", note: "(live, the past month)", built: true, on: true, after: quakeCredit },
+    { key: "volcanoes", label: "Erupting volcanoes", note: "(live, the past year)", built: true, on: true, after: volcanoCredit },
+    { key: "fires", label: "Major wildfires", note: "(live, while they burn)", built: true, on: true, after: fireCredit },
     { key: "aurora", label: "The aurora", note: "(live near now, typical otherwise)", built: true, on: true, after: auroraCredit },
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
@@ -505,7 +525,7 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "plankton"], els.flatSwitch.checked);
+  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "plankton", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();
@@ -632,6 +652,41 @@ flat.onPoint((point, at, tap) => {
     flatTapTimer = window.setTimeout(hideTip, 5000);
   }
 });
+
+/** A tapped earthquake, eruption or fire: its words and a link to its official report. */
+function showHazardCard(point: { x: number; y: number }) {
+  const hz = hazardsFor();
+  if (!hz || !map) return;
+  const date = shown();
+  const near = <T extends { lng: number; lat: number }>(list: T[]) =>
+    list.find((x) => {
+      const p = map!.project([x.lng, x.lat]);
+      return Math.hypot(p.x - point.x, p.y - point.y) < 12;
+    });
+  const q = shownLayers.has("earthquakes") ? near(quakesAt(hz.quakes, date)) : undefined;
+  const v = shownLayers.has("volcanoes") ? near(volcanoesAt(hz.volcanoes, date)) : undefined;
+  const f = shownLayers.has("fires") ? near(firesAt(hz.fires, date)) : undefined;
+  const hit = q
+    ? { title: "Major earthquake", words: quakeWords(q), url: q.url, source: "USGS" }
+    : v
+      ? { title: "Erupting volcano", words: volcanoWords(v), url: v.url, source: "GDACS" }
+      : f
+        ? { title: "Major wildfire", words: fireWords(f), url: f.url, source: "GDACS" }
+        : null;
+  if (!hit) return;
+  els.pick.hidden = false;
+  els.pick.replaceChildren();
+  const name = document.createElement("strong");
+  name.textContent = hit.title;
+  const words = document.createElement("span");
+  words.textContent = hit.words.charAt(0).toUpperCase() + hit.words.slice(1) + ".";
+  const a = document.createElement("a");
+  a.href = hit.url;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = `The ${hit.source} report`;
+  els.pick.append(name, words, document.createElement("br"), a);
+}
 
 /** Say what is under the pointer, beside it. */
 function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: number }) {
@@ -792,6 +847,7 @@ function buildGlobe() {
   // A tap shows it for a few seconds; there is no pointer to move away.
   let tapTimer = 0;
   map.on("click", (e) => {
+    showHazardCard(e.point);
     showTip(e.point, e.lngLat);
     clearTimeout(tapTimer);
     tapTimer = window.setTimeout(hideTip, 5000);
@@ -814,6 +870,7 @@ function buildGlobe() {
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),
     onPick: showPick,
+    hazards: { url: "/api/hazards" },
     aurora: {
       url: "/api/aurora",
       onStatus: (st) => {

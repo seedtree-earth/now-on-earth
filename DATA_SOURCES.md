@@ -83,6 +83,18 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Requests:** 2 probes by hand (the taxon key, one test map), then 21 in the build (12 monthly maps, 2 source searches, 7 dataset lookups), one at a time 1.5 s apart, cached; a rebuild makes none.
 - **Result:** 182,018 flyway records. Most in Australia and New Zealand from October to March; the Yellow Sea rising in April; Alaska highest in June. Shown as a soft amber haze with a general line per month, credited under the switch.
 
+### Earthquakes, volcanoes and wildfires (checked 2026-09-29)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **USGS Earthquake Hazards Program**, GeoJSON feed "Significant Earthquakes, Past Month" | Major earthquakes (Earth's body) | Live, through our function `/api/hazards` (at most every ten minutes, CDN-cached); USGS updates the feed every minute | U.S. government data, public domain; CORS open | "U.S. Geological Survey", under the switch; each quake links to its USGS event page |
+| **GDACS** (Global Disaster Alert and Coordination System; UN and European Commission), event API: wildfire (WF) and volcano (VO) alerts at orange or red | Major wildfires (Weather and ice), erupting volcanoes (Earth's body) | Live, same function: wildfires from the past 60 days, eruptions from the past year | GDACS's API quick start: data are free, with the source acknowledged as "Global Disaster Alert and Coordination System, GDACS" ([quick start](https://www.gdacs.org/Documents/2025/GDACS_API_quickstart_v2.pdf)). Its terms add that GDACS does not replace official warnings and comes without warranty ([terms](https://www.gdacs.org/About/termofuse.aspx)) | "Global Disaster Alert and Coordination System, GDACS", under each switch; each event links to its GDACS report |
+
+- **Thresholds:** USGS's own "significant" ranking (magnitude, felt reports and impact), and GDACS orange and red alerts. Everything below is left out.
+- **Not used:** the Smithsonian Global Volcanism Program. Its content is under the Smithsonian's terms, which allow non-commercial use only ([GVP terms](https://volcano.si.edu/gvp_termsofuse.cfm)), outside our rule.
+- **Requests:** 3 per refresh (one each: USGS, GDACS wildfires, GDACS volcanoes), at most once every ten minutes, one at a time, a User-Agent naming this site, no retries; a failed source keeps its last good copy. While checking the sources, 5 requests were made by hand.
+- **Shown with care:** these are real events, some with losses. The words are plain ("a strong earthquake, magnitude 6.4, near Kainantu, Papua New Guinea, a few days ago"), each links to its official report, and the credits say to follow local authorities for warnings.
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |

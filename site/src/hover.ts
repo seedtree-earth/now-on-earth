@@ -15,7 +15,13 @@ import {
   angularDistance,
   compassWords,
   darkness,
+  firesAt,
+  fireWords,
   isOcean,
+  quakesAt,
+  quakeWords,
+  volcanoesAt,
+  volcanoWords,
   magneticPoleTrails,
   monthBlend,
   planktonAt,
@@ -24,6 +30,7 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import { guideFor } from "./guide";
+import { hazardsFor } from "now-on-earth/mapbox";
 
 export type HoverItem = { key: string; title: string; detail: string };
 
@@ -74,6 +81,18 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
     if (pixelsTo(ctx, n) < 14) add("magnetic-poles", "Magnetic north today. A compass needle points here, not to the geographic pole.");
     else if (pixelsTo(ctx, s) < 14) add("magnetic-poles", "Magnetic south today.");
     else if (pixelsTo(ctx, { lng: 0, lat: 90 }) < 14) add("magnetic-poles", "The geographic North Pole, where the Earth's axis comes through.");
+  }
+
+  // Earthquakes, eruptions and fires: real events, said plainly.
+  const hz = hazardsFor();
+  if (hz) {
+    const near = <T extends LngLat>(list: T[]) => list.find((x) => pixelsTo(ctx, x) < 12);
+    const q = ctx.shows("earthquakes") ? near(quakesAt(hz.quakes, ctx.date)) : undefined;
+    if (q) add("earthquakes", `${cap(quakeWords(q))}. Tap for the USGS report.`);
+    const v = ctx.shows("volcanoes") ? near(volcanoesAt(hz.volcanoes, ctx.date)) : undefined;
+    if (v) add("volcanoes", `${cap(volcanoWords(v))}. Tap for the GDACS report.`);
+    const f = ctx.shows("fires") ? near(firesAt(hz.fires, ctx.date)) : undefined;
+    if (f) add("fires", `${cap(fireWords(f))}. Tap for the GDACS report.`);
   }
 
   // Lines.

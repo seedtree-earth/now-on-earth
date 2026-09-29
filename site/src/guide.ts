@@ -43,8 +43,13 @@ export const GUIDE: GuideEntry[] = [
   { key: "magnetic-poles", lens: "earth", title: "Magnetic north's wandering", body: "Where the north and south magnetic poles have wandered since 1925, fading into the past, with the geographic poles beside them.", source: "NOAA NCEI, from IGRF.", swatch: "var(--noe-field)", mark: "dot" },
   { key: "aurora", lens: "earth", title: "The aurora", body: "Near the present moment, NOAA's live forecast of where the aurora may be seen. Away from now, a typical oval in grey with dashed edges. Only where it is dark.", source: "NOAA Space Weather Prediction Center (OVATION).", swatch: "var(--noe-aurora)", mark: "glow" },
 
+  { key: "earthquakes", lens: "earth", title: "Major earthquakes", body: "The past month's significant earthquakes, as USGS ranks them by magnitude, how widely they were felt and their impact. Rings grow with magnitude and fade over a month; the last day's breathe. Real events: for warnings, follow local authorities.", source: "U.S. Geological Survey, live (refreshed every ten minutes).", swatch: "var(--noe-quake)", mark: "dot" },
+  { key: "volcanoes", lens: "earth", title: "Erupting volcanoes", body: "Eruptions from the past year that GDACS rated orange or red, fading with age.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-ember)", mark: "dot" },
+
   // ------------------------------------------------------------ Weather and ice
   { key: "sea-ice", lens: "weather", title: "Sea ice and snow", body: "Where sea ice and snow lay in this month of a recent year, in soft white, crossfading month to month.", source: "NASA GIBS (AMSR2 sea ice, MODIS snow).", swatch: "#ffffff", mark: "fill" },
+
+  { key: "fires", lens: "weather", title: "Major wildfires", body: "Wildfires GDACS rated orange or red in the past two months: a warm glow while they burn, fading for a week after. Real events: for warnings, follow local authorities.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-fire)", mark: "glow" },
 
   // ------------------------------------------------------------ Controls
   { key: "control-day", lens: "controls", title: "The day", body: "Slide twelve hours either way from now. The track shows the sky over you across those hours." },

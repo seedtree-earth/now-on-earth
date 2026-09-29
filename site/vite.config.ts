@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { type Plugin, defineConfig } from "vite";
 import { GET as aurora } from "../api/aurora";
+import { GET as hazards } from "../api/hazards";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -11,12 +12,17 @@ const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const devApi = (): Plugin => ({
   name: "now-on-earth-dev-api",
   configureServer(server) {
-    server.middlewares.use("/api/aurora", async (_req, res) => {
-      const r = await aurora();
-      res.statusCode = r.status;
-      r.headers.forEach((v, k) => res.setHeader(k, v));
-      res.end(await r.text());
-    });
+    for (const [path, handler] of [
+      ["/api/aurora", aurora],
+      ["/api/hazards", hazards],
+    ] as const) {
+      server.middlewares.use(path, async (_req, res) => {
+        const r = await handler();
+        res.statusCode = r.status;
+        r.headers.forEach((v, k) => res.setHeader(k, v));
+        res.end(await r.text());
+      });
+    }
   },
 });
 

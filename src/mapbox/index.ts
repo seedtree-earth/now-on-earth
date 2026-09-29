@@ -21,6 +21,7 @@ export { moonLayer } from "./layers/moon.js";
 export { tidesLayer } from "./layers/tides.js";
 export { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 export { planktonLayer } from "./layers/plankton.js";
+export { earthquakesLayer, volcanoesLayer, firesLayer, hazardsFor, type HazardsOptions } from "./layers/hazards.js";
 export { auroraLayer, type AuroraOptions, type AuroraStatus } from "./layers/aurora.js";
 export { seaIceLayer, productDate, SNOW, ICE, GIBS_ACKNOWLEDGEMENT } from "./layers/sea-ice.js";
 export { seasonalEventLayer, partneredKnowledgeLayer, type EventLayerOptions } from "./layers/events.js";

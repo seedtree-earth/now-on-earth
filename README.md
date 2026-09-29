@@ -28,7 +28,7 @@ src/mapbox/   the light as layers on any Mapbox GL v3 map
                 seasons, people, moon, sun
   palette.ts    colours read from the host page's CSS tokens
 site/         the standalone clock (Vite), built on the package's public exports
-api/          Vercel functions for the site (aurora.ts: NOAA's forecast, lightened and cached)
+api/          Vercel functions for the site (aurora.ts: NOAA's forecast; hazards.ts: USGS quakes and GDACS fires and eruptions; each lightened and cached)
 scripts/      boundary and copy checks, and ecology/ build scripts
 events/       static event data built by those scripts (humpback-whales.json)
 DATA_SOURCES.md  every dataset, its licence and its credit
@@ -97,8 +97,8 @@ Layers are gathered into four lenses so the clock stays calm by default. Only **
 | --- | --- |
 | Light | sun, daylight (the gold), night shade (the violet), hour rings (and finer rings), hour numbers, twilight, moon, tides, the sun's lane, today's sun track, your day line; every one its own switch |
 | Life | ecological events (humpbacks; Bar-tailed Godwits across the Pacific), plankton's nightly rise *(a model)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
-| Earth's body | the magnetic field (traced from the World Magnetic Model 2025), magnetic north's wandering since 1925 (NOAA NCEI), the aurora (NOAA's live OVATION forecast near now, a typical oval otherwise), the axis's wobble *(later)* |
-| Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), the rain belt, carbon dioxide, fires *(later)* |
+| Earth's body | the magnetic field (traced from the World Magnetic Model 2025), magnetic north's wandering since 1925 (NOAA NCEI), the aurora (NOAA's live OVATION forecast near now, a typical oval otherwise), major earthquakes (USGS, live) and erupting volcanoes (GDACS, live), the axis's wobble *(later)* |
+| Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), major wildfires (GDACS, live), the rain belt and carbon dioxide *(later)* |
 
 The Flat model is a separate switch, outside the lenses.
 

@@ -130,3 +130,21 @@ export {
   planktonField,
   planktonWords,
 } from "./plankton.js";
+
+export {
+  type Quake,
+  type HazardAlert,
+  type Hazards,
+  type Placed,
+  LINGER,
+  quakesAt,
+  firesAt,
+  volcanoesAt,
+  agoWords,
+  magnitudeWords,
+  placeWords,
+  quakeWords,
+  fireWords,
+  volcanoWords,
+  nearest,
+} from "./hazards.js";

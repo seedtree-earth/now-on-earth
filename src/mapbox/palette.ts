@@ -34,6 +34,12 @@ export type Palette = {
   plankton: string;
   /** Birds in flight: a warm, pale amber. Clock token: --noe-flight. */
   flight: string;
+  /** Earthquakes: a muted crimson. Clock token: --noe-quake. */
+  quake: string;
+  /** Volcanoes and red-alert fires: a deep ember. Clock token: --noe-ember. */
+  ember: string;
+  /** Wildfires: a warm orange glow. Clock token: --noe-fire. */
+  fire: string;
   /** The viewer's line and dot. Clock token: --noe-me. */
   me: string;
   /** Hairlines and strokes that sit against the globe. V2: --bg. */
@@ -58,6 +64,9 @@ export const TOKENS: PaletteTokens = {
   aurora: "--noe-aurora",
   plankton: "--noe-plankton",
   flight: "--noe-flight",
+  quake: "--noe-quake",
+  ember: "--noe-ember",
+  fire: "--noe-fire",
   me: "--noe-me",
   paper: "--bg",
   ink: "--ink",
@@ -74,6 +83,9 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   aurora: "#3fcf8e",
   plankton: "#4fb8d6",
   flight: "#d0913f",
+  quake: "#b2455a",
+  ember: "#c9442c",
+  fire: "#e58a35",
   me: "#2a9d9a",
   paper: "#f4eee1",
   ink: "#1c231a",
@@ -90,6 +102,9 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   aurora: "#6dffb0",
   plankton: "#7fe3ff",
   flight: "#f2c98a",
+  quake: "#e27a8c",
+  ember: "#ff6a45",
+  fire: "#ffab5c",
   me: "#5cc8c2",
   paper: "#0f1712",
   ink: "#e9e6d7",
@@ -141,6 +156,9 @@ export function readPalette(
     aurora: pick("aurora"),
     plankton: pick("plankton"),
     flight: pick("flight"),
+    quake: pick("quake"),
+    ember: pick("ember"),
+    fire: pick("fire"),
     me: pick("me"),
     paper: pick("paper"),
     ink: pick("ink"),
