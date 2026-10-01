@@ -871,3 +871,89 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   font-size: 1.05rem;
   line-height: 1;
 }
+
+/* Ground notes: the "Add what you notice" form, and credits in the Here card. */
+.pick .note-form {
+  display: grid;
+  gap: 0.45rem;
+  max-height: min(30rem, 62svh);
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.pick .note-form .field {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.pick .note-form label,
+.pick .note-form legend {
+  font-size: 0.78rem;
+  color: var(--ink-soft, var(--ink));
+  padding: 0;
+}
+
+.pick .note-form input[type="text"],
+.pick .note-form input[type="number"],
+.pick .note-form input[type="date"],
+.pick .note-form select,
+.pick .note-form textarea {
+  font: inherit;
+  font-size: 0.86rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in oklab, var(--line) 85%, transparent);
+  background: color-mix(in oklab, var(--bg) 92%, var(--ink));
+  color: var(--ink);
+}
+
+.pick .note-form textarea {
+  resize: vertical;
+}
+
+.pick .note-form :focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 1px;
+}
+
+.pick .note-form .choice {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+
+.pick .note-form .share {
+  padding-top: 0.15rem;
+}
+
+.pick .note-where,
+.pick .note-kept {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.pick .problems {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--noe-quake);
+}
+
+.pick .problems:empty {
+  display: none;
+}
+
+.pick .note-credit {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}

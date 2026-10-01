@@ -26,6 +26,8 @@ export type Palette = {
   moon: string;
   /** Living things: ecological events. Clock token: --noe-life. */
   life: string;
+  /** Rain and frost noticed on the ground. Clock token: --noe-rain. */
+  rain: string;
   /** The Earth's body: magnetic field lines and poles. Clock token: --noe-field. */
   field: string;
   /** The aurora's green. Clock token: --noe-aurora. */
@@ -60,6 +62,7 @@ export const TOKENS: PaletteTokens = {
   dusk: "--noe-dusk",
   moon: "--noe-moon",
   life: "--noe-life",
+  rain: "--noe-rain",
   field: "--noe-field",
   aurora: "--noe-aurora",
   plankton: "--noe-plankton",
@@ -79,6 +82,7 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   dusk: "#d9826b",
   moon: "#dfe4ee",
   life: "#3f9e8f",
+  rain: "#5b8db8",
   field: "#8fa6dc",
   aurora: "#3fcf8e",
   plankton: "#4fb8d6",
@@ -98,6 +102,7 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   dusk: "#e59274",
   moon: "#e9edf6",
   life: "#7fd6c4",
+  rain: "#9cc6ea",
   field: "#a9bdf0",
   aurora: "#6dffb0",
   plankton: "#7fe3ff",
@@ -152,6 +157,7 @@ export function readPalette(
     dusk: pick("dusk"),
     moon: pick("moon"),
     life: pick("life"),
+    rain: pick("rain"),
     field: pick("field"),
     aurora: pick("aurora"),
     plankton: pick("plankton"),

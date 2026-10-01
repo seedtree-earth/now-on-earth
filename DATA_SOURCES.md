@@ -105,6 +105,10 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Not used:** Open-Meteo. Its free API is for non-commercial use only ([terms](https://open-meteo.com/en/terms)), outside our rule.
 - **Requests:** one per newly chosen place per forecast, no retries; a failure keeps the last good copy for that place, or says nothing. While building, 2 requests were made (Lisbon).
 
+### Ground notes: what people notice (2026-10-01)
+
+Contributed by the people who use the clock, not fetched from anywhere. Each writer chooses **CC BY 4.0** (the default) or **CC0** for their note, in line with the rule for every other source; NC, ND and SA are not offered. Places are rounded to 0.1° and kept with a day, never a time; names are optional and used only as credit ("Noted by Sam · CC BY 4.0", or "someone nearby"). On the standalone site notes are kept in the writer's own browser and are not sent anywhere. No requests are made.
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |

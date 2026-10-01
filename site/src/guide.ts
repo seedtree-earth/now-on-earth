@@ -35,6 +35,8 @@ export const GUIDE: GuideEntry[] = [
   // ------------------------------------------------------------ Life
   { key: "humpback-whales-east-australia", lens: "life", title: "Humpback whales", body: "Where humpbacks are seen along Australia's east coast in each month: north in winter, south with their calves in spring. A general seasonal pattern from sightings, not tracks.", source: "Atlas of Living Australia and GBIF.org · CC0 and CC BY records only.", swatch: "var(--noe-life)", mark: "glow" },
   { key: "bar-tailed-godwits-eaaf", lens: "life", title: "Bar-tailed Godwits", body: "Where these shorebirds are seen along the East Asian–Australasian Flyway each month: Australia and New Zealand in the southern summer, the Yellow Sea in April, Alaska to breed. A general pattern, not tracks.", source: "GBIF.org, including eBird's observations (CC BY 4.0).", swatch: "var(--noe-flight)", mark: "glow" },
+  { key: "notes-life", lens: "life", title: "Life noticed on the ground", body: "Trees flowering and fruiting, cicadas and frogs calling, birds arriving and leaving: the season's signs, noted by people where they are, placed to about ten kilometres. Fresh notes are bright and fade over a month. Add your own from any place card.", source: "Shared by the people who noticed them, CC0 or CC BY 4.0 as each chose.", swatch: "var(--noe-life)", mark: "dot" },
+
   { key: "plankton", lens: "life", title: "Plankton's nightly rise", body: "A model of a real daily pattern: each night zooplankton rise from the deep to feed near the surface in the dark and sink before dawn. The glow is brightest along the dusk edge, where they are arriving.", source: "A model, after Brierley (2014), Current Biology.", swatch: "var(--noe-plankton)", mark: "glow" },
   { key: "people", lens: "life", title: "People and nodes", body: "People and places that chose to be shown, each dot in its own light: gold by day, rose at twilight, violet by night. Coarse places only. Sample data for now.", swatch: "var(--noe-dusk)", mark: "dot" },
 
@@ -49,6 +51,8 @@ export const GUIDE: GuideEntry[] = [
   // ------------------------------------------------------------ Weather and ice
   { key: "weather-here", lens: "weather", title: "The weather here", body: "The weather now, in words, at a place you tap or stand: the sky, how warm it is and the wind. One place at a time, never drawn over the globe. It is the weather now, even when the sliders show another hour. It draws nothing on the globe, so it speaks whenever its own switch is on, lens open or not.", source: "MET Norway Locationforecast, CC BY 4.0." },
 
+  { key: "notes-weather", lens: "weather", title: "Weather noticed on the ground", body: "Frost, rain in the gauge, the first snow, a storm: noted by people where they are, as small blue dots placed to about ten kilometres. Fresh notes are bright and fade over a month; scrub the year to watch them arrive. Add your own from any place card.", source: "Shared by the people who noticed them, CC0 or CC BY 4.0 as each chose.", swatch: "var(--noe-rain)", mark: "dot" },
+
   { key: "sea-ice", lens: "weather", title: "Sea ice and snow", body: "Where sea ice and snow lay in this month of a recent year, in soft white, crossfading month to month.", source: "NASA GIBS (AMSR2 sea ice, MODIS snow).", swatch: "#ffffff", mark: "fill" },
 
   { key: "fires", lens: "weather", title: "Major wildfires", body: "Wildfires GDACS rated orange or red in the past two months: a warm glow while they burn, fading for a week after. Real events: for warnings, follow local authorities.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-fire)", mark: "glow" },
@@ -59,6 +63,7 @@ export const GUIDE: GuideEntry[] = [
   { key: "control-pace", lens: "controls", title: "Play and pace", body: "Play sets the sun moving. While it plays, the Pace slider runs from as it is, through hours, days and weeks, to seasons, where your hour is held and the year runs by in about a minute. Each full turn of the sun carries the year on by a day, as it really does." },
   { key: "control-face", lens: "controls", title: "Face the sun · Face me", body: "Keep the sun in view as it moves, or come back to where you are." },
   { key: "control-stand", lens: "controls", title: "Stand here", body: "Tap any place on the globe, then Stand here: the clock speaks for that place, and a Here card gathers what is happening on the ground there. Back to me comes home." },
+  { key: "control-note", lens: "controls", title: "Add what you notice", body: "From a place card or the Here card: say what you noticed (the first frost, rain in the gauge, a tree in flower, cicadas starting), the day, and how it may be shared. It is placed to about ten kilometres, with no time of day, and named only if you give a name. On this site, notes are kept in your browser only." },
   { key: "control-flat", lens: "controls", title: "Flat model", body: "Switches the globe for the common flat Earth depiction, run with the same clock, so the two can be compared." },
 ];
 

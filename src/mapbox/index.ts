@@ -26,5 +26,6 @@ export { auroraLayer, type AuroraOptions, type AuroraStatus } from "./layers/aur
 export { seaIceLayer, productDate, SNOW, ICE, GIBS_ACKNOWLEDGEMENT } from "./layers/sea-ice.js";
 export { seasonalEventLayer, partneredKnowledgeLayer, type EventLayerOptions } from "./layers/events.js";
 export { peopleLayer, type PeopleLayerOptions, type PresencePick } from "./layers/people.js";
+export { groundNotesLayer } from "./layers/ground-notes.js";
 export { readPalette, isDark, TOKENS, type Palette, type PaletteTokens } from "./palette.js";
 export type { ClockLayer, Frame, LayerContext } from "./types.js";

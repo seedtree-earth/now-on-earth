@@ -248,7 +248,7 @@ describe("hour numbers", () => {
     it(`sit inside their own hour band (${iso.slice(0, 10)})`, () => {
       const date = utc(iso);
       const sun = sunState(date);
-      const fc = hourNumberPoints({ date, sun, moon: moonState(date), viewer: { lng: 0, lat: 0 }, fine: false, people: [] });
+      const fc = hourNumberPoints({ date, sun, moon: moonState(date), viewer: { lng: 0, lat: 0 }, fine: false, people: [], notes: [] });
       expect(fc.features.length).toBe(24); // every hour, both sides of the sun
       for (const f of fc.features) {
         const [lng, lat] = f.geometry.coordinates as [number, number];

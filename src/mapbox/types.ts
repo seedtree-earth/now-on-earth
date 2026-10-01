@@ -1,5 +1,5 @@
 import type { Map as MapboxMap } from "mapbox-gl";
-import type { LngLat, MoonState, Presence, SunState } from "../core/index.js";
+import type { GroundNote, LngLat, MoonState, Presence, SunState } from "../core/index.js";
 import type { Palette } from "./palette.js";
 
 /** Everything a layer needs to draw one moment. */
@@ -9,6 +9,8 @@ export type Frame = {
   moon: MoonState;
   /** People and nodes who chose to be shown (coarsened again by the layer). */
   people: Presence[];
+  /** What people noticed on the ground, shared by choice (rounded again by the layer). */
+  notes: GroundNote[];
   viewer: LngLat;
   /** 5° rings instead of 15°. */
   fine: boolean;

@@ -8,6 +8,11 @@
 import type mapboxgl from "mapbox-gl";
 import {
   type AuroraPoint,
+  type GroundNote,
+  groundNoteWords,
+  kindInfo,
+  sharedNotes,
+  noteAge,
   type LngLat,
   type MoonState,
   type SeasonalEvent,
@@ -45,6 +50,8 @@ export type HoverContext = {
   shows: (key: string) => boolean;
   events: SeasonalEvent[];
   aurora: { live: boolean; points: AuroraPoint[] };
+  /** Ground notes, shared by choice. */
+  notes: GroundNote[];
   /** How many items to return; the hover pop-up keeps it short. */
   limit?: number;
 };
@@ -95,6 +102,14 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
     if (v) add("volcanoes", `${cap(volcanoWords(v))}. Tap for the GDACS report.`);
     const f = ctx.shows("fires") ? near(firesAt(hz.fires, ctx.date)) : undefined;
     if (f) add("fires", `${cap(fireWords(f))}. Tap for the GDACS report.`);
+  }
+
+  // Ground notes: what someone noticed there.
+  for (const n of sharedNotes(ctx.notes)) {
+    const key = kindInfo(n.kind).group === "weather" ? "notes-weather" : "notes-life";
+    const age = noteAge(n, ctx.date);
+    if (!ctx.shows(key) || age < -0.5 || age > 30 || pixelsTo(ctx, n.place) >= 10) continue;
+    add(key, groundNoteWords(n, ctx.date));
   }
 
   // Lines.

@@ -7,7 +7,7 @@
  */
 
 import type { Map as MapboxMap } from "mapbox-gl";
-import { FALLBACK_VIEWER, type LngLat, type Presence, type SeasonalEvent, moonState, sunState } from "../core/index.js";
+import { FALLBACK_VIEWER, type GroundNote, type LngLat, type Presence, type SeasonalEvent, moonState, sunState } from "../core/index.js";
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
@@ -17,6 +17,7 @@ import { type HazardsOptions, earthquakesLayer, firesLayer, volcanoesLayer } fro
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
 import { peopleLayer } from "./layers/people.js";
+import { groundNotesLayer } from "./layers/ground-notes.js";
 import { dayLightLayer, hourNumbersLayer, hourRingsLayer, nightShadeLayer } from "./layers/rings.js";
 import { dayLineLayer, laneLayer, sunTrackLayer } from "./layers/seasons.js";
 import { LENSES, type LensId, lensOf } from "./lenses.js";
@@ -37,6 +38,8 @@ export type NowOnEarthOptions = {
   fine?: boolean;
   /** People and nodes who chose to be shown. Only `consent.shown` ones are drawn. */
   people?: Presence[];
+  /** Ground notes: what people noticed where they are, shared by choice. */
+  notes?: GroundNote[];
   /** Seasonal ecological events (built by scripts/ecology/), drawn under the lines. */
   events?: SeasonalEvent[];
   /** Earthquakes, volcanoes and fires: where the cached feed is served. */
@@ -91,6 +94,7 @@ export type NowOnEarth = {
   setViewer(viewer: LngLat): void;
   setFine(fine: boolean): void;
   setPeople(people: Presence[]): void;
+  setGroundNotes(notes: GroundNote[]): void;
   /** A layer's own switch. It shows only while its lens is on too. */
   setVisible(key: string, visible: boolean): void;
   layers(): LayerState[];
@@ -123,6 +127,8 @@ export const defaultLayers = (
   auroraLayer(opts.aurora),
   ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
   partneredKnowledgeLayer(),
+  groundNotesLayer("weather"),
+  groundNotesLayer("life"),
   laneLayer(),
   sunTrackLayer(),
   dayLineLayer(),
@@ -164,6 +170,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   let viewer: LngLat = options.viewer ?? { ...FALLBACK_VIEWER };
   let fine = options.fine ?? false;
   let people: Presence[] = options.people ?? [];
+  let notes: GroundNote[] = options.notes ?? [];
   let followMode: Follow = null;
   let added = false;
   let destroyed = false;
@@ -179,7 +186,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
 
   const makeFrame = (): Frame => {
     const date = fixed ?? new Date();
-    return { date, sun: sunState(date), moon: moonState(date), viewer, fine, people };
+    return { date, sun: sunState(date), moon: moonState(date), viewer, fine, people, notes };
   };
   let current = makeFrame();
 
@@ -283,6 +290,10 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
     },
     setPeople(p) {
       people = p;
+      schedule();
+    },
+    setGroundNotes(n) {
+      notes = n;
       schedule();
     },
     setVisible(key, v) {

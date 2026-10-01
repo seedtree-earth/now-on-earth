@@ -25,6 +25,8 @@ export type LensPanel = {
   /** Keys of every drawable layer whose own switch is off. */
   offKeys(): string[];
   lensStates(): Record<LensId, boolean>;
+  /** Switch a lens on from elsewhere (e.g. after adding a note to it). */
+  openLens(lens: LensId): void;
   /** Grey out and lock layers that do not apply (e.g. while the Flat model shows). */
   setLocked(keys: string[], locked: boolean): void;
 };
@@ -156,6 +158,14 @@ export function createLensPanel(
     isShown,
     offKeys: () => entries.filter((e) => e.built && !chosen.get(e.key)).map((e) => e.key),
     lensStates: () => Object.fromEntries(LENSES.map((l) => [l.id, !!lensOn.get(l.id)])) as Record<LensId, boolean>,
+    openLens(lens) {
+      if (lensOn.get(lens)) return;
+      lensOn.set(lens, true);
+      const input = lensInputs.get(lens);
+      if (input) input.checked = true;
+      syncLensLook(lens);
+      opts.onLens(lens, true);
+    },
     setLocked(keys, locked) {
       for (const k of keys) {
         const input = inputs.get(k);

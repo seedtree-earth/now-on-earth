@@ -41,7 +41,7 @@ export const LENSES: Lens[] = [
   {
     id: "life",
     label: "Life",
-    layers: ["plankton", "people", "partnered-knowledge"],
+    layers: ["plankton", "notes-life", "people", "partnered-knowledge"],
     upcoming: ["Migrations", "What people are seeing this season, via iNaturalist"],
     on: false,
   },
@@ -55,7 +55,7 @@ export const LENSES: Lens[] = [
   {
     id: "weather",
     label: "Weather and ice",
-    layers: ["weather-here", "sea-ice", "fires"],
+    layers: ["weather-here", "notes-weather", "sea-ice", "fires"],
     upcoming: ["The rain belt", "Carbon dioxide"],
     on: false,
   },

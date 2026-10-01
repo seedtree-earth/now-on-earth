@@ -11,6 +11,11 @@ import {
   type LngLat,
   type SeasonalEvent,
   describeLight,
+  type GroundNote,
+  groundNoteCredit,
+  groundNoteWords,
+  kindInfo,
+  notesNear,
   eventStory,
   auroraWords,
   compassWords,
@@ -37,6 +42,8 @@ import { type HoverItem, hoverItems } from "./hover";
 import { flatHoverItems } from "./flat/hover";
 import { placeName } from "./place-name";
 import { WEATHER_CREDIT, weatherAt } from "./weather";
+import { browserNoteStore } from "./ground-notes-store";
+import { showNoteForm } from "./note-form";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -108,6 +115,12 @@ let viewer: LngLat = { ...FALLBACK_VIEWER };
 let located = false;
 /** Where the viewer really is (once known); standing elsewhere does not change it. */
 let home: LngLat | null = null;
+/** Ground notes: what people noticed where they are (on this site, this browser's own). */
+let notes: GroundNote[] = [];
+void browserNoteStore.list().then((n) => {
+  notes = n;
+  clock?.setGroundNotes(notes);
+});
 /** A place the viewer chose to stand, and its name. */
 let standing: { at: LngLat; name: string } | null = null;
 let clock: NowOnEarth | null = null;
@@ -228,12 +241,14 @@ const lenses = createLensPanel(
       built: false,
       on: false,
     },
+    { key: "notes-life", label: "Life noticed on the ground", note: "(flowering, cicadas, birds: shared by people where they are)", built: true, on: true },
     { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
     { key: "magnetic-poles", label: "Magnetic north's wandering", note: "(since 1925)", built: true, on: true, after: magCredit },
     { key: "earthquakes", label: "Major earthquakes", note: "(live, the past month)", built: true, on: true, after: quakeCredit },
     { key: "volcanoes", label: "Erupting volcanoes", note: "(live, the past year)", built: true, on: true, after: volcanoCredit },
     { key: "fires", label: "Major wildfires", note: "(live, while they burn)", built: true, on: true, after: fireCredit },
     { key: "aurora", label: "The aurora", note: "(live near now, typical otherwise)", built: true, on: true, after: auroraCredit },
+    { key: "notes-weather", label: "Weather noticed on the ground", note: "(frost, rain, snow: shared by people where they are)", built: true, on: true },
     { key: "weather-here", label: "The weather here", note: "(now, in words, where you tap or stand)", built: true, on: true, after: credit(WEATHER_CREDIT) },
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
@@ -254,6 +269,8 @@ const lenses = createLensPanel(
 const shownLayers = { has: (key: string) => lenses.isShown(key) };
 /** The weather draws nothing on the globe, so it speaks in the cards whenever its own switch is on. */
 const weatherOn = () => !lenses.offKeys().includes("weather-here");
+/** Notes are words in the cards too: they follow their own switch there, lens open or not. */
+const notesOn = (group: "weather" | "life") => !lenses.offKeys().includes(group === "weather" ? "notes-weather" : "notes-life");
 
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
@@ -740,6 +757,7 @@ async function showPlaceCard(lngLat: { lng: number; lat: number }) {
   actions.className = "place-actions";
   actions.append(
     cardButton("Stand here", () => void standAt(at, name.textContent ?? "here")),
+    cardButton("Add what you notice", () => openNoteForm(at, name.textContent ?? "This place"), true),
     cardButton("Close", () => (els.pick.hidden = true), true),
   );
   const weather = document.createElement("span");
@@ -783,6 +801,7 @@ function showHereCard() {
     shows: (k) => shownLayers.has(k),
     events: [humpbacks, godwits],
     aurora: auroraForHover(date),
+    notes,
     limit: 20,
   }).filter((it) => !["day-line", "sun-track", "lane"].includes(it.key));
   els.pick.hidden = false;
@@ -814,11 +833,39 @@ function showHereCard() {
   }
   line("The season", `${w.season.charAt(0).toUpperCase()}${w.season.slice(1)}, and ${w.days}.`);
   if (w.moon) line("The moon", `${w.moon.charAt(0).toUpperCase()}${w.moon.slice(1)}.`);
-  for (const it of items) if (!["day-light", "night-shade", "moon"].includes(it.key)) line(it.title, it.detail);
+  for (const it of items) if (!["day-light", "night-shade", "moon", "notes-weather", "notes-life"].includes(it.key)) line(it.title, it.detail);
+  // What people nearby have noticed lately.
+  const near = notesNear(notes, viewer, date).filter((n) => notesOn(kindInfo(n.kind).group));
+  for (const n of near.slice(0, 5)) {
+    const li = line("Noticed nearby", groundNoteWords(n, date));
+    const cr = document.createElement("small");
+    cr.className = "note-credit";
+    cr.textContent = groundNoteCredit(n);
+    li.append(cr);
+  }
   const actions = document.createElement("div");
   actions.className = "place-actions";
-  if (standing) actions.append(cardButton("Back to me", () => els.faceMe.click()));
+  actions.append(cardButton("Add what you notice", () => openNoteForm(viewer, standing?.name ?? "where you are", true)));
+  if (standing) actions.append(cardButton("Back to me", () => els.faceMe.click(), true));
   els.pick.append(close, title, list, actions);
+}
+
+/** The ground-note form, in the card, for a chosen place. */
+function openNoteForm(at: LngLat, placeLabel: string, fromHere = false) {
+  showNoteForm(els.pick, {
+    at,
+    placeLabel,
+    day: shown(),
+    store: browserNoteStore,
+    onSaved: (note) => {
+      notes = [...notes.filter((n) => n.id !== note.id), note];
+      clock?.setGroundNotes(notes);
+      // Show it where it now sits: open its lens if it was closed.
+      lenses.openLens(kindInfo(note.kind).group === "weather" ? "weather" : "life");
+      push();
+    },
+    onDone: () => (fromHere ? showHereCard() : (els.pick.hidden = true)),
+  });
 }
 
 /** Say what is under the pointer, beside it. */
@@ -836,6 +883,7 @@ function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: nu
     shows: (k) => shownLayers.has(k),
     events: [humpbacks, godwits],
     aurora: auroraForHover(date),
+    notes,
   });
   placeTip(point, items);
 }
@@ -999,6 +1047,7 @@ function buildGlobe() {
     viewer,
     fine,
     people: MOCK_PEOPLE,
+    notes,
     events: [humpbacks, godwits],
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),

@@ -96,9 +96,9 @@ Layers are gathered into four lenses so the clock stays calm by default. Only **
 | Lens | Layers |
 | --- | --- |
 | Light | sun, daylight (the gold), night shade (the violet), hour rings (and finer rings), hour numbers, twilight, moon, tides, the sun's lane, today's sun track, your day line; every one its own switch |
-| Life | ecological events (humpbacks; Bar-tailed Godwits across the Pacific), plankton's nightly rise *(a model)*, people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
+| Life | ecological events (humpbacks; Bar-tailed Godwits across the Pacific), plankton's nightly rise *(a model)*, life noticed on the ground (ground notes), people and nodes, partnered seasonal knowledge *(placeholder)*, migrations and iNaturalist sightings *(to come)* |
 | Earth's body | the magnetic field (traced from the World Magnetic Model 2025), magnetic north's wandering since 1925 (NOAA NCEI), the aurora (NOAA's live OVATION forecast near now, a typical oval otherwise), major earthquakes (USGS, live) and erupting volcanoes (GDACS, live), the axis's wobble *(later)* |
-| Weather and ice | sea ice and snow (NASA GIBS, a recent year month by month), major wildfires (GDACS, live), the rain belt and carbon dioxide *(later)* |
+| Weather and ice | the weather here (MET Norway, in words, for a chosen place), weather noticed on the ground (ground notes), sea ice and snow (NASA GIBS, a recent year month by month), major wildfires (GDACS, live), the rain belt and carbon dioxide *(later)* |
 
 The Flat model is a separate switch, outside the lenses.
 
@@ -141,6 +141,21 @@ The dataset carries its own words (a general line per month), a credit line and 
 
 A `Presence` is `{ id, kind, name, place, placeName?, href?, consent }`. The layer draws only those with `consent.shown === true`, and rounds every place again on the way in (people and nodes to 0.5°, about 55 km; organisations to 0.1°). A presence is a place someone chose, never a device position: there is no tracking, no live location and no search. `fromLandscapeRows(rows)` reads the Landscape's public listings in the same shape. The standalone site uses clearly marked mock nodes (`site/src/mock-people.ts`).
 
+### Ground notes: what people notice where they are
+
+The first frost, rain in the gauge, the first snow, a storm; trees flowering and fruiting, cicadas and frogs calling, birds arriving and leaving. A `GroundNote` is `{ id, kind, what?, amount?, observedOn, place, note?, by?, licence, consent, source }` (`src/core/ground-notes.ts`), and the core holds the line, like the people layer:
+
+- **Given, never gathered:** a note exists only because someone wrote it and ticked "Share this note" (`consent.shared`); `sharedNotes` drops anything else, whatever a store hands back.
+- **Coarse:** every place is rounded to 0.1° (about ten kilometres) on the way in and again on the way out. A day, never a time of day. No device position is read.
+- **Anonymous unless named:** a name is asked for only as credit, and is optional.
+- **Open licences only:** the writer chooses CC BY 4.0 (the default) or CC0, matching the rest of the clock's data. Never NC, ND or SA.
+
+`makeGroundNote(input)` checks and shapes a note (returning plain-words problems for a form), `notesNear` finds those near a place and a moment, `groundNoteWords` says one ("Jacarandas in flower, three days ago."), and `groundNoteFeatures` draws them. On the globe they are small dots in two layers, `notes-weather` (blue, Weather and ice) and `notes-life` (Life), bright while fresh and fading over a month, so scrubbing the year shows the season's signs arriving.
+
+Where notes are kept is the host's choice, through `GroundNoteStore` (`list`, `add`, `remove?`), and they reach the clock through `notes` in the options or `setGroundNotes`. The standalone site keeps them **in the browser only** (`site/src/ground-notes-store.ts`), so nothing written there is seen by anyone else. The Landscape will pass a shared store with its own accounts and moderation.
+
+Ground notes are for the season's signs, the things a neighbour would mention over the fence. A species seen up close, with a photo to be identified, belongs on iNaturalist (see the roadmap).
+
 ### Writing a layer
 
 Each layer is a factory returning a `ClockLayer`: `add`, `update`, `applyPalette`, `setVisible`, `remove`, and an optional `tick` for gentle motion. It owns its sources and layers outright and namespaces them with `ctx.id(...)`. Phase 3 layers (ecological events, partnered seasonal knowledge) slot into the same list.
@@ -160,6 +175,8 @@ With no token, or no WebGL, the page still runs: the words and the sliders follo
 **Stand anywhere:** tap a place on the globe for its name and light, then "Stand here": the face, your day line, the slider tracks and the pop-ups all speak for that place, and a "Here" card gathers everything happening on the ground there. "Back to me" (the Face me button) returns home. Chosen places are rounded to about ten kilometres and named through Mapbox; the viewer's real location is never sent anywhere.
 
 **The weather here:** a place card and the Here card also say the weather now, in words ("Light rain. Cool, with a gentle breeze from the south."), from MET Norway through a cached function (`api/weather.ts`, words in `src/core/weather.ts`). Granular on purpose: one chosen place at a time, never a layer over the globe. It has its own switch in Weather and ice, and since it draws nothing it speaks whenever that switch is on.
+
+**Add what you notice:** every place card and the Here card have "Add what you notice": a short form (what it was, what exactly, how much rain, the day, a few words, a name for credit if you like, CC BY or CC0, and "Share this note"). The note appears on the globe and in the Here card's "Noticed nearby", with its credit. On this site notes stay in your browser.
 
 **Guide and hover:** the Guide button opens a panel explaining every element, grouped by lens, with its colour, what it shows and where it comes from (`site/src/guide.ts`). Hover over the globe (or tap, on a touch screen) and a small pop-up says what is under the pointer at that exact place, worked out from the same maths that draws it: the hour band and where the sun stands there, twilight, the moon or sun overhead, the lines, and whichever life, Earth and ice layers are on (`site/src/hover.ts`).
 
@@ -181,8 +198,9 @@ A switch in the Layers panel, labelled only "Flat model", swaps the globe for th
 
 - **Done:** the core light (sun, rings, seasons, words); twilight, moon, tides and people; humpback whales on the east coast from ALA and GBIF; the Flat model.
 - **Done · birds:** Bar-tailed Godwits along the East Asian–Australasian Flyway, from eBird's observations via GBIF (CC BY 4.0). More species can follow the same script.
-- **Future · community ground-truthing:** people confirm what they actually see by logging sightings on **iNaturalist** (in a SeedTree project), and a build-time script pulls them back: research grade, CC0 or CC BY only, coarsened and aggregated by month and cell exactly like the event data, shown as "what people are seeing this season" beside the long-run pattern. We don't run our own sightings database. The data shapes are drafted (`GroundTruthObservation`, `GroundTruthMonth` in `src/core/events.ts`) and the switch is in the Layers panel, off and marked "to come".
+- **Future · community ground-truthing:** people confirm what they actually see by logging sightings on **iNaturalist** (in a SeedTree project), and a build-time script pulls them back: research grade, CC0 or CC BY only, coarsened and aggregated by month and cell exactly like the event data, shown as "what people are seeing this season" beside the long-run pattern. Species sightings stay on iNaturalist, where they can be identified and checked; our own ground notes are only for the season's signs (frost, rain, flowering, calls), and the note form can point people to iNaturalist when they have a photo. The data shapes are drafted (`GroundTruthObservation`, `GroundTruthMonth` in `src/core/events.ts`) and the switch is in the Layers panel, off and marked "to come".
 - **Future · partnered seasonal knowledge:** local and Indigenous seasonal calendars, only in partnership, with permission and on the holders' terms. Never scraped. The shape (`PartneredKnowledge`) and an empty placeholder layer are in place.
+- **Next · shared ground notes:** a store for the Landscape so notes are seen by others: signed-in writers, a way to report or remove a note, and an open export (CC0 and CC BY as each chose) so the notes can feed phenology projects. Then the people layer: invite others and stand where they are to see their light, weather and season.
 - **Joining the Landscape:** add the package to SeedTree V2 and call `attachNowOnEarth` from the Landscape's map `load` handler, with `fromLandscapeRows` feeding the people layer.
 
 ## Checks
