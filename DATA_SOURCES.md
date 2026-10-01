@@ -34,6 +34,7 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 ### How we use them
 
 - **Only CC0 and CC BY records, from datasets that are open too.** Record licences are filtered in the query (no NonCommercial, NoDerivatives, ShareAlike, custom or unspecified records). Then every contributing dataset's own licence is looked up, and any dataset published under NC, ND or SA terms is excluded whole, even if its records are tagged CC0: the stricter licence wins.
+- **Drawn as a flow (2026-10-01):** the same option A data, unchanged and not re-fetched, now drives a corridor and a season (see README, Ecological events) rather than a haze of sightings. No new requests.
 - **Excluded on that rule:** *Happywhale · Humpback whale in South Pacific Ocean* (CC BY-NC dataset, 16,702 records tagged CC0). It is by far the largest source; leaving it out keeps the pattern shape but thins it.
 - **Result:** 7,320 ALA records from 20 open datasets, in 2,123 month-cells. GBIF's independent monthly totals (7,463 records, Happywhale removed the same way) track ALA's closely. One kept dataset, *Entangled Wildlife Australia* (54 records), has a dataset licence recorded only as "other"; its records are CC0 or CC BY and it is not NC, ND or SA, so it stays under the rule as written. Worth confirming with the provider.
 - **Aggregates, not records.** The script asks for counts per 0.1° grid cell per month (facets), so no individual sighting, observer or exact point is stored or shipped.

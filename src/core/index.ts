@@ -177,3 +177,15 @@ export {
   notesNear,
   groundNoteFeatures,
 } from "./ground-notes.js";
+
+export {
+  type FlowMonth,
+  type MigrationFlow,
+  type FlowParticle,
+  deriveFlow,
+  flowAt,
+  pointAlong,
+  flowParticles,
+  corridorDistance,
+  flowWords,
+} from "./flows.js";

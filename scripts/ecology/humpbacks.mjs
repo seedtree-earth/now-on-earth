@@ -260,6 +260,9 @@ const out = {
   name: "Humpback whales",
   species: SPECIES,
   region: "The east coast of Australia",
+  // Drawn as a flow along its corridor (src/core/flows.ts), not as sightings.
+  display: "flow",
+  flowAxis: "lat",
   generated: new Date().toISOString(),
   grid: 0.1,
   bbox: BBOX,

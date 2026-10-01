@@ -135,7 +135,7 @@ npm run data:humpbacks -- --dry-run   # list the requests, fetch nothing
 npm run data:humpbacks                # fetch (or read cache) and write events/
 ```
 
-The dataset carries its own words (a general line per month), a credit line and a note on what it can't say. It's shown as a general seasonal pattern, not tracks. See [DATA_SOURCES.md](DATA_SOURCES.md) for the licence rules and every source.
+The dataset carries its own words (a general line per month), a credit line and a note on what it can't say. It's shown as a general seasonal pattern, not tracks. An event with `display: "flow"` (the humpbacks) is drawn as a migration flow instead of a haze: `deriveFlow` (`src/core/flows.ts`) takes the corridor as the weighted middle of each band of sightings (the stray 2% at the ends trimmed), the season as each month's sightings against the busiest, and the direction from which way the middle moves month to month; `migrationFlowLayer` draws a ribbon that swells in season and particles streaming along it, held still under reduced motion. No single sighting is drawn. See [DATA_SOURCES.md](DATA_SOURCES.md) for the licence rules and every source.
 
 ### People: the line the layer holds
 

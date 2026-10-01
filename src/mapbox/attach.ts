@@ -10,6 +10,7 @@ import type { Map as MapboxMap } from "mapbox-gl";
 import { FALLBACK_VIEWER, type GroundNote, type LngLat, type Presence, type SeasonalEvent, moonState, sunState } from "../core/index.js";
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
+import { migrationFlowLayer } from "./layers/flows.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
 import { type HazardsOptions, earthquakesLayer, firesLayer, volcanoesLayer } from "./layers/hazards.js";
@@ -123,7 +124,7 @@ export const defaultLayers = (
   hourRingsLayer(),
   twilightLayer(),
   auroraLayer(opts.aurora),
-  ...(opts.events ?? []).map((e) => seasonalEventLayer(e)),
+  ...(opts.events ?? []).map((e) => (e.display === "flow" ? migrationFlowLayer(e, { axis: e.flowAxis }) : seasonalEventLayer(e))),
   partneredKnowledgeLayer(),
   groundNotesLayer("weather"),
   groundNotesLayer("life"),

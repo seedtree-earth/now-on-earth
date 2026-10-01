@@ -8,6 +8,10 @@
 import type mapboxgl from "mapbox-gl";
 import {
   type AuroraPoint,
+  type MigrationFlow,
+  corridorDistance,
+  deriveFlow,
+  flowWords,
   type GroundNote,
   groundNoteWords,
   kindInfo,
@@ -56,6 +60,12 @@ export type HoverContext = {
 };
 
 const poles = magneticPoleTrails();
+const flows = new Map<string, MigrationFlow>();
+const flowFor = (e: SeasonalEvent) => {
+  let f = flows.get(e.id);
+  if (!f) flows.set(e.id, (f = deriveFlow(e, { axis: e.flowAxis })));
+  return f;
+};
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Screen distance from the pointer to a point on the globe, if it is on the near side. */
@@ -123,6 +133,14 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
   const month = t < 0.5 ? from : to;
   for (const e of ctx.events) {
     if (!ctx.shows(e.id)) continue;
+    if (e.display === "flow") {
+      // A migration drawn as a flow: near its corridor, say where it stands in the season.
+      const flow = flowFor(e);
+      if (corridorDistance(flow, at) > 1.2) continue;
+      const moving = flowWords(flow, ctx.date);
+      add(e.id, `${cap(e.story?.[month - 1] ?? "their corridor")}${moving ? `. Now ${moving}.` : ". Out of season now."}`);
+      continue;
+    }
     const cells = e.months[month - 1]?.cells ?? [];
     const near = cells.some(([lng, lat]) => Math.abs(lat - at.lat) <= Math.max(1, e.grid) && Math.abs(lng - at.lng) <= Math.max(1, e.grid));
     if (near) add(e.id, cap(e.story?.[month - 1] ?? "seen here in this month"));

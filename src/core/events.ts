@@ -39,6 +39,10 @@ export type SeasonalEvent = {
   lens?: string;
   /** A palette role to colour it by (e.g. "flight"); the Life colour if unset. */
   hue?: string;
+  /** How to draw it: "flow" for a migration corridor with streaming particles; a seasonal haze if unset. */
+  display?: "flow" | "haze";
+  /** For a flow: which way the corridor runs ("lat": north–south). */
+  flowAxis?: "lat" | "lng";
   /** Multiplies the glow's intensity, for sparse datasets. */
   glow?: number;
   licences?: string;
