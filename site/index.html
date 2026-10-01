@@ -32,20 +32,26 @@
     <main class="shell">
       <div id="globe" class="globe" role="img" aria-label="A globe lit by the sun" aria-describedby="light-words"></div>
 
-      <header class="face">
-        <p class="eyebrow">Now on Earth</p>
-        <h1 class="phase" id="phase" aria-hidden="true">&nbsp;</h1>
-        <p class="sky" id="sky" aria-hidden="true">&nbsp;</p>
-        <p class="moonline" id="moonline" aria-hidden="true" hidden></p>
-        <p class="eventline" id="eventline" aria-hidden="true" hidden></p>
-        <p class="where" id="where" aria-hidden="true">&nbsp;</p>
-      </header>
+      <!-- Everything the clock says: down the left on a wide screen; on a
+           phone the words sit above the globe and the cards just over the dock. -->
+      <div class="info" id="info">
+        <header class="face">
+          <p class="eyebrow">Now on Earth</p>
+          <h1 class="phase" id="phase" aria-hidden="true">&nbsp;</h1>
+          <p class="sky" id="sky" aria-hidden="true">&nbsp;</p>
+          <p class="moonline" id="moonline" aria-hidden="true" hidden></p>
+          <p class="eventline" id="eventline" aria-hidden="true" hidden></p>
+          <p class="where" id="where" aria-hidden="true">&nbsp;</p>
+        </header>
+
+        <!-- A tapped place, a person or node, an event: its card. -->
+        <aside id="pick" class="pick" aria-live="polite" hidden></aside>
+
+        <div id="guide-panel" class="guide" role="region" aria-label="Guide to the clock" hidden></div>
+      </div>
 
       <!-- What is under the pointer: a visual extra; the Guide says the same in full. -->
       <div id="hover-tip" class="hover-tip" aria-hidden="true" hidden></div>
-
-      <!-- A person or node dot, when hovered or tapped. -->
-      <aside id="pick" class="pick" aria-live="polite" hidden></aside>
 
       <!-- What a screen reader hears: the light, in words. -->
       <p id="light-words" class="sr-only" aria-live="polite" aria-atomic="true"></p>
@@ -67,7 +73,6 @@
             </div>
           </div>
         </div>
-        <div id="guide-panel" class="guide" role="region" aria-label="Guide to the clock" hidden></div>
         <div id="layers-panel" class="layers" role="group" aria-label="What the globe shows" hidden>
           <!-- The lenses are built from the layer list in lens-panel.ts. -->
           <div id="lenses" class="lenses"></div>

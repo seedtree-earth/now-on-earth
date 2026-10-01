@@ -957,3 +957,157 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   font-size: 0.72rem;
   opacity: 0.7;
 }
+
+/* --- layout: information on the left, controls on the right ------------ */
+
+/* Below the wide breakpoint the rail steps aside: the words keep their place
+   at the top, and the Guide, like a tapped card, opens just over the dock. */
+@media (max-width: 899.98px) {
+  .info {
+    display: contents;
+  }
+
+  .guide:not([hidden]) {
+    position: absolute;
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: calc(var(--dock-h, 12rem) + 1.6rem);
+    max-height: min(26rem, 46svh);
+    margin: 0;
+    padding: 0.8rem 0.9rem;
+    border-top: 0;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--bg) 90%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+    z-index: 4;
+  }
+}
+
+@media (min-width: 900px) {
+  /* The information rail: the face, then any card, then the Guide. */
+  .info {
+    position: absolute;
+    top: max(1.25rem, env(safe-area-inset-top));
+    bottom: 1.25rem;
+    left: max(1.25rem, env(safe-area-inset-left));
+    width: min(23rem, 30vw);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .info > * {
+    pointer-events: auto;
+  }
+
+  .info .face {
+    position: relative;
+    inset: auto;
+    max-width: none;
+    flex: none;
+    pointer-events: none;
+  }
+
+  .info .pick {
+    position: relative;
+    inset: auto;
+    max-width: none;
+    flex: none;
+  }
+
+  .info .pick .here-list,
+  .info .pick .note-form {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .info .guide {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0.8rem 0.9rem;
+    border-top: 0;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--bg) 84%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  }
+
+  /* The controls: a column down the right. */
+  .dock {
+    left: auto;
+    right: max(1.25rem, env(safe-area-inset-right));
+    top: max(1.25rem, env(safe-area-inset-top));
+    bottom: auto;
+    transform: none;
+    width: 19rem;
+    max-height: calc(100svh - 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1rem 0.9rem;
+  }
+
+  .dock .sliders {
+    order: 1;
+    gap: 0.9rem;
+  }
+
+  .dock .pace {
+    order: 2;
+    margin-top: 0.9rem;
+  }
+
+  .dock .buttons {
+    order: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .dock .buttons .btn {
+    justify-content: flex-start;
+  }
+
+  .dock .layers {
+    order: 4;
+    grid-template-columns: 1fr;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .dock .slider {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .flat-credit {
+    right: calc(19rem + 2.5rem);
+    bottom: 0.6rem;
+  }
+}
+
+@media (min-width: 900px) {
+  /* In the rail the words sit off the globe; the wash stays inside it. */
+  .info {
+    overflow-x: hidden;
+  }
+
+  .info .face::before {
+    inset: 0;
+  }
+}

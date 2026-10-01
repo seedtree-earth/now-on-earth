@@ -30,7 +30,7 @@ export type FlatView = {
   follow(on: boolean): void;
   following(): boolean;
   /** Room taken by the words above and the dock below. */
-  setPadding(p: { top: number; bottom: number }): void;
+  setPadding(p: { top: number; bottom: number; left?: number; right?: number }): void;
   refreshPalette(): void;
   /**
    * Told what is under the pointer as it moves (and on a tap): the screen
@@ -81,7 +81,7 @@ export function createFlatView(container: HTMLElement): FlatView {
   let land: GeoJSON.FeatureCollection | GeoJSON.Feature | null = null;
   let rotation = 0; // degrees of longitude the disc is turned by
   let followSun = false;
-  let padding = { top: 0, bottom: 0 };
+  let padding = { top: 0, bottom: 0, left: 0, right: 0 };
   let frame: FlatFrame | null = null;
   let pal = colours();
   let pending = 0;
@@ -94,9 +94,9 @@ export function createFlatView(container: HTMLElement): FlatView {
   function layout() {
     const w = container.clientWidth;
     const h = container.clientHeight;
-    const room = Math.max(160, Math.min(w, h - padding.top - padding.bottom));
+    const room = Math.max(160, Math.min(w - padding.left - padding.right, h - padding.top - padding.bottom));
     const discR = room * 0.46;
-    const cx = w / 2;
+    const cx = padding.left + (w - padding.left - padding.right) / 2;
     const cy = padding.top + (h - padding.top - padding.bottom) / 2;
     return { w, h, cx, cy, discR, scale: discR / Math.PI };
   }
@@ -417,7 +417,7 @@ export function createFlatView(container: HTMLElement): FlatView {
     },
     following: () => followSun,
     setPadding(p) {
-      padding = p;
+      padding = { left: 0, right: 0, ...p };
       landKey = "";
       schedule();
     },

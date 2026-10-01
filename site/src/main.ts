@@ -266,6 +266,8 @@ const lenses = createLensPanel(
   },
 );
 /** What is showing, so the words work even without a globe. */
+/** A wide screen: information down the left, controls down the right. */
+const WIDE = window.matchMedia("(min-width: 900px)");
 const shownLayers = { has: (key: string) => lenses.isShown(key) };
 /** The weather draws nothing on the globe, so it speaks in the cards whenever its own switch is on. */
 const weatherOn = () => !lenses.offKeys().includes("weather-here");
@@ -576,7 +578,8 @@ els.layers.addEventListener("click", () => {
   const open = els.layersPanel.hidden;
   els.layersPanel.hidden = !open;
   els.layers.setAttribute("aria-expanded", String(open));
-  if (open) {
+  // On a phone they share the space over the dock; side by side on a wide screen.
+  if (open && !WIDE.matches) {
     els.guidePanel.hidden = true;
     els.guide.setAttribute("aria-expanded", "false");
   }
@@ -629,8 +632,9 @@ renderGuide();
 els.guide.addEventListener("click", () => {
   const open = els.guidePanel.hidden;
   els.guidePanel.hidden = !open;
+  if (open && !WIDE.matches) els.pick.hidden = true;
   els.guide.setAttribute("aria-expanded", String(open));
-  if (open) {
+  if (open && !WIDE.matches) {
     els.layersPanel.hidden = true;
     els.layers.setAttribute("aria-expanded", "false");
   }
@@ -965,7 +969,9 @@ function notice(text: string) {
 
 /**
  * Frame the globe in the open space between the words and the dock, and size
- * it to fit, so on a phone the dock never hides half the Earth. Once a person
+ * it to fit. On a wide screen that is the space between the information rail
+ * (left) and the controls (right); on a phone, between the words above and
+ * the dock below, so the dock never hides half the Earth. Once a person
  * zooms, the zoom is theirs; the padding still follows the layout.
  */
 let userZoomed = false;
@@ -976,16 +982,20 @@ function frameGlobe() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   const narrow = w < 720;
+  const wide = WIDE.matches;
+  const info = document.querySelector<HTMLElement>(".info")!.getBoundingClientRect();
   // A hidden dock or face measures zero; it then takes no room.
-  const top = narrow && face.height ? Math.max(0, face.bottom - 24) : 0;
-  const dockH = dock.height ? h - dock.top : 0;
+  const top = !wide && narrow && face.height ? Math.max(0, face.bottom - 24) : 0;
+  const dockH = !wide && dock.height ? h - dock.top : 0;
   const bottom = dockH ? dockH + 12 : 0;
+  const left = wide && info.width ? info.right : 0;
+  const right = wide && dock.width ? w - dock.left : 0;
   document.documentElement.style.setProperty("--dock-h", `${Math.round(dockH)}px`);
-  const padding = { top, bottom, left: 0, right: 0 };
-  flat.setPadding({ top, bottom });
+  const padding = { top, bottom, left, right };
+  flat.setPadding({ top, bottom, left, right });
   if (!map) return { padding, zoom: 1.6 };
   // Globe radius in pixels is worldSize / 2π, with worldSize = 512 · 2^zoom.
-  const room = Math.max(160, Math.min(w, h - top - bottom));
+  const room = Math.max(160, Math.min(w - left - right, h - top - bottom));
   const zoom = Math.max(0.2, Math.log2((0.4 * room * 2 * Math.PI) / 512));
   map.setPadding(padding);
   if (!userZoomed && Number.isFinite(zoom)) map.setZoom(zoom);
@@ -1086,6 +1096,7 @@ function buildGlobe() {
 buildGlobe();
 frameGlobe();
 window.addEventListener("resize", () => frameGlobe());
+WIDE.addEventListener("change", () => frameGlobe());
 push();
 quietPosition().then((p) => {
   if (!p) return;
