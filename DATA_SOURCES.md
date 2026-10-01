@@ -96,6 +96,15 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Requests:** 3 per refresh (one each: USGS, GDACS wildfires, GDACS volcanoes), at most once every ten minutes, one at a time, a User-Agent naming this site, no retries; a failed source keeps its last good copy. While checking the sources, 5 requests were made by hand.
 - **Shown with care:** these are real events, some with losses. The words are plain ("a strong earthquake, magnitude 6.4, near Kainantu, Papua New Guinea, a few days ago"), each links to its official report, and the credits say to follow local authorities for warnings.
 
+### The weather here (checked 2026-10-01)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **MET Norway Locationforecast 2.0** (`api.met.no/weatherapi/locationforecast/2.0/compact`, the Norwegian Meteorological Institute) | The weather now, in words, at a place the viewer taps or stands (Weather and ice lens). Never a layer over the globe | Live, through our function `/api/weather`: one request per place, rounded to 0.1° first, memoised and CDN-cached until MET Norway's own `Expires` (usually 30 to 60 minutes, never more than three hours). The browser never calls MET Norway | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and NLOD 2.0; commercial use allowed. The [terms of service](https://api.met.no/doc/TermsOfService) require an identifying User-Agent, at most four decimals in coordinates, honouring `Expires`, and an agreement above 20 requests a second in total | "Weather from MET Norway, CC BY 4.0", under the switch |
+
+- **Not used:** Open-Meteo. Its free API is for non-commercial use only ([terms](https://open-meteo.com/en/terms)), outside our rule.
+- **Requests:** one per newly chosen place per forecast, no retries; a failure keeps the last good copy for that place, or says nothing. While building, 2 requests were made (Lisbon).
+
 ### Parked
 
 | Source | Intended use | What to confirm before use |
