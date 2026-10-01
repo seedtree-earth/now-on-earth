@@ -27,6 +27,7 @@ export type LensPanel = {
   lensStates(): Record<LensId, boolean>;
   /** Switch a lens on from elsewhere (e.g. after adding a note to it). */
   openLens(lens: LensId): void;
+  closeLens(lens: LensId): void;
   /** Grey out and lock layers that do not apply (e.g. while the Flat model shows). */
   setLocked(keys: string[], locked: boolean): void;
 };
@@ -165,6 +166,14 @@ export function createLensPanel(
       if (input) input.checked = true;
       syncLensLook(lens);
       opts.onLens(lens, true);
+    },
+    closeLens(lens) {
+      if (!lensOn.get(lens)) return;
+      lensOn.set(lens, false);
+      const input = lensInputs.get(lens);
+      if (input) input.checked = false;
+      syncLensLook(lens);
+      opts.onLens(lens, false);
     },
     setLocked(keys, locked) {
       for (const k of keys) {

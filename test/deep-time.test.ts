@@ -26,3 +26,19 @@ describe("deep time", () => {
     expect(DEEP_MOMENTS.filter((m) => m.labelled).map((m) => m.label)).toEqual(["Now", "Last Ice Age", "Our species", "Dinosaurs", "Pangaea"]);
   });
 });
+
+import { seaLevelAt, seaWords } from "../src/core/index.js";
+
+describe("the sea through deep time", () => {
+  it("stands at today's level now and far lower in the Last Ice Age", () => {
+    expect(seaLevelAt(0)).toBe(0);
+    expect(seaLevelAt(21_000)!).toBeLessThan(-115);
+    expect(seaLevelAt(900_000)).toBeNull();
+  });
+
+  it("names the lands it joined", () => {
+    expect(seaWords(21_000)).toMatch(/New Guinea joined to Australia/);
+    expect(seaWords(21_000)).toMatch(/Beringia/);
+    expect(seaWords(0)).toMatch(/as high as today/);
+  });
+});

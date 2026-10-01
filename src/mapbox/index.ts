@@ -30,3 +30,4 @@ export { peopleLayer, type PeopleLayerOptions, type PresencePick } from "./layer
 export { groundNotesLayer } from "./layers/ground-notes.js";
 export { readPalette, isDark, TOKENS, type Palette, type PaletteTokens } from "./palette.js";
 export type { ClockLayer, Frame, LayerContext } from "./types.js";
+export { ancientCoastsLayer, type AncientCoastsOptions } from "./layers/ancient-coasts.js";

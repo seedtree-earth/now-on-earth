@@ -11,6 +11,7 @@ import { FALLBACK_VIEWER, type GroundNote, type LngLat, type Presence, type Seas
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { migrationFlowLayer } from "./layers/flows.js";
+import { ancientCoastsLayer, type AncientCoastsOptions } from "./layers/ancient-coasts.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
 import { type HazardsOptions, earthquakesLayer, firesLayer, volcanoesLayer } from "./layers/hazards.js";
@@ -46,6 +47,8 @@ export type NowOnEarthOptions = {
   events?: SeasonalEvent[];
   /** Earthquakes, volcanoes and fires: where the cached feed is served. */
   hazards?: HazardsOptions;
+  /** Ancient coastlines: where the shelf image is served. */
+  coasts?: AncientCoastsOptions;
   /** The aurora: where its cached forecast is served, and a status callback. */
   aurora?: AuroraOptions;
   /** A person or node dot was hovered or tapped (null on leave). */
@@ -120,8 +123,9 @@ export type NowOnEarth = {
 };
 
 export const defaultLayers = (
-  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions; hazards?: HazardsOptions } = {},
+  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions; hazards?: HazardsOptions; coasts?: AncientCoastsOptions } = {},
 ): ClockLayer[] => [
+  ancientCoastsLayer(opts.coasts),
   seaIceLayer(),
   tidesLayer(),
   nightShadeLayer(),
@@ -177,7 +181,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const prefix = options.prefix ?? "noe-";
   const themeEl = options.themeElement ?? document.documentElement;
   const tokens = { ...TOKENS, ...options.tokens };
-  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events, aurora: options.aurora, hazards: options.hazards });
+  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events, aurora: options.aurora, hazards: options.hazards, coasts: options.coasts });
   const hidden = options.hidden ?? DEFAULT_HIDDEN;
   const chosen = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
   const eventLens = Object.fromEntries((options.events ?? []).map((e) => [e.id, (e.lens ?? "life") as LensId]));

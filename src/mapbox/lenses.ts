@@ -48,7 +48,7 @@ export const LENSES: Lens[] = [
   {
     id: "earth",
     label: "Earth's body",
-    layers: ["magnetic-field", "magnetic-poles", "aurora", "earthquakes", "volcanoes"],
+    layers: ["ancient-coasts", "magnetic-field", "magnetic-poles", "aurora", "earthquakes", "volcanoes"],
     upcoming: ["The axis's slow wobble"],
     on: false,
   },

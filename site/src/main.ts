@@ -15,6 +15,7 @@ import {
   deepPosition,
   deepWords,
   deepYears,
+  seaWords,
   type GroundNote,
   groundNoteCredit,
   groundNoteWords,
@@ -247,6 +248,7 @@ const lenses = createLensPanel(
       on: false,
     },
     { key: "notes-life", label: "Life noticed on the ground", note: "(flowering, cicadas, birds: shared by people where they are)", built: true, on: true },
+    { key: "ancient-coasts", label: "Ancient coastlines", note: "(in deep time: the seabed that was land)", built: true, on: true, after: credit("Seabed: GEBCO_2025 Grid (GEBCO Compilation Group, 2025). Sea level: Spratt & Lisiecki (2016), Climate of the Past, via NOAA NCEI. A global sea level on today's seabed: coasts that have since risen or sunk are not adjusted.") },
     { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
     { key: "magnetic-poles", label: "Magnetic north's wandering", note: "(since 1925)", built: true, on: true, after: magCredit },
     { key: "earthquakes", label: "Major earthquakes", note: "(live, the past month)", built: true, on: true, after: quakeCredit },
@@ -320,6 +322,9 @@ function renderWords() {
   els.deepline.hidden = !deep;
   if (deep) {
     els.deepline.textContent = deep.moment ? `${deep.moment.name} · ${deep.years}. ${deep.moment.about}` : `${deep.when} · ${deep.years}`;
+    // The sea, when the coastlines are showing.
+    const sea = shownLayers.has("ancient-coasts") ? seaWords(deepNow()) : null;
+    if (sea) els.deepline.textContent += ` ${sea}`;
   }
   const deepSaid = deep ? ` In deep time, ${deep.moment ? deep.moment.name : deep.when}, ${deep.years}; the sun and sky as now.` : "";
   const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
@@ -507,18 +512,29 @@ els.deep.addEventListener("input", () => {
   setDeep(Number(els.deep.value));
 });
 
+/** Earth's body was opened by going deep, so it closes again on the way back. */
+let openedEarthForDeep = false;
+
 /** Go to a depth in deep time: the Earth's layers follow; the light stays live. */
 function setDeep(at: number) {
   const was = deepAt > 0;
   deepAt = Math.max(0, Math.min(1000, Math.round(at)));
   els.deep.value = String(deepAt);
   clock?.setDeepTime(deepNow());
+  if (!was && deepAt > 0 && !lenses.lensStates().earth) {
+    lenses.openLens("earth");
+    openedEarthForDeep = true;
+  }
+  if (was && deepAt === 0 && openedEarthForDeep) {
+    lenses.closeLens("earth");
+    openedEarthForDeep = false;
+  }
   if (was !== deepAt > 0) syncLocks();
   push();
 }
 
 /** Switches that rest: the globe's own while the flat model shows; the present's own in deep time. */
-const FLAT_LOCKED = ["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"];
+const FLAT_LOCKED = ["ancient-coasts", "moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"];
 function syncLocks() {
   const deepLocked = [...PRESENT_ONLY, humpbacks.id, godwits.id];
   lenses.setLocked([...new Set([...FLAT_LOCKED, ...deepLocked])], false);

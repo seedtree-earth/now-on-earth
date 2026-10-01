@@ -110,6 +110,17 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 
 Contributed by the people who use the clock, not fetched from anywhere. Each writer chooses **CC BY 4.0** (the default) or **CC0** for their note, in line with the rule for every other source; NC, ND and SA are not offered. Places are rounded to 0.1° and kept with a day, never a time; names are optional and used only as credit ("Noted by Sam · CC BY 4.0", or "someone nearby"). On the standalone site notes are kept in the writer's own browser and are not sent anywhere. No requests are made.
 
+### Ancient coastlines (checked 2026-10-01)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **GEBCO_2025 Grid** (GEBCO Compilation Group), ice-surface elevation, 15 arc-second | Today's shallow seabed (0 to 150 m), which the low sea of the ice ages left dry | Once, at build time (`scripts/earth/coastlines.mjs`), through CEDA's OPeNDAP server as a strided sample: every 24th point, a 0.1° grid, in 6 requests (about 26 MB). The 7 GB file was never downloaded. Written to `site/public/data/shelf-depth.png` (379 KB) | [Public domain](https://www.gebco.net/data-products/gridded-bathymetry-data), free for any use including commercial | "GEBCO Compilation Group (2025) GEBCO 2025 Grid", under the switch |
+| **Spratt & Lisiecki (2016)**, a Late Pleistocene sea level stack, *Climate of the Past* 12: 1079–1092 | Global sea level, one value per thousand years to 798,000 years ago: the short stack (seven records) to 430,000 years, the long stack (five records) beyond | Once, at build time, from NOAA NCEI Paleoclimatology (1 request, about 0.1 MB). Written to `src/core/data/sea-level.ts` | The paper is [CC BY 3.0](https://cp.copernicus.org/articles/12/1079/2016/); NOAA asks only to be cited: [doi:10.25921/rd66-5820](https://doi.org/10.25921/rd66-5820) | "Spratt & Lisiecki (2016), via NOAA NCEI", under the switch and in the Guide |
+
+- **Requests:** 7 in all (1 NOAA, 6 CEDA), one at a time, 3 seconds apart, a User-Agent naming this project, cached (`scripts/earth/.cache/`, not committed), stop on any error. Plus 1 small metadata request by hand to confirm the OPeNDAP address.
+- **What it can't say:** one global sea level laid on today's seabed. It does not adjust for coasts that have since risen or sunk (the land rebounding after the ice, sediment, coral growth), and the 0.1° grid can miss very narrow channels. The stack is smoothed, so in the last few thousand years it runs a few metres low (about 5 m at 2,000 years ago, where the sea was near today's): a better curve for the last 30,000 years (for example Lambeck et al. 2014) would sharpen this, if its data can be used under our licence rule.
+- **Not used:** ETOPO 2022 (NOAA, public domain) was the fallback; GEBCO's OPeNDAP made the requested source practical.
+
 ### Images for places (rule set 2026-10-01)
 
 For the Places lens (sacred sites, to come), images from Wikimedia Commons may be **CC0, public domain, CC BY or CC BY-SA**. This is the one exception to the no-SA rule: ShareAlike binds only adaptations, so an image shown **unmodified**, with its full credit, licence and a link to its Commons page, keeps to its terms. No cropping beyond the browser's own scaling, no filters, no overlays drawn into the image. NC and ND images are still excluded, as is anything a custodian has asked not to be shown.

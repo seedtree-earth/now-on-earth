@@ -204,3 +204,5 @@ export {
   yearsWords,
   deepWords,
 } from "./deep-time.js";
+
+export { SEA_LEVEL_REACH, LAND_BRIDGES, seaLevelAt, seaWords } from "./sea-level.js";
