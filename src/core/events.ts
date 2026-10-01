@@ -39,8 +39,10 @@ export type SeasonalEvent = {
   lens?: string;
   /** A palette role to colour it by (e.g. "flight"); the Life colour if unset. */
   hue?: string;
-  /** How to draw it: "flow" for a migration corridor with streaming particles; a seasonal haze if unset. */
-  display?: "flow" | "haze";
+  /** How to draw it: "flow" for a corridor with streaming particles, "flyway" for legs between stopovers; a seasonal haze if unset. */
+  display?: "flow" | "flyway" | "haze";
+  /** For a flyway: the stopovers (bbox: west, south, east, north; west > east crosses 180°) and the legs between them, in order. */
+  flyway?: { stops: Array<{ id: string; name: string; bbox: [number, number, number, number] }>; legs: Array<[string, string]> };
   /** For a flow: which way the corridor runs ("lat": north–south). */
   flowAxis?: "lat" | "lng";
   /** Multiplies the glow's intensity, for sparse datasets. */

@@ -215,6 +215,20 @@ const out = {
   name: "Bar-tailed Godwits",
   species: SPECIES,
   region: "The East Asian–Australasian Flyway, from Australia and New Zealand to Alaska",
+  // Drawn as a flyway (src/core/flows.ts): legs between these stopovers, the hero route Alaska to New Zealand.
+  display: "flyway",
+  flyway: {
+    stops: [
+      { id: "nz", name: "New Zealand", bbox: [165, -48, 179.9, -33] },
+      { id: "yellow-sea", name: "the Yellow Sea", bbox: [115, 25, 130, 45] },
+      { id: "alaska", name: "Alaska", bbox: [175, 55, -150, 72] },
+    ],
+    legs: [
+      ["nz", "yellow-sea"],
+      ["yellow-sea", "alaska"],
+      ["alaska", "nz"],
+    ],
+  },
   lens: "life",
   hue: "flight",
   glow: 2.4,

@@ -188,4 +188,6 @@ export {
   flowParticles,
   corridorDistance,
   flowWords,
+  greatCircle,
+  deriveFlyway,
 } from "./flows.js";

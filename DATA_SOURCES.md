@@ -83,6 +83,8 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Requests:** 2 probes by hand (the taxon key, one test map), then 21 in the build (12 monthly maps, 2 source searches, 7 dataset lookups), one at a time 1.5 s apart, cached; a rebuild makes none.
 - **Result:** 182,018 flyway records. Most in Australia and New Zealand from October to March; the Yellow Sea rising in April; Alaska highest in June. Shown as a soft amber haze with a general line per month, credited under the switch.
 
+- **Drawn as a flyway (2026-10-01):** the same data, not re-fetched, drives three legs between stopovers (New Zealand, the Yellow Sea, Alaska): the hero route of the New Zealand birds. Each stopover's place is the weighted middle of its sightings; each leg's season is when one stopover empties as the next fills. The legs over open sea have no sightings (the birds cross nonstop), so they are drawn as great circles between the stopovers, and the words and Guide say so. No new requests.
+
 ### Earthquakes, volcanoes and wildfires (checked 2026-09-29)
 
 | Source | Used for | Fetched | Terms | Attribution |
@@ -107,6 +109,10 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 ### Ground notes: what people notice (2026-10-01)
 
 Contributed by the people who use the clock, not fetched from anywhere. Each writer chooses **CC BY 4.0** (the default) or **CC0** for their note, in line with the rule for every other source; NC, ND and SA are not offered. Places are rounded to 0.1° and kept with a day, never a time; names are optional and used only as credit ("Noted by Sam · CC BY 4.0", or "someone nearby"). On the standalone site notes are kept in the writer's own browser and are not sent anywhere. No requests are made.
+
+### Images for places (rule set 2026-10-01)
+
+For the Places lens (sacred sites, to come), images from Wikimedia Commons may be **CC0, public domain, CC BY or CC BY-SA**. This is the one exception to the no-SA rule: ShareAlike binds only adaptations, so an image shown **unmodified**, with its full credit, licence and a link to its Commons page, keeps to its terms. No cropping beyond the browser's own scaling, no filters, no overlays drawn into the image. NC and ND images are still excluded, as is anything a custodian has asked not to be shown.
 
 ### Parked
 

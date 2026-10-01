@@ -34,8 +34,10 @@ export type MigrationFlow = {
   corridor: Position[];
   /** Twelve months, January first. */
   months: FlowMonth[];
-  /** Words for the corridor's two ends, first then last (e.g. "south", "north"). */
+  /** Words for travelling toward each end, first then last (e.g. "heading south", "heading north"). */
   ends: [string, string];
+  /** A name for this stretch, if it is one leg of a flyway ("New Zealand to the Yellow Sea"). */
+  name?: string;
 };
 
 const toRad = Math.PI / 180;
@@ -110,7 +112,7 @@ export function deriveFlow(event: SeasonalEvent, opts: { axis?: "lat" | "lng"; b
     const direction = Math.max(-1, Math.min(1, slope / (0.1 * span)));
     return { intensity: Math.sqrt(n / peak), direction: Math.round(direction * 100) / 100 };
   });
-  const ends: [string, string] = axis === "lat" ? ["south", "north"] : ["west", "east"];
+  const ends: [string, string] = axis === "lat" ? ["heading south", "heading north"] : ["heading west", "heading east"];
   return { id: event.id, corridor, months, ends };
 }
 
@@ -200,5 +202,91 @@ export function flowWords(flow: MigrationFlow, date: Date): string | null {
   if (intensity < 0.12) return null;
   const strength = intensity > 0.7 ? "in full flow" : intensity > 0.35 ? "flowing" : "a thin stream";
   if (Math.abs(direction) < 0.25) return `${strength}, milling about`;
-  return `${strength}, ${direction > 0 ? `heading ${flow.ends[1]}` : `heading ${flow.ends[0]}`}`;
+  return `${strength}, ${direction > 0 ? flow.ends[1] : flow.ends[0]}`;
+}
+
+// ------------------------------------------------------------ flyways
+
+const inBox = ([lng, lat]: number[], [w, s, e, n]: [number, number, number, number]) =>
+  lat >= s && lat <= n && (w <= e ? lng >= w && lng <= e : lng >= w || lng <= e);
+
+/** The great circle from a to b, as a line whose longitudes run on without a jump at 180°. */
+export function greatCircle(a: Position, b: Position, steps = 64): Position[] {
+  const v = ([lng, lat]: Position) => [Math.cos(lat * toRad) * Math.cos(lng * toRad), Math.cos(lat * toRad) * Math.sin(lng * toRad), Math.sin(lat * toRad)];
+  const p = v(a);
+  const q = v(b);
+  const omega = Math.acos(Math.max(-1, Math.min(1, p[0] * q[0] + p[1] * q[1] + p[2] * q[2])));
+  const out: Position[] = [];
+  let prev = a[0];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const k1 = omega ? Math.sin((1 - t) * omega) / Math.sin(omega) : 1 - t;
+    const k2 = omega ? Math.sin(t * omega) / Math.sin(omega) : t;
+    const x = k1 * p[0] + k2 * q[0];
+    const y = k1 * p[1] + k2 * q[1];
+    const z = k1 * p[2] + k2 * q[2];
+    let lng = Math.atan2(y, x) / toRad;
+    while (lng - prev > 180) lng -= 360;
+    while (lng - prev < -180) lng += 360;
+    prev = lng;
+    out.push([lng, Math.atan2(z, Math.hypot(x, y)) / toRad]);
+  }
+  return out;
+}
+
+/**
+ * A flyway: legs between named stopovers, each its own flow. The route of a
+ * leg is the great circle between the weighted middle of each stopover's
+ * sightings: where the birds are seen, joined, not a tracked path. A leg's
+ * season is when its first stopover empties while its second fills, month to
+ * month, scaled so each leg peaks at one in its own season; faint echoes
+ * (under a quarter of the peak) are left out.
+ */
+export function deriveFlyway(event: SeasonalEvent): MigrationFlow[] {
+  const fw = event.flyway;
+  if (!fw) return [];
+  const stops = new Map(
+    fw.stops.map((st) => {
+      const counts = event.months.map((m) => m.cells.filter((c) => inBox(c, st.bbox)).reduce((t, c) => t + c[2], 0));
+      const peak = Math.max(1, ...counts);
+      const wraps = st.bbox[0] > st.bbox[2];
+      let w = 0;
+      let x = 0;
+      let y = 0;
+      for (const m of event.months) {
+        for (const c of m.cells) {
+          if (!inBox(c, st.bbox)) continue;
+          // A stop astride 180° averages its longitudes on one side of it.
+          const lng = wraps && c[0] < 0 ? c[0] + 360 : c[0];
+          w += c[2];
+          x += c[2] * lng;
+          y += c[2] * c[1];
+        }
+      }
+      const mid: Position = w
+        ? [((((x / w + 180) % 360) + 360) % 360) - 180, y / w]
+        : [(st.bbox[0] + st.bbox[2]) / 2, (st.bbox[1] + st.bbox[3]) / 2];
+      return [st.id, { ...st, occupancy: counts.map((n) => n / peak), mid }] as const;
+    }),
+  );
+  return fw.legs.map(([from, to]) => {
+    const a = stops.get(from)!;
+    const b = stops.get(to)!;
+    const raw = a.occupancy.map((v, m) => {
+      const n = (m + 1) % 12;
+      return Math.min(Math.max(0, v - a.occupancy[n]), Math.max(0, b.occupancy[n] - b.occupancy[m]));
+    });
+    const peak = Math.max(...raw) || 1;
+    const months: FlowMonth[] = raw.map((v) => {
+      const i = v / peak;
+      return i < 0.25 ? { intensity: 0, direction: 0 } : { intensity: Math.round(i * 100) / 100, direction: 1 };
+    });
+    return {
+      id: `${event.id}-${from}-${to}`,
+      name: `${a.name} to ${b.name}`,
+      corridor: greatCircle(a.mid, b.mid),
+      months,
+      ends: [`heading back to ${a.name}`, `heading for ${b.name}`] as [string, string],
+    };
+  });
 }

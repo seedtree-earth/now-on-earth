@@ -124,7 +124,7 @@ export const defaultLayers = (
   hourRingsLayer(),
   twilightLayer(),
   auroraLayer(opts.aurora),
-  ...(opts.events ?? []).map((e) => (e.display === "flow" ? migrationFlowLayer(e, { axis: e.flowAxis }) : seasonalEventLayer(e))),
+  ...(opts.events ?? []).map((e) => (e.display === "flow" || e.display === "flyway" ? migrationFlowLayer(e) : seasonalEventLayer(e))),
   partneredKnowledgeLayer(),
   groundNotesLayer("weather"),
   groundNotesLayer("life"),

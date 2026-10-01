@@ -36,3 +36,31 @@ describe("migration flows", () => {
     expect(flowWords(flow, new Date("2026-02-15T00:00:00Z"))).toBeNull();
   });
 });
+
+import { deriveFlyway, flowWords as words } from "../src/core/index.js";
+
+const godwits = JSON.parse(readFileSync(new URL("../events/bar-tailed-godwits.json", import.meta.url), "utf8")) as SeasonalEvent;
+
+describe("the godwit flyway", () => {
+  const legs = deriveFlyway(godwits);
+  const leg = (id: string) => legs.find((l) => l.id.endsWith(id))!;
+
+  it("joins the stopovers in order, with the long leg straight across the Pacific", () => {
+    expect(legs.map((l) => l.name)).toEqual(["New Zealand to the Yellow Sea", "the Yellow Sea to Alaska", "Alaska to New Zealand"]);
+    const south = leg("alaska-nz").corridor;
+    const mid = south[Math.floor(south.length / 2)];
+    const lng = ((mid[0] + 540) % 360) - 180;
+    expect(Math.abs(lng)).toBeGreaterThan(160); // mid-Pacific, near the date line
+    expect(mid[1]).toBeGreaterThan(-5);
+    expect(mid[1]).toBeLessThan(25);
+  });
+
+  it("flies each leg in its own season, from the stopovers filling and emptying", () => {
+    const peak = (id: string) => leg(id).months.reduce((b, m, i, a) => (m.intensity > a[b].intensity ? i : b), 0) + 1;
+    expect([2, 3]).toContain(peak("nz-yellow-sea"));
+    expect([4, 5]).toContain(peak("yellow-sea-alaska"));
+    expect([8, 9]).toContain(peak("alaska-nz"));
+    expect(words(leg("alaska-nz"), new Date("2026-09-15T00:00:00Z"))).toMatch(/heading for New Zealand/);
+    expect(words(leg("alaska-nz"), new Date("2026-01-15T00:00:00Z"))).toBeNull();
+  });
+});

@@ -10,7 +10,6 @@ import {
   type AuroraPoint,
   type MigrationFlow,
   corridorDistance,
-  deriveFlow,
   flowWords,
   type GroundNote,
   groundNoteWords,
@@ -38,7 +37,7 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import { guideFor } from "./guide";
-import { hazardsFor } from "now-on-earth/mapbox";
+import { flowsOf, hazardsFor } from "now-on-earth/mapbox";
 
 export type HoverItem = { key: string; title: string; detail: string };
 
@@ -60,10 +59,10 @@ export type HoverContext = {
 };
 
 const poles = magneticPoleTrails();
-const flows = new Map<string, MigrationFlow>();
-const flowFor = (e: SeasonalEvent) => {
+const flows = new Map<string, MigrationFlow[]>();
+const flowsFor = (e: SeasonalEvent) => {
   let f = flows.get(e.id);
-  if (!f) flows.set(e.id, (f = deriveFlow(e, { axis: e.flowAxis })));
+  if (!f) flows.set(e.id, (f = flowsOf(e)));
   return f;
 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -133,10 +132,13 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
   const month = t < 0.5 ? from : to;
   for (const e of ctx.events) {
     if (!ctx.shows(e.id)) continue;
-    if (e.display === "flow") {
-      // A migration drawn as a flow: near its corridor, say where it stands in the season.
-      const flow = flowFor(e);
-      if (corridorDistance(flow, at) > 1.2) continue;
+    if (e.display === "flow" || e.display === "flyway") {
+      // A migration drawn as a flow: near a corridor, say where it stands in the season.
+      const reach = e.display === "flyway" ? 2.5 : 1.2;
+      const near = flowsFor(e).filter((f) => corridorDistance(f, at) <= reach);
+      if (!near.length) continue;
+      // Of the nearby legs, speak for the one in season, if any.
+      const flow = near.find((f) => flowWords(f, ctx.date)) ?? near[0];
       const moving = flowWords(flow, ctx.date);
       add(e.id, `${cap(e.story?.[month - 1] ?? "their corridor")}${moving ? `. Now ${moving}.` : ". Out of season now."}`);
       continue;

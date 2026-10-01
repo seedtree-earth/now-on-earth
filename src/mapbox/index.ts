@@ -24,7 +24,7 @@ export { earthquakesLayer, volcanoesLayer, firesLayer, hazardsFor, type HazardsO
 export { auroraLayer, type AuroraOptions, type AuroraStatus } from "./layers/aurora.js";
 export { seaIceLayer, productDate, SNOW, ICE, GIBS_ACKNOWLEDGEMENT } from "./layers/sea-ice.js";
 export { seasonalEventLayer, partneredKnowledgeLayer, type EventLayerOptions } from "./layers/events.js";
-export { migrationFlowLayer, type FlowLayerOptions } from "./layers/flows.js";
+export { migrationFlowLayer, flowsOf, type FlowLayerOptions } from "./layers/flows.js";
 export { peopleLayer, type PeopleLayerOptions, type PresencePick } from "./layers/people.js";
 export { groundNotesLayer } from "./layers/ground-notes.js";
 export { readPalette, isDark, TOKENS, type Palette, type PaletteTokens } from "./palette.js";
