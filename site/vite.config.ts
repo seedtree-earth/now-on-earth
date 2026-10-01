@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { type Plugin, defineConfig } from "vite";
 import { GET as aurora } from "../api/aurora";
 import { GET as hazards } from "../api/hazards";
+import { GET as weather } from "../api/weather";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -15,9 +16,10 @@ const devApi = (): Plugin => ({
     for (const [path, handler] of [
       ["/api/aurora", aurora],
       ["/api/hazards", hazards],
+      ["/api/weather", weather],
     ] as const) {
-      server.middlewares.use(path, async (_req, res) => {
-        const r = await handler();
+      server.middlewares.use(path, async (req, res) => {
+        const r = await handler(new Request(`http://localhost${req.originalUrl ?? req.url}`));
         res.statusCode = r.status;
         r.headers.forEach((v, k) => res.setHeader(k, v));
         res.end(await r.text());

@@ -55,7 +55,7 @@ export const LENSES: Lens[] = [
   {
     id: "weather",
     label: "Weather and ice",
-    layers: ["sea-ice", "fires"],
+    layers: ["weather-here", "sea-ice", "fires"],
     upcoming: ["The rain belt", "Carbon dioxide"],
     on: false,
   },

@@ -47,6 +47,8 @@ export const GUIDE: GuideEntry[] = [
   { key: "volcanoes", lens: "earth", title: "Erupting volcanoes", body: "Eruptions from the past year that GDACS rated orange or red, fading with age.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-ember)", mark: "dot" },
 
   // ------------------------------------------------------------ Weather and ice
+  { key: "weather-here", lens: "weather", title: "The weather here", body: "The weather now, in words, at a place you tap or stand: the sky, how warm it is and the wind. One place at a time, never drawn over the globe. It is the weather now, even when the sliders show another hour. It draws nothing on the globe, so it speaks whenever its own switch is on, lens open or not.", source: "MET Norway Locationforecast, CC BY 4.0." },
+
   { key: "sea-ice", lens: "weather", title: "Sea ice and snow", body: "Where sea ice and snow lay in this month of a recent year, in soft white, crossfading month to month.", source: "NASA GIBS (AMSR2 sea ice, MODIS snow).", swatch: "#ffffff", mark: "fill" },
 
   { key: "fires", lens: "weather", title: "Major wildfires", body: "Wildfires GDACS rated orange or red in the past two months: a warm glow while they burn, fading for a week after. Real events: for warnings, follow local authorities.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-fire)", mark: "glow" },

@@ -36,6 +36,7 @@ import { GUIDE, LENS_TITLES } from "./guide";
 import { type HoverItem, hoverItems } from "./hover";
 import { flatHoverItems } from "./flat/hover";
 import { placeName } from "./place-name";
+import { WEATHER_CREDIT, weatherAt } from "./weather";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -233,6 +234,7 @@ const lenses = createLensPanel(
     { key: "volcanoes", label: "Erupting volcanoes", note: "(live, the past year)", built: true, on: true, after: volcanoCredit },
     { key: "fires", label: "Major wildfires", note: "(live, while they burn)", built: true, on: true, after: fireCredit },
     { key: "aurora", label: "The aurora", note: "(live near now, typical otherwise)", built: true, on: true, after: auroraCredit },
+    { key: "weather-here", label: "The weather here", note: "(now, in words, where you tap or stand)", built: true, on: true, after: credit(WEATHER_CREDIT) },
     { key: "sea-ice", label: "Sea ice and snow", note: "(a recent year, month by month)", built: true, on: true, after: iceCredit },
   ],
   {
@@ -250,6 +252,8 @@ const lenses = createLensPanel(
 );
 /** What is showing, so the words work even without a globe. */
 const shownLayers = { has: (key: string) => lenses.isShown(key) };
+/** The weather draws nothing on the globe, so it speaks in the cards whenever its own switch is on. */
+const weatherOn = () => !lenses.offKeys().includes("weather-here");
 
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
@@ -738,7 +742,14 @@ async function showPlaceCard(lngLat: { lng: number; lat: number }) {
     cardButton("Stand here", () => void standAt(at, name.textContent ?? "here")),
     cardButton("Close", () => (els.pick.hidden = true), true),
   );
-  els.pick.append(name, light, actions);
+  const weather = document.createElement("span");
+  weather.className = "weather";
+  els.pick.append(name, light, weather, actions);
+  if (weatherOn()) {
+    void weatherAt(at).then((words) => {
+      if (seq === placeSeq && words) weather.textContent = ` ${words}`;
+    });
+  }
   const n = await placeName(at, TOKEN);
   if (seq === placeSeq) name.textContent = n.charAt(0).toUpperCase() + n.slice(1);
 }
@@ -753,6 +764,8 @@ async function standAt(at: LngLat, name: string) {
   push();
   showHereCard();
 }
+
+let hereSeq = 0;
 
 /** Everything happening on the ground where the viewer stands. */
 function showHereCard() {
@@ -787,8 +800,18 @@ function showHereCard() {
     b.textContent = head;
     li.append(b, text);
     list.append(li);
+    return li;
   };
   line("The light", `${w.phase.charAt(0).toUpperCase()}${w.phase.slice(1)}. ${w.sky.charAt(0).toUpperCase()}${w.sky.slice(1)}.`);
+  if (weatherOn()) {
+    const li = line("The weather now", "…");
+    const seq = ++hereSeq;
+    void weatherAt(viewer).then((words) => {
+      if (seq !== hereSeq) return;
+      if (words) li.lastChild!.textContent = words;
+      else li.remove();
+    });
+  }
   line("The season", `${w.season.charAt(0).toUpperCase()}${w.season.slice(1)}, and ${w.days}.`);
   if (w.moon) line("The moon", `${w.moon.charAt(0).toUpperCase()}${w.moon.slice(1)}.`);
   for (const it of items) if (!["day-light", "night-shade", "moon"].includes(it.key)) line(it.title, it.detail);

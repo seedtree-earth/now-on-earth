@@ -148,3 +148,13 @@ export {
   volcanoWords,
   nearest,
 } from "./hazards.js";
+
+export {
+  type WeatherNow,
+  type WeatherPayload,
+  skyWord,
+  warmthWord,
+  windWord,
+  fromWord,
+  weatherWords,
+} from "./weather.js";
