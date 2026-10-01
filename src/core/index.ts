@@ -88,17 +88,6 @@ export {
 } from "./events.js";
 
 export {
-  type TideFeature,
-  SOLAR_TIDE_RATIO,
-  PULL_RIM,
-  tidalPull,
-  pullRadius,
-  springNeap,
-  tideFeatures,
-  tideWords,
-} from "./tides.js";
-
-export {
   type Vec3,
   type FieldComponents,
   type FieldLine,
@@ -122,14 +111,7 @@ export {
   auroraWords,
 } from "./aurora.js";
 
-export {
-  type PlanktonPhase,
-  type PlanktonFeature,
-  isOcean,
-  planktonAt,
-  planktonField,
-  planktonWords,
-} from "./plankton.js";
+export { isOcean } from "./ocean.js";
 
 export {
   type Quake,

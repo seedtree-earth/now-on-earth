@@ -25,13 +25,11 @@ import {
   quakeWords,
   volcanoesAt,
   volcanoWords,
-  planktonWords,
   moonState,
   seasonMarkWords,
   typicalAurora,
   seasonMarks,
   sunState,
-  tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
@@ -163,12 +161,6 @@ auroraCredit.textContent = AURORA_CREDIT;
 let auroraLive: { points: Array<[number, number, number]> } | null = null;
 let auroraMode: "live" | "typical" | "unavailable" = "typical";
 
-/** Plankton: a model, said plainly, with its source. */
-const planktonCredit = document.createElement("p");
-planktonCredit.className = "credit";
-planktonCredit.innerHTML =
-  'A model of a real daily pattern, not data: each night zooplankton rise from the deep to feed near the surface in the dark and sink before dawn (diel vertical migration), drawn here from the light alone over the oceans. See <a href="https://doi.org/10.1016/j.cub.2014.08.054" target="_blank" rel="noopener">Brierley, A. S. (2014), Diel vertical migration, <i>Current Biology</i> 24: R1074–R1076</a>. Ocean outline: Natural Earth.';
-
 /** A credit line for an event dataset, with a link to every source. */
 function creditFor(e: SeasonalEvent): HTMLElement {
   const p = document.createElement("p");
@@ -212,7 +204,6 @@ const lenses = createLensPanel(
     { key: "hour-numbers", label: "Hour numbers", note: "(hours from the sun, for counting time differences)", built: true, on: true },
     { key: "twilight", label: "Twilight and golden hour", built: true, on: true },
     { key: "moon", label: "The moon", built: true, on: true },
-    { key: "tides", label: "The moon's pull on the oceans", built: true, on: false },
     { key: "lane", label: "The sun's lane", built: true, on: true },
     { key: "sun-track", label: "Today's sun track", built: true, on: true },
     { key: "day-line", label: "Your day line", built: true, on: true },
@@ -232,7 +223,6 @@ const lenses = createLensPanel(
       on: true,
       after: creditFor(godwits),
     },
-    { key: "plankton", label: "Plankton's nightly rise", note: "(a model)", built: true, on: true, after: planktonCredit },
     { key: "people", label: "People and nodes", note: "(sample)", built: true, on: false },
     {
       key: "partnered-knowledge",
@@ -310,8 +300,7 @@ function renderWords() {
   const place = standing ? `Standing in ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
-  const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
-  const moonText = [w.moon, tides].filter(Boolean).join(" · ");
+  const moonText = w.moon ?? "";
   els.moonline.hidden = !moonText;
   if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
@@ -325,8 +314,7 @@ function renderWords() {
         : "a typical aurora, not tonight's"
     : undefined;
   const flight = shownLayers.has(godwits.id) ? eventStory(godwits, date) : undefined;
-  const plankton = !isFlat() && shownLayers.has("plankton") ? planktonWords(viewer, sunState(date)) : undefined;
-  const lifeAndEarth = [story, flight, plankton, earth, aurora].filter(Boolean).join(" · ");
+  const lifeAndEarth = [story, flight, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -339,10 +327,8 @@ function renderWords() {
     els.words.textContent =
       (drift ? `${drift}. ` : "") +
       w.sentence +
-      (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
       (flight ? ` Across the Pacific, ${flight}.` : "") +
-      (plankton ? ` ${plankton.charAt(0).toUpperCase()}${plankton.slice(1)}, as the model has it.` : "") +
       (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "") +
       (aurora ? ` ${aurora.charAt(0).toUpperCase()}${aurora.slice(1)}.` : "");
   }
@@ -560,8 +546,8 @@ els.flatSwitch.addEventListener("change", async () => {
     els.globe.style.visibility = "";
     els.notice.style.visibility = "";
   }
-  // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "plankton", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
+  // The moon belongs to the globe; their switches rest while the disc shows.
+  lenses.setLocked(["moon", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();

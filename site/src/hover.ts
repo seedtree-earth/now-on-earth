@@ -22,17 +22,14 @@ import {
   darkness,
   firesAt,
   fireWords,
-  isOcean,
   quakesAt,
   quakeWords,
   volcanoesAt,
   volcanoWords,
   magneticPoleTrails,
   monthBlend,
-  planktonAt,
   skyWords,
   sunSky,
-  tideWords,
 } from "now-on-earth/core";
 import { guideFor } from "./guide";
 import { hazardsFor } from "now-on-earth/mapbox";
@@ -135,17 +132,6 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
     }
   }
   if (ctx.shows("sea-ice") && Math.abs(at.lat) >= 55) add("sea-ice", "Where white shows, ice or snow lay in this month of a recent year.");
-  if (ctx.shows("plankton") && isOcean(at.lat, at.lng)) {
-    const phase = planktonAt(at, sun).phase;
-    const words = {
-      rising: "Plankton are rising toward the surface for the night.",
-      night: "Plankton are feeding near the surface in the dark.",
-      sinking: "Plankton are sinking back into the deep before the light.",
-      deep: "Plankton are resting in the deep, away from the light.",
-    }[phase];
-    add("plankton", `${words} (A model.)`);
-  }
-  if (ctx.shows("tides") && isOcean(at.lat, at.lng)) add("tides", `${cap(tideWords(at, ctx.moon))}.`);
   if (ctx.shows("magnetic-field")) add("magnetic-field", `${cap(compassWords(at, ctx.date))}.`);
 
   // The light itself.

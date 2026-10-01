@@ -30,7 +30,6 @@ export const LENSES: Lens[] = [
       "hour-numbers",
       "twilight",
       "moon",
-      "tides",
       "lane",
       "sun-track",
       "day-line",
@@ -41,7 +40,7 @@ export const LENSES: Lens[] = [
   {
     id: "life",
     label: "Life",
-    layers: ["plankton", "notes-life", "people", "partnered-knowledge"],
+    layers: ["notes-life", "people", "partnered-knowledge"],
     upcoming: ["Migrations", "What people are seeing this season, via iNaturalist"],
     on: false,
   },

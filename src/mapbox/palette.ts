@@ -22,7 +22,7 @@ export type Palette = {
   glow: string;
   /** Rose of golden hour and twilight. Clock token: --noe-dusk. */
   dusk: string;
-  /** Moonlight: the moon, its phase, the tides. Clock token: --noe-moon. */
+  /** Moonlight: the moon and its phase. Clock token: --noe-moon. */
   moon: string;
   /** Living things: ecological events. Clock token: --noe-life. */
   life: string;
@@ -32,8 +32,6 @@ export type Palette = {
   field: string;
   /** The aurora's green. Clock token: --noe-aurora. */
   aurora: string;
-  /** Plankton's bioluminescent blue. Clock token: --noe-plankton. */
-  plankton: string;
   /** Birds in flight: a warm, pale amber. Clock token: --noe-flight. */
   flight: string;
   /** Earthquakes: a muted crimson. Clock token: --noe-quake. */
@@ -65,7 +63,6 @@ export const TOKENS: PaletteTokens = {
   rain: "--noe-rain",
   field: "--noe-field",
   aurora: "--noe-aurora",
-  plankton: "--noe-plankton",
   flight: "--noe-flight",
   quake: "--noe-quake",
   ember: "--noe-ember",
@@ -85,7 +82,6 @@ const FALLBACK_LIGHT: Omit<Palette, "dark"> = {
   rain: "#5b8db8",
   field: "#8fa6dc",
   aurora: "#3fcf8e",
-  plankton: "#4fb8d6",
   flight: "#d0913f",
   quake: "#b2455a",
   ember: "#c9442c",
@@ -105,7 +101,6 @@ const FALLBACK_DARK: Omit<Palette, "dark"> = {
   rain: "#9cc6ea",
   field: "#a9bdf0",
   aurora: "#6dffb0",
-  plankton: "#7fe3ff",
   flight: "#f2c98a",
   quake: "#e27a8c",
   ember: "#ff6a45",
@@ -160,7 +155,6 @@ export function readPalette(
     rain: pick("rain"),
     field: pick("field"),
     aurora: pick("aurora"),
-    plankton: pick("plankton"),
     flight: pick("flight"),
     quake: pick("quake"),
     ember: pick("ember"),

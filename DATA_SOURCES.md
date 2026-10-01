@@ -70,11 +70,9 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 - **Why a function, although the browser could fetch NOAA directly:** NOAA's file is about 900 KB (a 1° grid of 65,160 cells). Fetched once per visitor, that is a lot of load on NOAA and a heavy download on a phone. The function keeps only cells with aurora to show (value 3 and above; about 160 KB), fetches at most once every ten minutes, and the CDN serves everyone else. One request per ten minutes per edge cache region, User-Agent naming this site, no retries; if NOAA errors, the last good copy is served, marked stale.
 - **Typical, not live:** more than an hour from the present, the live glow fades out and a typical oval is drawn instead (a moderately active night, after Feldstein's ovals, around the geomagnetic pole from the World Magnetic Model), in grey with dashed edges, and the words say "a typical aurora, not tonight's".
 
-### Plankton's nightly rise (a model; 2026-09-27)
+### Land and sea mask (2026-09-27)
 
-- **Not data.** There is no clean global dataset of diel vertical migration, so the layer is a model driven by the light alone: by day the plankton are in the deep; they rise through the evening twilight (the glow brightest at that dusk edge), stay near the surface through the night (a quieter glow), and sink through the morning twilight. It is labelled "a model" on its switch and in its credit.
-- **The pattern it models:** Brierley, A. S. (2014). Diel vertical migration. *Current Biology* 24(22): R1074–R1076. [doi:10.1016/j.cub.2014.08.054](https://doi.org/10.1016/j.cub.2014.08.054). Credited under the switch.
-- **Ocean outline:** a 1° sea mask built locally by `scripts/earth/ocean-mask.mjs` from Natural Earth land at 1:110m (public domain, via world-atlas, ISC). No network requests.
+- **Used for:** words such as "the open ocean" for a chosen place. A 1° sea mask built locally by `scripts/earth/ocean-mask.mjs` from Natural Earth land at 1:110m (public domain, via world-atlas, ISC). No network requests.
 
 ### Bar-tailed Godwits (checked 2026-09-27)
 

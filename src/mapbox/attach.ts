@@ -12,7 +12,6 @@ import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
-import { planktonLayer } from "./layers/plankton.js";
 import { type HazardsOptions, earthquakesLayer, firesLayer, volcanoesLayer } from "./layers/hazards.js";
 import { moonLayer } from "./layers/moon.js";
 import { seaIceLayer } from "./layers/sea-ice.js";
@@ -22,7 +21,6 @@ import { dayLightLayer, hourNumbersLayer, hourRingsLayer, nightShadeLayer } from
 import { dayLineLayer, laneLayer, sunTrackLayer } from "./layers/seasons.js";
 import { LENSES, type LensId, lensOf } from "./lenses.js";
 import { sunLayer } from "./layers/sun.js";
-import { tidesLayer } from "./layers/tides.js";
 import { twilightLayer } from "./layers/twilight.js";
 import type { ClockLayer, Frame, LayerContext } from "./types.js";
 import type { PresencePick } from "./layers/people.js";
@@ -53,7 +51,7 @@ export type NowOnEarthOptions = {
    * defaultLayers). Pass your own list to add, drop or reorder layers.
    */
   layers?: ClockLayer[];
-  /** Layer keys whose own switch starts off. Defaults to tides and people. */
+  /** Layer keys whose own switch starts off. Defaults to people. */
   hidden?: string[];
   /**
    * Which lenses start on. Defaults to Light only. A layer shows when its lens
@@ -118,8 +116,6 @@ export const defaultLayers = (
   opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions; hazards?: HazardsOptions } = {},
 ): ClockLayer[] => [
   seaIceLayer(),
-  planktonLayer(),
-  tidesLayer(),
   nightShadeLayer(),
   dayLightLayer(),
   hourRingsLayer(),
@@ -143,8 +139,8 @@ export const defaultLayers = (
   earthquakesLayer(opts.hazards),
 ];
 
-/** Quiet by default: tides and people are there to be switched on. */
-export const DEFAULT_HIDDEN = ["tides", "people"];
+/** Quiet by default: people are there to be switched on. */
+export const DEFAULT_HIDDEN = ["people"];
 
 function firstLabelLayer(map: MapboxMap): string | undefined {
   const layers = map.getStyle()?.layers ?? [];
