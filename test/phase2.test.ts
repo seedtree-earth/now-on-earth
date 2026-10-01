@@ -164,7 +164,7 @@ describe("people", () => {
   });
 });
 
-import { seasonMarkWords, seasonMarks } from "../src/core/index.js";
+import { PULL_RIM, seasonMarkWords, seasonMarks, springNeap, tidalPull, tideFeatures, tideWords } from "../src/core/index.js";
 
 describe("seasonMarks", () => {
   it("finds the 2026 solstices and equinoxes to within half an hour", () => {
@@ -183,6 +183,28 @@ describe("seasonMarks", () => {
     expect(seasonMarkWords("december-solstice", -28.8)).toMatch(/longest day/);
     expect(seasonMarkWords("december-solstice", 51)).toMatch(/shortest day/);
     expect(seasonMarkWords("september-equinox", -28.8)).toMatch(/spring equinox/);
+  });
+});
+
+describe("tides", () => {
+  it("swells under the moon and opposite, ebbs between", () => {
+    expect(tidalPull(0)).toBeCloseTo(1, 9);
+    expect(tidalPull(180)).toBeCloseTo(1, 9);
+    expect(tidalPull(90)).toBeCloseTo(-0.5, 9);
+    expect(tidalPull(PULL_RIM)).toBeCloseTo(0, 9);
+  });
+
+  it("is strongest at full moon and weakest at the quarter", () => {
+    expect(springNeap(moonState(utc("2024-09-18T02:44:00Z")))).toBeGreaterThan(0.99);
+    expect(springNeap(moonState(utc("2024-09-11T06:06:00Z")))).toBeLessThan(0.45);
+  });
+
+  it("draws swells, a low-water belt and a rim, and speaks of the pull only", () => {
+    const m = moonState(utc("2024-09-18T02:44:00Z"));
+    const kinds = new Set(tideFeatures(m).features.map((f) => f.properties.kind));
+    expect([...kinds].sort()).toEqual(["ebb", "rim", "swell"]);
+    expect(tideWords(m.sublunar, m)).toMatch(/lifting the seas here, in spring tides/);
+    expect(tideWords(m.sublunar, m)).not.toMatch(/\d|high tide|low tide/);
   });
 });
 

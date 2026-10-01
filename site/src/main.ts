@@ -30,6 +30,7 @@ import {
   typicalAurora,
   seasonMarks,
   sunState,
+  tideWords,
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
@@ -204,6 +205,7 @@ const lenses = createLensPanel(
     { key: "hour-numbers", label: "Hour numbers", note: "(hours from the sun, for counting time differences)", built: true, on: true },
     { key: "twilight", label: "Twilight and golden hour", built: true, on: true },
     { key: "moon", label: "The moon", built: true, on: true },
+    { key: "tides", label: "The moon's pull on the oceans", built: true, on: false },
     { key: "lane", label: "The sun's lane", built: true, on: true },
     { key: "sun-track", label: "Today's sun track", built: true, on: true },
     { key: "day-line", label: "Your day line", built: true, on: true },
@@ -300,7 +302,8 @@ function renderWords() {
   const place = standing ? `Standing in ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
-  const moonText = w.moon ?? "";
+  const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
+  const moonText = [w.moon, tides].filter(Boolean).join(" · ");
   els.moonline.hidden = !moonText;
   if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
@@ -327,6 +330,7 @@ function renderWords() {
     els.words.textContent =
       (drift ? `${drift}. ` : "") +
       w.sentence +
+      (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
       (flight ? ` Across the Pacific, ${flight}.` : "") +
       (earth ? ` ${earth.charAt(0).toUpperCase()}${earth.slice(1)}.` : "") +
@@ -546,8 +550,8 @@ els.flatSwitch.addEventListener("change", async () => {
     els.globe.style.visibility = "";
     els.notice.style.visibility = "";
   }
-  // The moon belongs to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
+  // The moon and tides belong to the globe; their switches rest while the disc shows.
+  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
   frameGlobe();
   renderTracks(true);
   push();

@@ -72,7 +72,7 @@ A build-time script (`scripts/ecology/humpbacks.mjs`) turns dated, located occur
 
 ### Land and sea mask (2026-09-27)
 
-- **Used for:** words such as "the open ocean" for a chosen place. A 1° sea mask built locally by `scripts/earth/ocean-mask.mjs` from Natural Earth land at 1:110m (public domain, via world-atlas, ISC). No network requests.
+- **Used for:** the tides' words and place words such as "the open ocean". A 1° sea mask built locally by `scripts/earth/ocean-mask.mjs` from Natural Earth land at 1:110m (public domain, via world-atlas, ISC). No network requests.
 
 ### Bar-tailed Godwits (checked 2026-09-27)
 

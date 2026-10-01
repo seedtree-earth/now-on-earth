@@ -22,6 +22,7 @@ import {
   darkness,
   firesAt,
   fireWords,
+  isOcean,
   quakesAt,
   quakeWords,
   volcanoesAt,
@@ -30,6 +31,7 @@ import {
   monthBlend,
   skyWords,
   sunSky,
+  tideWords,
 } from "now-on-earth/core";
 import { guideFor } from "./guide";
 import { hazardsFor } from "now-on-earth/mapbox";
@@ -132,6 +134,7 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
     }
   }
   if (ctx.shows("sea-ice") && Math.abs(at.lat) >= 55) add("sea-ice", "Where white shows, ice or snow lay in this month of a recent year.");
+  if (ctx.shows("tides") && isOcean(at.lat, at.lng)) add("tides", `${cap(tideWords(at, ctx.moon))}.`);
   if (ctx.shows("magnetic-field")) add("magnetic-field", `${cap(compassWords(at, ctx.date))}.`);
 
   // The light itself.

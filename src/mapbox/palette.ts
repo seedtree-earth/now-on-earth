@@ -22,7 +22,7 @@ export type Palette = {
   glow: string;
   /** Rose of golden hour and twilight. Clock token: --noe-dusk. */
   dusk: string;
-  /** Moonlight: the moon and its phase. Clock token: --noe-moon. */
+  /** Moonlight: the moon, its phase, the tides. Clock token: --noe-moon. */
   moon: string;
   /** Living things: ecological events. Clock token: --noe-life. */
   life: string;

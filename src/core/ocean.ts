@@ -1,7 +1,7 @@
 /**
  * Land or sea: a 1° mask built from Natural Earth land at 1:110m
  * (scripts/earth/ocean-mask.mjs). Coarse on purpose, for words ("the open
- * ocean") rather than drawing.
+ * ocean", the tides' pull "here") rather than drawing.
  */
 
 import { OCEAN_MASK } from "./data/ocean-mask.js";

@@ -30,6 +30,7 @@ export const LENSES: Lens[] = [
       "hour-numbers",
       "twilight",
       "moon",
+      "tides",
       "lane",
       "sun-track",
       "day-line",
