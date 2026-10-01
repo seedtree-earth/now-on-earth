@@ -41,6 +41,7 @@
           <p class="sky" id="sky" aria-hidden="true">&nbsp;</p>
           <p class="moonline" id="moonline" aria-hidden="true" hidden></p>
           <p class="eventline" id="eventline" aria-hidden="true" hidden></p>
+          <p class="deepline" id="deepline" aria-hidden="true" hidden></p>
           <p class="where" id="where" aria-hidden="true">&nbsp;</p>
         </header>
 
@@ -59,17 +60,31 @@
       <div id="notice" class="notice" hidden></div>
 
       <section class="dock" aria-label="Clock controls">
+        <!-- How deep to look: the day, the year, or deep time. One scale at a time. -->
+        <div class="depth" role="radiogroup" aria-label="How far to look">
+          <button type="button" role="radio" data-scale="day" aria-checked="true">Day</button>
+          <button type="button" role="radio" data-scale="year" aria-checked="false">Year</button>
+          <button type="button" role="radio" data-scale="deep" aria-checked="false">Deep time</button>
+        </div>
         <div class="sliders">
-          <label class="slider">
+          <label class="slider" data-scale="day">
             <span class="slider-name">The day</span>
             <input id="scrub" type="range" min="-720" max="720" step="1" value="0" />
           </label>
-          <div class="slider">
+          <div class="slider" data-scale="year" hidden>
             <span class="slider-name" id="year-name">The year</span>
             <div class="track">
               <!-- The year's four turning points, placed where they fall. -->
               <div class="marks" id="year-marks" role="group" aria-label="Solstices and equinoxes"></div>
               <input id="season" type="range" min="-182" max="182" step="1" value="0" aria-labelledby="year-name" />
+            </div>
+          </div>
+          <div class="slider" data-scale="deep" hidden>
+            <span class="slider-name" id="deep-name">Deep time</span>
+            <div class="track deep-track">
+              <input id="deep" type="range" min="0" max="1000" step="1" value="0" aria-labelledby="deep-name" />
+              <!-- Named moments, not figures: the years are in the words. -->
+              <div class="deep-marks" id="deep-marks" role="group" aria-label="Moments in deep time"></div>
             </div>
           </div>
         </div>

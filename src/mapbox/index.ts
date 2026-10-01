@@ -7,6 +7,7 @@ export {
   attachNowOnEarth,
   defaultLayers,
   DEFAULT_HIDDEN,
+  PRESENT_ONLY,
   type NowOnEarth,
   type NowOnEarthOptions,
   type Follow,

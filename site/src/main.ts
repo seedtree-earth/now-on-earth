@@ -11,6 +11,10 @@ import {
   type LngLat,
   type SeasonalEvent,
   describeLight,
+  DEEP_MOMENTS,
+  deepPosition,
+  deepWords,
+  deepYears,
   type GroundNote,
   groundNoteCredit,
   groundNoteWords,
@@ -34,7 +38,7 @@ import {
 } from "now-on-earth/core";
 import humpbacksJson from "now-on-earth/events/humpback-whales.json";
 import godwitsJson from "now-on-earth/events/bar-tailed-godwits.json";
-import { GIBS_ACKNOWLEDGEMENT, type NowOnEarth, type PresencePick, attachNowOnEarth, hazardsFor, readPalette } from "now-on-earth/mapbox";
+import { GIBS_ACKNOWLEDGEMENT, PRESENT_ONLY, type NowOnEarth, type PresencePick, attachNowOnEarth, hazardsFor, readPalette } from "now-on-earth/mapbox";
 import { createLensPanel } from "./lens-panel";
 import { GUIDE, LENS_TITLES } from "./guide";
 import { type HoverItem, hoverItems } from "./hover";
@@ -85,6 +89,9 @@ const els = {
   notice: $("notice"),
   scrub: $<HTMLInputElement>("scrub"),
   season: $<HTMLInputElement>("season"),
+  deep: $<HTMLInputElement>("deep"),
+  deepMarks: $("deep-marks"),
+  deepline: $("deepline"),
   play: $<HTMLButtonElement>("play"),
   pace: $<HTMLInputElement>("pace"),
   paceRow: $("pace-row"),
@@ -107,6 +114,12 @@ const els = {
 
 // ---------------------------------------------------------------- state
 
+/** How far to look: one slider at a time. */
+type Scale = "day" | "year" | "deep";
+let scale: Scale = "day";
+/** Deep time, as a position on its scale (0..1000); 0 is now. The light stays live. */
+let deepAt = 0;
+const deepNow = () => deepYears(deepAt / 1000);
 let offsetMin = 0; // time scrub, -720 .. 720
 let dayShift = 0; // season, -182 .. 182
 let playing = false;
@@ -260,15 +273,16 @@ const lenses = createLensPanel(
 /** What is showing, so the words work even without a globe. */
 /** A wide screen: information down the left, controls down the right. */
 const WIDE = window.matchMedia("(min-width: 900px)");
-const shownLayers = { has: (key: string) => lenses.isShown(key) };
+const presentOnly = (key: string) => PRESENT_ONLY.includes(key) || key === humpbacks.id || key === godwits.id;
+const shownLayers = { has: (key: string) => lenses.isShown(key) && !(deepAt > 0 && presentOnly(key)) };
 /** The weather draws nothing on the globe, so it speaks in the cards whenever its own switch is on. */
 const weatherOn = () => !lenses.offKeys().includes("weather-here");
 /** Notes are words in the cards too: they follow their own switch there, lens open or not. */
-const notesOn = (group: "weather" | "life") => !lenses.offKeys().includes(group === "weather" ? "notes-weather" : "notes-life");
+const notesOn = (group: "weather" | "life") => deepAt === 0 && !lenses.offKeys().includes(group === "weather" ? "notes-weather" : "notes-life");
 
 
 const shown = () => new Date(Date.now() + dayShift * DAY + offsetMin * MIN);
-const isLive = () => !playing && offsetMin === 0 && dayShift === 0;
+const isLive = () => !playing && offsetMin === 0 && dayShift === 0 && deepAt === 0;
 
 // ---------------------------------------------------------------- words
 
@@ -302,6 +316,12 @@ function renderWords() {
   const place = standing ? `Standing in ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
+  const deep = deepAt > 0 ? deepWords(deepNow()) : null;
+  els.deepline.hidden = !deep;
+  if (deep) {
+    els.deepline.textContent = deep.moment ? `${deep.moment.name} · ${deep.years}. ${deep.moment.about}` : `${deep.when} · ${deep.years}`;
+  }
+  const deepSaid = deep ? ` In deep time, ${deep.moment ? deep.moment.name : deep.when}, ${deep.years}; the sun and sky as now.` : "";
   const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
   const moonText = [w.moon, tides].filter(Boolean).join(" · ");
   els.moonline.hidden = !moonText;
@@ -324,12 +344,13 @@ function renderWords() {
   // Screen readers hear a change of light, not every frame of it: while the
   // sun is playing, at most one sentence every six seconds.
   const now = performance.now();
-  if (w.sentence !== lastSentence && (!playing || now - lastSpoken > 6000)) {
-    lastSentence = w.sentence;
+  if (w.sentence + deepSaid !== lastSentence && (!playing || now - lastSpoken > 6000)) {
+    lastSentence = w.sentence + deepSaid;
     lastSpoken = now;
     els.words.textContent =
       (drift ? `${drift}. ` : "") +
       w.sentence +
+      deepSaid +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
       (flight ? ` Across the Pacific, ${flight}.` : "") +
@@ -340,6 +361,9 @@ function renderWords() {
   flatCanvasLabel(`Flat model. ${w.sentence}`);
   els.scrub.setAttribute("aria-valuetext", `${w.phase}, ${w.sky}`);
   els.season.setAttribute("aria-valuetext", `${w.season}, ${w.days}`);
+  const dw = deepWords(deepNow());
+  els.deep.setAttribute("aria-valuetext", deepAt ? `${dw.moment ? dw.moment.name : dw.when}, ${dw.years}` : "now");
+  for (const b of els.deepMarks.querySelectorAll<HTMLElement>(".deep-mark")) b.classList.toggle("is-here", b.dataset.id === (dw.moment?.id ?? ""));
 }
 
 // ---------------------------------------------------------------- tracks
@@ -479,6 +503,75 @@ els.season.addEventListener("input", () => {
   dayShift = Number(els.season.value);
   push();
 });
+els.deep.addEventListener("input", () => {
+  setDeep(Number(els.deep.value));
+});
+
+/** Go to a depth in deep time: the Earth's layers follow; the light stays live. */
+function setDeep(at: number) {
+  const was = deepAt > 0;
+  deepAt = Math.max(0, Math.min(1000, Math.round(at)));
+  els.deep.value = String(deepAt);
+  clock?.setDeepTime(deepNow());
+  if (was !== deepAt > 0) syncLocks();
+  push();
+}
+
+/** Switches that rest: the globe's own while the flat model shows; the present's own in deep time. */
+const FLAT_LOCKED = ["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"];
+function syncLocks() {
+  const deepLocked = [...PRESENT_ONLY, humpbacks.id, godwits.id];
+  lenses.setLocked([...new Set([...FLAT_LOCKED, ...deepLocked])], false);
+  if (els.flatSwitch.checked) lenses.setLocked(FLAT_LOCKED, true);
+  if (deepAt > 0) lenses.setLocked(deepLocked, true);
+}
+
+/** Show one scale's slider: the day, the year or deep time. */
+function setScale(next: Scale) {
+  scale = next;
+  for (const b of document.querySelectorAll<HTMLButtonElement>(".depth button")) b.setAttribute("aria-checked", String(b.dataset.scale === next));
+  for (const el of document.querySelectorAll<HTMLElement>(".sliders [data-scale]")) el.hidden = el.dataset.scale !== next;
+}
+for (const b of document.querySelectorAll<HTMLButtonElement>(".depth button")) {
+  b.addEventListener("click", () => setScale(b.dataset.scale as Scale));
+  // Arrow keys move between the three, as a radio group should.
+  b.addEventListener("keydown", (e) => {
+    const order: Scale[] = ["day", "year", "deep"];
+    const i = order.indexOf(b.dataset.scale as Scale);
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = order[(i + step + 3) % 3];
+    setScale(next);
+    document.querySelector<HTMLButtonElement>(`.depth button[data-scale="${next}"]`)?.focus();
+  });
+}
+
+/** The named moments along deep time: labelled ones in two rows, the rest quiet ticks named on hover. */
+function renderDeepMarks() {
+  let row = 0;
+  els.deepMarks.replaceChildren(
+    ...DEEP_MOMENTS.map((m) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = m.labelled ? "deep-mark" : "deep-mark is-quiet";
+      b.dataset.id = m.id;
+      const at = deepPosition(m.yearsAgo);
+      b.style.setProperty("--at", String(at));
+      if (at === 0) b.dataset.edge = "start";
+      if (at > 0.97) b.dataset.edge = "end";
+      if (m.labelled) {
+        b.textContent = m.label;
+        b.dataset.row = String(row++ % 2);
+      }
+      b.title = m.label;
+      b.setAttribute("aria-label", m.yearsAgo ? `Go to ${m.name}, ${deepWords(m.yearsAgo).years}` : "Back to now");
+      b.addEventListener("click", () => setDeep(Math.round(at * 1000)));
+      return b;
+    }),
+  );
+}
+renderDeepMarks();
 
 // The pace, named in words for the eye and the ear.
 function syncPace() {
@@ -506,7 +599,7 @@ els.now.addEventListener("click", () => {
   dayShift = 0;
   els.scrub.value = "0";
   els.season.value = "0";
-  push();
+  setDeep(0);
 });
 
 els.faceSun.addEventListener("click", () => {
@@ -551,7 +644,7 @@ els.flatSwitch.addEventListener("change", async () => {
     els.notice.style.visibility = "";
   }
   // The moon and tides belong to the globe; their switches rest while the disc shows.
-  lenses.setLocked(["moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"], els.flatSwitch.checked);
+  syncLocks();
   frameGlobe();
   renderTracks(true);
   push();
@@ -1048,6 +1141,7 @@ function buildGlobe() {
     fine,
     people: MOCK_PEOPLE,
     notes,
+    deep: deepNow(),
     events: [humpbacks, godwits],
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),

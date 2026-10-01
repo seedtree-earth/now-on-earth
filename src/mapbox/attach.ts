@@ -36,6 +36,8 @@ export type NowOnEarthOptions = {
   viewer?: LngLat;
   /** 5° rings instead of 15°. */
   fine?: boolean;
+  /** Deep time: years before present for the Earth's layers. 0 (the default) is now. */
+  deep?: number;
   /** People and nodes who chose to be shown. Only `consent.shown` ones are drawn. */
   people?: Presence[];
   /** Ground notes: what people noticed where they are, shared by choice. */
@@ -93,6 +95,9 @@ export type NowOnEarth = {
   isLive(): boolean;
   setViewer(viewer: LngLat): void;
   setFine(fine: boolean): void;
+  /** Deep time: years before present. The sun and rings stay live; the Earth's layers follow, and the present-only ones step aside. */
+  setDeepTime(years: number): void;
+  deepTime(): number;
   setPeople(people: Presence[]): void;
   setGroundNotes(notes: GroundNote[]): void;
   /** A layer's own switch. It shows only while its lens is on too. */
@@ -142,6 +147,24 @@ export const defaultLayers = (
   earthquakesLayer(opts.hazards),
 ];
 
+/**
+ * Layers that only know the present: live feeds, recent imagery, today's
+ * people and notes, today's migrations, today's magnetic field. In deep time
+ * they step aside (their switches keep their places). Events (by id) do too.
+ */
+export const PRESENT_ONLY = [
+  "earthquakes",
+  "volcanoes",
+  "fires",
+  "aurora",
+  "sea-ice",
+  "people",
+  "notes-weather",
+  "notes-life",
+  "magnetic-field",
+  "magnetic-poles",
+];
+
 /** Quiet by default: tides and people are there to be switched on. */
 export const DEFAULT_HIDDEN = ["tides", "people"];
 
@@ -160,8 +183,13 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const eventLens = Object.fromEntries((options.events ?? []).map((e) => [e.id, (e.lens ?? "life") as LensId]));
   const lensState = new Map(LENSES.map((l) => [l.id, options.lenses?.[l.id] ?? l.on]));
   const lensOfKey = (key: string) => lensOf(key, eventLens);
-  /** Drawn: its own switch on, and its lens open. */
-  const shows = (key: string) => (chosen.get(key) ?? true) && (lensState.get(lensOfKey(key)) ?? true);
+  const eventIds = new Set((options.events ?? []).map((e) => e.id));
+  let deep = Math.max(0, options.deep ?? 0);
+  /** Steps aside in deep time. */
+  const presentOnly = (key: string) => PRESENT_ONLY.includes(key) || eventIds.has(key);
+  /** Drawn: its own switch on, its lens open, and (in deep time) it belongs to the past too. */
+  const shows = (key: string) =>
+    (chosen.get(key) ?? true) && (lensState.get(lensOfKey(key)) ?? true) && !(deep > 0 && presentOnly(key));
   const listeners = new Set<(f: Frame) => void>();
   const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -185,7 +213,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
 
   const makeFrame = (): Frame => {
     const date = fixed ?? new Date();
-    return { date, sun: sunState(date), moon: moonState(date), viewer, fine, people, notes };
+    return { date, sun: sunState(date), moon: moonState(date), viewer, fine, people, notes, deep };
   };
   let current = makeFrame();
 
@@ -287,6 +315,14 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
       fine = f;
       schedule();
     },
+    setDeepTime(years) {
+      const next = Math.max(0, years);
+      const crossed = next > 0 !== deep > 0;
+      deep = next;
+      if (crossed) applyVisibility(mods.map((m) => m.key));
+      schedule();
+    },
+    deepTime: () => deep,
     setPeople(p) {
       people = p;
       schedule();

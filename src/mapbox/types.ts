@@ -14,6 +14,8 @@ export type Frame = {
   viewer: LngLat;
   /** 5° rings instead of 15°. */
   fine: boolean;
+  /** Deep time: years before present the Earth's layers show. 0 is now. The light stays live. */
+  deep: number;
 };
 
 export type LayerContext = {

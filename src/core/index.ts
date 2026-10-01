@@ -191,3 +191,16 @@ export {
   greatCircle,
   deriveFlyway,
 } from "./flows.js";
+
+export {
+  type DeepMoment,
+  type DeepWords,
+  DEEP_MIN,
+  DEEP_MAX,
+  DEEP_MOMENTS,
+  deepYears,
+  deepPosition,
+  nearestMoment,
+  yearsWords,
+  deepWords,
+} from "./deep-time.js";

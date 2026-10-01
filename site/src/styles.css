@@ -1111,3 +1111,145 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
     inset: 0;
   }
 }
+
+/* --- how far to look: day, year, deep time ---------------------------- */
+
+.depth {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  margin: 0 0 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg-2) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+}
+
+.depth button {
+  flex: 1;
+  font: inherit;
+  font-size: var(--fs-body-s);
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  padding: 0.28rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.25s var(--ease-unfurl), color 0.25s var(--ease-unfurl);
+}
+
+.depth button[aria-checked="true"] {
+  background: color-mix(in oklab, var(--accent) 26%, var(--bg));
+  color: var(--ink);
+}
+
+.depth button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 1px;
+}
+
+/* Deep time's track: from the light of now into the dark of long ago. */
+#deep {
+  --track: linear-gradient(90deg, var(--accent), var(--noe-dusk) 30%, var(--noe-night));
+}
+
+.deep-track {
+  padding-top: 0;
+  padding-bottom: 2.3rem;
+}
+
+.deep-marks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1.25rem;
+  height: 2.2rem;
+}
+
+.deep-mark {
+  position: absolute;
+  top: 0;
+  left: calc(var(--thumb-r) + (100% - 2 * var(--thumb-r)) * var(--at));
+  transform: translateX(-50%);
+  padding: 0.05rem 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* A hairline up to the track. */
+.deep-mark::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -0.25rem;
+  width: 1px;
+  height: 0.3rem;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.deep-mark.is-quiet {
+  width: 0.7rem;
+  height: 0.6rem;
+}
+
+.deep-mark[data-row="1"] {
+  top: 1rem;
+}
+
+.deep-mark[data-row="1"]::before {
+  top: -1.25rem;
+  height: 1.3rem;
+  opacity: 0.3;
+}
+
+/* The ends sit inside the track, not hanging off it. */
+.deep-mark[data-edge="start"] {
+  transform: none;
+  left: 0;
+}
+
+.deep-mark[data-edge="start"]::before {
+  left: var(--thumb-r);
+}
+
+.deep-mark[data-edge="end"] {
+  transform: translateX(-100%);
+  left: calc(100% - var(--thumb-r) + 0.3rem);
+}
+
+.deep-mark[data-edge="end"]::before {
+  left: auto;
+  right: 0.3rem;
+}
+
+.deep-mark:hover,
+.deep-mark:focus-visible,
+.deep-mark.is-here {
+  color: var(--accent-strong);
+}
+
+.deep-mark:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.deepline {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-size: var(--fs-body-s);
+  color: var(--accent-strong);
+}
+
+.deepline::first-letter {
+  text-transform: uppercase;
+}
