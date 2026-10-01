@@ -15,9 +15,10 @@ Every dataset gets a row **before** it is used. Planned sources are listed too, 
 | **Mock people and nodes** (`site/src/mock-people.ts`) | Demo of the people layer on the standalone site | Bundled | Fictional; no real people or organisations; coarse, well-known regions only | Labelled "sample" in the UI and "Mock node" on every dot |
 | **Natural Earth** land outlines, 1:50m (via the `world-atlas` package, ISC) | The Flat model's disc (standalone site only) | Bundled, loaded when the Flat model is first shown | Natural Earth is public domain; world-atlas is ISC | "Land: Natural Earth", shown under the disc |
 | **NASA GIBS** (Global Imagery Browse Services), WMTS tiles in EPSG:3857: `MODIS_Terra_L3_Snow_Cover_Monthly_Average_Pct` and `AMSRU2_Sea_Ice_Concentration_12km` | Sea ice and snow (Weather and ice lens) | Live, tiles loaded by the map in the browser as you view (no key; CORS open). Checked 2026-09-27 | NASA imagery, open for any use; no published rate limits | The GIBS acknowledgement, shown under the layer switch: "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." Plus "NASA GIBS" in the map's attribution line while the layer is on |
+| **Mapbox Geocoding** (reverse, v6) | A name for a place the viewer chooses to stand ("Lisbon, Portugal") | Live, one request per place chosen, with the site's own token; cached on the page. Never asked for the viewer's real location | Mapbox ToS (temporary geocoding: names shown, not stored) | Covered by the Mapbox attribution on the globe |
 | **Fraunces** (Undercase Type) and **Instrument Sans** (Instrument) | Type, matching SeedTree V2 | Google Fonts, standalone site only | [SIL Open Font License 1.1](https://openfontlicense.org) | Not required in-app; listed here |
 
-No personal data is collected. The viewer's position, when they choose to share it, is rounded to about ten kilometres and never leaves the page.
+No personal data is collected. The viewer's position, when they choose to share it, is rounded to about ten kilometres and never leaves the page. Places chosen with "Stand here" are rounded the same way, and only those are sent to Mapbox to be named.
 
 ## Phase 3: ecological events
 

@@ -45,6 +45,8 @@ export type HoverContext = {
   shows: (key: string) => boolean;
   events: SeasonalEvent[];
   aurora: { live: boolean; points: AuroraPoint[] };
+  /** How many items to return; the hover pop-up keeps it short. */
+  limit?: number;
 };
 
 const poles = magneticPoleTrails();
@@ -148,5 +150,5 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
   if (alt <= 0 && ctx.shows("night-shade")) {
     add("night-shade", `Hour band ${band} from the sun${band === 12 ? ", around midnight" : ""}. ${cap(skyWords(alt, sky.azimuth, sky.hourAngle))}.`);
   }
-  return items.slice(0, 4);
+  return items.slice(0, ctx.limit ?? 4);
 }

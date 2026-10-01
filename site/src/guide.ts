@@ -56,6 +56,7 @@ export const GUIDE: GuideEntry[] = [
   { key: "control-year", lens: "controls", title: "The year", body: "Slide half a year either way. The track shows how long your days are; the marks are the solstices and equinoxes (tap one to go there)." },
   { key: "control-pace", lens: "controls", title: "Play and pace", body: "Play sets the sun moving. While it plays, the Pace slider runs from as it is, through hours, days and weeks, to seasons, where your hour is held and the year runs by in about a minute. Each full turn of the sun carries the year on by a day, as it really does." },
   { key: "control-face", lens: "controls", title: "Face the sun · Face me", body: "Keep the sun in view as it moves, or come back to where you are." },
+  { key: "control-stand", lens: "controls", title: "Stand here", body: "Tap any place on the globe, then Stand here: the clock speaks for that place, and a Here card gathers what is happening on the ground there. Back to me comes home." },
   { key: "control-flat", lens: "controls", title: "Flat model", body: "Switches the globe for the common flat Earth depiction, run with the same clock, so the two can be compared." },
 ];
 

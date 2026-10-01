@@ -35,6 +35,7 @@ import { createLensPanel } from "./lens-panel";
 import { GUIDE, LENS_TITLES } from "./guide";
 import { type HoverItem, hoverItems } from "./hover";
 import { flatHoverItems } from "./flat/hover";
+import { placeName } from "./place-name";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -104,6 +105,10 @@ let dayShift = 0; // season, -182 .. 182
 let playing = false;
 let viewer: LngLat = { ...FALLBACK_VIEWER };
 let located = false;
+/** Where the viewer really is (once known); standing elsewhere does not change it. */
+let home: LngLat | null = null;
+/** A place the viewer chose to stand, and its name. */
+let standing: { at: LngLat; name: string } | null = null;
 let clock: NowOnEarth | null = null;
 /** The flat model's disc, drawn in the globe's place when switched on. */
 const flat = createFlatView(document.querySelector<HTMLElement>(".shell")!);
@@ -279,7 +284,7 @@ function renderWords() {
     : describeLight(date, viewer, sunState(date), moonOn ? moonState(date) : undefined);
   els.phase.textContent = w.phase;
   els.sky.textContent = `${w.sky} · ${w.season} · ${w.days}`;
-  const place = located ? "Where you are" : "Seen from the Northern Rivers";
+  const place = standing ? `Standing in ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
   const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
@@ -500,10 +505,18 @@ els.faceSun.addEventListener("click", () => {
 document.addEventListener("flat:release", () => push());
 
 els.faceMe.addEventListener("click", async () => {
-  if (!located) {
+  if (standing) {
+    // Come home from wherever you were standing.
+    standing = null;
+    viewer = home ?? { ...FALLBACK_VIEWER };
+    clock?.setViewer(viewer);
+    els.pick.hidden = true;
+    syncFaceMe();
+  } else if (!located) {
     const p = await askPosition();
     if (p) {
       viewer = p;
+      home = p;
       located = true;
       clock?.setViewer(viewer);
     }
@@ -654,9 +667,9 @@ flat.onPoint((point, at, tap) => {
 });
 
 /** A tapped earthquake, eruption or fire: its words and a link to its official report. */
-function showHazardCard(point: { x: number; y: number }) {
+function showHazardCard(point: { x: number; y: number }): boolean {
   const hz = hazardsFor();
-  if (!hz || !map) return;
+  if (!hz || !map) return false;
   const date = shown();
   const near = <T extends { lng: number; lat: number }>(list: T[]) =>
     list.find((x) => {
@@ -673,7 +686,7 @@ function showHazardCard(point: { x: number; y: number }) {
       : f
         ? { title: "Major wildfire", words: fireWords(f), url: f.url, source: "GDACS" }
         : null;
-  if (!hit) return;
+  if (!hit) return false;
   els.pick.hidden = false;
   els.pick.replaceChildren();
   const name = document.createElement("strong");
@@ -686,6 +699,103 @@ function showHazardCard(point: { x: number; y: number }) {
   a.rel = "noopener";
   a.textContent = `The ${hit.source} report`;
   els.pick.append(name, words, document.createElement("br"), a);
+  return true;
+}
+
+// ---------------------------------------------------------------- standing somewhere
+
+const coarse = (x: number) => Math.round(x * 10) / 10;
+
+function syncFaceMe() {
+  const label = els.faceMe.querySelector(".btn-label");
+  if (label) label.textContent = standing ? "Back to me" : "Face me";
+  els.faceMe.title = standing ? "Come back to where you are" : "Come back to where you are";
+}
+
+function cardButton(text: string, onClick: () => void, quiet = false) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = text;
+  if (quiet) b.className = "quiet";
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+/** A tapped place: its name and light, and the choice to stand there. */
+async function showPlaceCard(lngLat: { lng: number; lat: number }) {
+  const at = { lng: coarse(lngLat.lng), lat: coarse(lngLat.lat) };
+  const seq = ++placeSeq;
+  els.pick.hidden = false;
+  els.pick.replaceChildren();
+  const name = document.createElement("strong");
+  name.textContent = "This place";
+  const light = document.createElement("span");
+  const w = isFlat() ? null : describeLight(shown(), at);
+  light.textContent = w ? `${w.phase.charAt(0).toUpperCase()}${w.phase.slice(1)} here.` : "";
+  const actions = document.createElement("div");
+  actions.className = "place-actions";
+  actions.append(
+    cardButton("Stand here", () => void standAt(at, name.textContent ?? "here")),
+    cardButton("Close", () => (els.pick.hidden = true), true),
+  );
+  els.pick.append(name, light, actions);
+  const n = await placeName(at, TOKEN);
+  if (seq === placeSeq) name.textContent = n.charAt(0).toUpperCase() + n.slice(1);
+}
+let placeSeq = 0;
+
+/** Stand somewhere else: the face, the lines and the tracks all speak for it. */
+async function standAt(at: LngLat, name: string) {
+  standing = { at, name: name === "This place" ? await placeName(at, TOKEN) : name };
+  viewer = at;
+  clock?.setViewer(viewer);
+  syncFaceMe();
+  push();
+  showHereCard();
+}
+
+/** Everything happening on the ground where the viewer stands. */
+function showHereCard() {
+  if (!map) return;
+  const date = shown();
+  const w = describeLight(date, viewer, sunState(date), shownLayers.has("moon") ? moonState(date) : undefined);
+  const items = hoverItems({
+    map,
+    point: map.project([viewer.lng, viewer.lat]),
+    at: viewer,
+    date,
+    sun: sunState(date),
+    moon: moonState(date),
+    viewer,
+    shows: (k) => shownLayers.has(k),
+    events: [humpbacks, godwits],
+    aurora: auroraForHover(date),
+    limit: 20,
+  }).filter((it) => !["day-line", "sun-track", "lane"].includes(it.key));
+  els.pick.hidden = false;
+  els.pick.replaceChildren();
+  const close = cardButton("×", () => (els.pick.hidden = true), true);
+  close.className = "quiet close";
+  close.setAttribute("aria-label", "Close");
+  const title = document.createElement("strong");
+  title.textContent = standing ? `Here · ${standing.name}` : "Here";
+  const list = document.createElement("ul");
+  list.className = "here-list";
+  const line = (head: string, text: string) => {
+    const li = document.createElement("li");
+    const b = document.createElement("b");
+    b.textContent = head;
+    li.append(b, text);
+    list.append(li);
+  };
+  line("The light", `${w.phase.charAt(0).toUpperCase()}${w.phase.slice(1)}. ${w.sky.charAt(0).toUpperCase()}${w.sky.slice(1)}.`);
+  line("The season", `${w.season.charAt(0).toUpperCase()}${w.season.slice(1)}, and ${w.days}.`);
+  if (w.moon) line("The moon", `${w.moon.charAt(0).toUpperCase()}${w.moon.slice(1)}.`);
+  for (const it of items) if (!["day-light", "night-shade", "moon"].includes(it.key)) line(it.title, it.detail);
+  const actions = document.createElement("div");
+  actions.className = "place-actions";
+  if (standing) actions.append(cardButton("Back to me", () => els.faceMe.click()));
+  els.pick.append(close, title, list, actions);
 }
 
 /** Say what is under the pointer, beside it. */
@@ -847,7 +957,7 @@ function buildGlobe() {
   // A tap shows it for a few seconds; there is no pointer to move away.
   let tapTimer = 0;
   map.on("click", (e) => {
-    showHazardCard(e.point);
+    if (!showHazardCard(e.point)) void showPlaceCard(e.lngLat);
     showTip(e.point, e.lngLat);
     clearTimeout(tapTimer);
     tapTimer = window.setTimeout(hideTip, 5000);
@@ -907,8 +1017,10 @@ window.addEventListener("resize", () => frameGlobe());
 push();
 quietPosition().then((p) => {
   if (!p) return;
-  viewer = p;
+  home = p;
   located = true;
+  if (standing) return; // stay where they chose to stand
+  viewer = p;
   clock?.setViewer(viewer);
   map?.easeTo({ center: [viewer.lng, viewer.lat], duration: 1200 });
   push();

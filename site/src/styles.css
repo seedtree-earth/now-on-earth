@@ -818,3 +818,56 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
 #pace {
   --track: linear-gradient(90deg, color-mix(in oklab, var(--accent) 25%, var(--bg-2)), var(--accent));
 }
+
+/* Standing somewhere: the place card and the "Here" card. */
+.pick .place-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.pick button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--line) 80%, transparent);
+  background: color-mix(in oklab, var(--accent) 22%, var(--bg));
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pick button.quiet {
+  background: none;
+}
+
+.pick button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.pick .here-list {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(18rem, 40svh);
+  overflow-y: auto;
+}
+
+.pick .here-list b {
+  font-weight: 600;
+  margin-right: 0.3rem;
+}
+
+.pick .close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.45rem;
+  border: 0;
+  background: none;
+  padding: 0.2rem 0.45rem;
+  font-size: 1.05rem;
+  line-height: 1;
+}
