@@ -59,6 +59,9 @@ export const GUIDE: GuideEntry[] = [
   { key: "fires", lens: "weather", title: "Major wildfires", body: "Wildfires GDACS rated orange or red in the past two months: a warm glow while they burn, fading for a week after. Real events: for warnings, follow local authorities.", source: "Global Disaster Alert and Coordination System, GDACS, live.", swatch: "var(--noe-fire)", mark: "glow" },
 
   // ------------------------------------------------------------ Controls
+  { key: "wheel-marks", lens: "wheel", title: "The wheel of the year", body: "The eight turnings of the year, worked out from the sun: the two solstices, the two equinoxes, and the four cross-quarter days at the true midpoints between them. They sit on a loop around the sun, each at the latitude the sun stands over at that moment, with a small gold hand where the year is now. Every turning has two names, because the wheel turns opposite in each hemisphere: the northern name above, the southern below. When the north is at Beltane, the south is at Samhain. The names are those of the Celtic/European wheel tradition, one tradition among many, not a universal calendar.", source: "Computed from the sun's ecliptic longitude (NOAA solar equations).", swatch: "var(--noe-dusk)", mark: "dot" },
+  { key: "wheel-local", lens: "wheel", title: "Local seasonal knowledge", body: "A place kept beside the wheel for the seasons as the people of a place know them, shared by their custodians, in partnership and on their terms. It is empty until it is shared. Calendars are never scraped, inferred or paraphrased from published sources." },
+
   { key: "control-day", lens: "controls", title: "The day", body: "Slide twelve hours either way from now. The track shows the sky over you across those hours." },
   { key: "control-year", lens: "controls", title: "The year", body: "Slide half a year either way. The track shows how long your days are; the marks are the solstices and equinoxes (tap one to go there)." },
   { key: "control-depth", lens: "controls", title: "Day · Year · Deep time", body: "Choose how far to look. Day and Year move the light, as ever. Deep time reaches back through thousands, then millions of years, marked by named moments rather than figures (the years are in the words above). In deep time the sun and the rings stay live; the Earth's own layers follow you back, and the ones that only know the present (live events, people, notes, today's migrations and magnetic field) step aside." },
@@ -71,6 +74,7 @@ export const GUIDE: GuideEntry[] = [
 
 export const LENS_TITLES: Record<GuideEntry["lens"], string> = {
   light: "Light",
+  wheel: "Wheel",
   life: "Life",
   earth: "Earth's body",
   weather: "Weather and ice",

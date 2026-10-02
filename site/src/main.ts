@@ -11,6 +11,8 @@ import {
   type LngLat,
   type SeasonalEvent,
   describeLight,
+  WHEEL_TRADITION,
+  wheelAt,
   DEEP_MOMENTS,
   deepPosition,
   deepWords,
@@ -239,6 +241,14 @@ const lenses = createLensPanel(
       on: true,
       after: creditFor(godwits),
     },
+    { key: "wheel-marks", label: "The wheel of the year", note: "(the Celtic/European wheel, both hemispheres' names)", built: true, on: true },
+    {
+      key: "wheel-local",
+      label: "Local seasonal knowledge, from its custodians",
+      note: "· to come, in partnership",
+      built: false,
+      on: false,
+    },
     { key: "people", label: "People and nodes", note: "(sample)", built: true, on: false },
     {
       key: "partnered-knowledge",
@@ -342,7 +352,8 @@ function renderWords() {
         : "a typical aurora, not tonight's"
     : undefined;
   const flight = shownLayers.has(godwits.id) ? eventStory(godwits, date) : undefined;
-  const lifeAndEarth = [story, flight, earth, aurora].filter(Boolean).join(" · ");
+  const wheel = !isFlat() && shownLayers.has("wheel-marks") ? `${wheelAt(date, viewer.lat).words}, on ${WHEEL_TRADITION}` : undefined;
+  const lifeAndEarth = [wheel, story, flight, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -356,6 +367,7 @@ function renderWords() {
       (drift ? `${drift}. ` : "") +
       w.sentence +
       deepSaid +
+      (wheel ? ` ${wheel.charAt(0).toUpperCase()}${wheel.slice(1)}.` : "") +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
       (flight ? ` Across the Pacific, ${flight}.` : "") +
@@ -534,7 +546,7 @@ function setDeep(at: number) {
 }
 
 /** Switches that rest: the globe's own while the flat model shows; the present's own in deep time. */
-const FLAT_LOCKED = ["ancient-coasts", "moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"];
+const FLAT_LOCKED = ["ancient-coasts", "wheel-marks", "moon", "tides", "twilight", "people", "day-light", "night-shade", "hour-rings", "hour-numbers", "magnetic-field", "magnetic-poles", "sea-ice", "aurora", "earthquakes", "volcanoes", "fires"];
 function syncLocks() {
   const deepLocked = [...PRESENT_ONLY, humpbacks.id, godwits.id];
   lenses.setLocked([...new Set([...FLAT_LOCKED, ...deepLocked])], false);

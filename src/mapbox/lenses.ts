@@ -5,7 +5,7 @@
  * lens is on and its own switch is on. Every layer stays its own module.
  */
 
-export type LensId = "light" | "life" | "earth" | "weather";
+export type LensId = "light" | "wheel" | "life" | "earth" | "weather";
 
 export type Lens = {
   id: LensId;
@@ -37,6 +37,13 @@ export const LENSES: Lens[] = [
     ],
     upcoming: [],
     on: true,
+  },
+  {
+    id: "wheel",
+    label: "Wheel",
+    layers: ["wheel-marks", "wheel-local"],
+    upcoming: ["Look up: meteor showers, eclipses and meetings of the planets"],
+    on: false,
   },
   {
     id: "life",

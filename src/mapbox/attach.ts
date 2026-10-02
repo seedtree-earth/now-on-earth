@@ -11,6 +11,7 @@ import { FALLBACK_VIEWER, type GroundNote, type LngLat, type Presence, type Seas
 import { type Palette, type PaletteTokens, TOKENS, readPalette } from "./palette.js";
 import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js";
 import { migrationFlowLayer } from "./layers/flows.js";
+import { wheelLayer } from "./layers/wheel.js";
 import { ancientCoastsLayer, type AncientCoastsOptions } from "./layers/ancient-coasts.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
@@ -140,6 +141,7 @@ export const defaultLayers = (
   laneLayer(),
   sunTrackLayer(),
   dayLineLayer(),
+  wheelLayer(),
   hourNumbersLayer(),
   peopleLayer({ onPick: opts.onPick }),
   moonLayer(),

@@ -206,3 +206,19 @@ export {
 } from "./deep-time.js";
 
 export { SEA_LEVEL_REACH, LAND_BRIDGES, seaLevelAt, seaWords } from "./sea-level.js";
+
+export {
+  type Hemisphere,
+  type Season,
+  type TurningKind,
+  type TurningName,
+  type Turning,
+  type WheelPlace,
+  WHEEL_TRADITION,
+  TURNINGS,
+  hemisphereOf,
+  turningName,
+  turningsBetween,
+  wheelAt,
+  turningDeclination,
+} from "./wheel.js";

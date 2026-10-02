@@ -8,6 +8,8 @@
 import type mapboxgl from "mapbox-gl";
 import {
   type AuroraPoint,
+  TURNINGS,
+  wheelAt,
   type MigrationFlow,
   corridorDistance,
   flowWords,
@@ -37,7 +39,7 @@ import {
   tideWords,
 } from "now-on-earth/core";
 import { guideFor } from "./guide";
-import { flowsOf, hazardsFor } from "now-on-earth/mapbox";
+import { flowsOf, hazardsFor, wheelPoint } from "now-on-earth/mapbox";
 
 export type HoverItem = { key: string; title: string; detail: string };
 
@@ -118,6 +120,20 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
     const age = noteAge(n, ctx.date);
     if (!ctx.shows(key) || age < -0.5 || age > 30 || pixelsTo(ctx, n.place) >= 10) continue;
     add(key, groundNoteWords(n, ctx.date));
+  }
+
+  // The wheel: a turning under the pointer, in both hemispheres.
+  if (ctx.shows("wheel-marks")) {
+    const centre = ctx.sun.subsolar.lng;
+    const t = TURNINGS.find((tt) => {
+      const [lng, lat] = wheelPoint(centre, tt.longitude, ctx.sun.obliquity);
+      return pixelsTo(ctx, { lng, lat }) < 12;
+    });
+    if (t) {
+      const mine = wheelAt(ctx.date, ctx.viewer.lat).hemisphere;
+      const [first, second] = mine === "south" ? [["south", t.south], ["north", t.north]] as const : [["north", t.north], ["south", t.south]] as const;
+      add("wheel-marks", `${first[1].name} in the ${first[0]}: ${first[1].meaning}. ${second[1].name} in the ${second[0]}: ${second[1].meaning}. (The Celtic/European wheel.)`);
+    }
   }
 
   // Lines.
