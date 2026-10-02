@@ -4,6 +4,17 @@ A clock that tells time by light instead of digits. The globe shows where the su
 
 Now on Earth is its own site, and it is built to become a base layer of **the Landscape** on SeedTree.
 
+## Principles
+
+Every feature is held to these four. They fold in the design philosophy of The Turning, a seasonal-companion concept whose ideas live here rather than in a separate app. A change that breaks one of them doesn't ship.
+
+1. **No addictive mechanics.** No streaks, no badges, no engagement loops, no daily notifications, no counts of visits or time spent. The clock succeeds when people need it less, because they have taken the rhythm in. Nothing here is designed to bring anyone back.
+2. **Every interaction ends outside.** A reflective moment closes with an invitation to put the screen down and go and notice the living world: something specific to the season and the place. The screen is a doorway, not a destination.
+3. **Seasonal cadence, not daily noise.** Markers come gently, at the turning points: solstices, equinoxes, the cross-quarter days, the moon's phases, a meteor shower or an eclipse worth looking up for. There is no daily prompt and nothing that pings.
+4. **Place-specific, not universal.** The wheel, the seasons, the light and every prompt depend on where the person is. The year turns opposite in each hemisphere, and any named tradition is labelled as one tradition among many (the eight-fold wheel is the Celtic/European one). Local and Indigenous seasonal knowledge comes only from its custodians, in partnership, on their terms. It is never scraped.
+
+Alongside these, the lines already held: numberless in spirit (proximity in words, not dates or counts on the face); open data under open licences, logged in [DATA_SOURCES.md](DATA_SOURCES.md); polite fetching; and people only by their own choice, at coarse places, with nothing personal stored. Personal reflections are not kept in this version. A private seasonal record belongs with the individual journey (V4), and will need its own privacy design, with people owning their data.
+
 ## What is in the box
 
 ```
