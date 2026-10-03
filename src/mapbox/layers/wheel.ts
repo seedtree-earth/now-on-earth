@@ -76,7 +76,8 @@ export const wheelLayer = (): ClockLayer => {
     for (const id of ["wheel-north", "wheel-south", "wheel-caption"]) {
       // Northern names in the deep dusk of the wheel, southern in ink, so the two read apart.
       m.setPaintProperty(ctx.id(id), "text-color", id === "wheel-north" ? dusk : ink);
-      m.setPaintProperty(ctx.id(id), "text-halo-color", "rgba(251,246,234,0.9)");
+      // A halo of the page itself (pale by day, deep by night), so ink always reads.
+      m.setPaintProperty(ctx.id(id), "text-halo-color", ctx.palette.paper);
     }
   }
 
