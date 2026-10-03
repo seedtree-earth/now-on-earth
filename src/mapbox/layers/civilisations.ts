@@ -27,6 +27,15 @@ export type CivilisationsOptions = {
 
 type Loaded = { polities: PolityLife[]; features: unknown[] };
 
+/**
+ * Twelve earthy, distinct colours, one per state (by its index), clear on
+ * satellite imagery by day and by night: terracotta, saffron, sage, teal,
+ * indigo, plum, rose, olive, lapis, copper, jade, coral.
+ */
+const HUES = ["#d2643c", "#e8a92a", "#8fbf6a", "#2fa59a", "#5a67c8", "#9b5bb5", "#e06a8a", "#a8a13a", "#3f86d0", "#c8823a", "#3fbf8a", "#f08060"];
+/** Where a fading state's colour drains to. */
+const STONE = "#8a8478";
+
 export const civilisationsLayer = (options: CivilisationsOptions = {}): ClockLayer => {
   const SOURCE = "civilisations";
   const FILL = "civ-fill";
@@ -70,11 +79,13 @@ export const civilisationsLayer = (options: CivilisationsOptions = {}): ClockLay
       ["/", ["-", ["get", "died"], Y], ["max", 1, ["-", ["get", "died"], ["get", "peak"]]]],
     ];
     const rising: ExpressionSpecification = ["<=", Y, ["get", "peak"]];
-    const { day, dusk, glow } = ctx.palette;
-    m.setPaintProperty(ctx.id(FILL), "fill-color", ["case", rising, ["interpolate", ["linear"], life, 0, dusk, 1, day], ["interpolate", ["linear"], life, 0, "#8a8478", 0.6, dusk, 1, day]] as never);
-    m.setPaintProperty(ctx.id(FILL), "fill-opacity", ["interpolate", ["linear"], life, 0, 0.2, 1, 0.6] as never);
-    m.setPaintProperty(ctx.id(EDGE), "line-color", ["case", rising, glow, dusk] as never);
-    m.setPaintProperty(ctx.id(EDGE), "line-opacity", ["interpolate", ["linear"], life, 0, 0.25, 1, 0.75] as never);
+    // Each state its own colour, so neighbours read apart.
+    const hue: ExpressionSpecification = ["to-color", ["at", ["%", ["get", "i"], HUES.length], ["literal", HUES]]];
+    // Flourishing: full colour, filling in as the state grows. Declining: the colour drains to stone grey as it fades.
+    m.setPaintProperty(ctx.id(FILL), "fill-color", ["case", rising, hue, ["interpolate-lab", ["linear"], life, 0, STONE, 0.75, hue]] as never);
+    m.setPaintProperty(ctx.id(FILL), "fill-opacity", ["interpolate", ["linear"], life, 0, 0.22, 1, 0.66] as never);
+    m.setPaintProperty(ctx.id(EDGE), "line-color", ["case", rising, hue, STONE] as never);
+    m.setPaintProperty(ctx.id(EDGE), "line-opacity", ["interpolate", ["linear"], life, 0, 0.35, 1, 0.95] as never);
   }
 
   function apply(ctx: LayerContext, frame: Frame) {
