@@ -226,3 +226,27 @@ export {
 export { type FieldReading, type FieldSource, FIELD_REACH, armAngle, fieldWords } from "./field.js";
 
 export { type TurningContent, type HeartsNow, type SeasonalRecord, lightQuality, heartsNow, GO_OUTSIDE } from "./hearts.js";
+
+export {
+  ZODIAC,
+  ZODIAC_TRADITION,
+  zodiacAt,
+  ANIMALS,
+  newMoonsBetween,
+  chineseNewYear,
+  chineseYear,
+  SOLAR_TERMS,
+  solarTerm,
+  CHINESE_TRADITION,
+} from "./calendars.js";
+
+export {
+  GREAT_YEAR,
+  TILT_CYCLE,
+  ORBIT_CYCLE,
+  LONG_ORBIT_CYCLE,
+  GALACTIC_YEAR,
+  poleAt,
+  poleStar,
+  greatYearWords,
+} from "./cycles.js";

@@ -40,19 +40,24 @@ export type DeepMoment = {
   labelled?: boolean;
 };
 
+/**
+ * The scale is marked by the sky's own cycles rather than by events: the
+ * great year of the wobbling axis, the tilt's nod and the orbit's stretch
+ * that pace the ice ages, and the galactic year. Lengths are from cycles.ts.
+ */
 export const DEEP_MOMENTS: DeepMoment[] = [
-  { id: "now", name: "now", label: "Now", yearsAgo: 0, about: "The Earth as it is.", labelled: true },
-  { id: "pyramids", name: "the age of the pyramids", label: "The pyramids", yearsAgo: 4_500, about: "The Great Pyramid rises at Giza; Stonehenge's great stones go up." },
-  { id: "first-farms", name: "the first farms", label: "First farms", yearsAgo: 11_000, about: "People begin to farm, as the ice melts and the seas rise." },
-  { id: "ice-age", name: "the Last Ice Age", label: "Last Ice Age", yearsAgo: 21_000, about: "Ice sheets at their greatest; the seas far lower, joining lands now apart.", labelled: true },
-  { id: "our-species", name: "the first of our species", label: "Our species", yearsAgo: 300_000, about: "The oldest known people of our own species, in Africa.", labelled: true },
-  { id: "ice-ages", name: "the start of the ice ages", label: "Ice ages begin", yearsAgo: 2_600_000, about: "The ice ages begin, the ice coming and going ever since." },
-  { id: "asteroid", name: "the asteroid", label: "The asteroid", yearsAgo: 66_000_000, about: "An asteroid strikes, and the age of the dinosaurs ends." },
-  { id: "dinosaurs", name: "the age of the dinosaurs", label: "Dinosaurs", yearsAgo: 100_000_000, about: "Dinosaurs walk every continent; flowering plants are new.", labelled: true },
-  { id: "pangaea", name: "Pangaea", label: "Pangaea", yearsAgo: 250_000_000, about: "The continents are one, Pangaea, and the first dinosaurs are near.", labelled: true },
+  { id: "now", name: "now", label: "Now", yearsAgo: 0, about: "The sky as it is: Polaris at the pole.", labelled: true },
+  { id: "thuban", name: "Thuban's time at the pole", label: "Thuban", yearsAgo: 4_800, about: "Thuban in the Dragon is the pole star, as the pyramids rise." },
+  { id: "half-great-year", name: "half a great year", label: "Half a great year", yearsAgo: 12_886, about: "The axis has wobbled half way round the sky: no bright star marks the pole, Vega is drawing near it, and today's summer stars shine in winter." },
+  { id: "great-year", name: "one great year", label: "Great year", yearsAgo: 25_772, about: "One whole turn of the great year: the wobbling axis has carried the pole round the sky and back to Polaris.", labelled: true },
+  { id: "tilt", name: "one nod of the tilt", label: "Tilt", yearsAgo: 41_000, about: "One full nod of the Earth's tilt, steeper, shallower and back: the seasons stronger, then gentler." },
+  { id: "ice-age-rhythm", name: "one beat of the ice-age rhythm", label: "Ice-age rhythm", yearsAgo: 100_000, about: "The orbit stretches and rounds again, and the great ice sheets come and go with it.", labelled: true },
+  { id: "long-orbit", name: "the long orbit rhythm", label: "Long rhythm", yearsAgo: 405_000, about: "The long, steady rhythm of the orbit's stretch, kept for hundreds of millions of years." },
+  { id: "half-galactic", name: "half a galactic year", label: "Half a galactic year", yearsAgo: 115_000_000, about: "The sun is half way round the Milky Way from here; dinosaurs walk every continent." },
+  { id: "galactic-year", name: "one galactic year", label: "Galactic year", yearsAgo: 230_000_000, about: "One galactic year: the sun's whole journey round the Milky Way. When it last stood here, the continents were gathered as Pangaea.", labelled: true },
 ];
 
-/** The named moment the scale is at, if it is close to one (within about a third, either way). */
+/** The named moment the scale is at, if it is close to one (within about a tenth, either way). */
 export function nearestMoment(years: number): DeepMoment | null {
   if (years < 50) return DEEP_MOMENTS[0];
   let best: DeepMoment | null = null;
@@ -65,7 +70,8 @@ export function nearestMoment(years: number): DeepMoment | null {
       best = m;
     }
   }
-  return gap < 0.13 ? best : null;
+  // Cycles repeat, so a moment holds only close to its own length (within about a tenth).
+  return gap < 0.045 ? best : null;
 }
 
 const SCALES: Array<[number, string]> = [

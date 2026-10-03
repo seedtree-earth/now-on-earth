@@ -18,6 +18,12 @@ import {
   deepPosition,
   deepWords,
   deepYears,
+  greatYearWords,
+  chineseYear,
+  solarTerm,
+  zodiacAt,
+  ZODIAC_TRADITION,
+  CHINESE_TRADITION,
   seaWords,
   type GroundNote,
   groundNoteCredit,
@@ -246,6 +252,8 @@ const lenses = createLensPanel(
       after: creditFor(godwits),
     },
     { key: "wheel-marks", label: "The wheel of the year", note: "(the Celtic/European wheel, both hemispheres' names)", built: true, on: true },
+    { key: "zodiac", label: "The Western zodiac", note: "(the sun's sign: a tradition of astrology, not a forecast)", built: true, on: false },
+    { key: "chinese-calendar", label: "The Chinese calendar", note: "(the year's animal and element, and the solar term)", built: true, on: false },
     {
       key: "wheel-local",
       label: "Local seasonal knowledge, from its custodians",
@@ -405,7 +413,11 @@ function renderWords() {
   const deep = deepAt > 0 ? deepWords(deepNow()) : null;
   els.deepline.hidden = !deep;
   if (deep) {
-    els.deepline.textContent = deep.moment ? `${deep.moment.name} · ${deep.years}. ${deep.moment.about}` : `${deep.when} · ${deep.years}`;
+    els.deepline.textContent = deep.moment ? `${deep.moment.name} · ${deep.years}. ${deep.moment.about}` : `${deep.when.charAt(0).toUpperCase()}${deep.when.slice(1)} · ${deep.years}.`;
+    // The sky's great year: the turn of the axis and the pole star then.
+    // Between the named moments (which carry their own sky).
+    const sky = deep.moment ? "" : greatYearWords(deepNow());
+    if (sky) els.deepline.textContent += ` ${sky}`;
     // The sea, when the coastlines are showing.
     const sea = shownLayers.has("ancient-coasts") ? seaWords(deepNow()) : null;
     if (sea) els.deepline.textContent += ` ${sea}`;
@@ -428,7 +440,9 @@ function renderWords() {
     : undefined;
   const flight = shownLayers.has(godwits.id) ? eventStory(godwits, date) : undefined;
   const wheel = !isFlat() && shownLayers.has("wheel-marks") ? `${wheelAt(date, viewer.lat).words}, on ${WHEEL_TRADITION}` : undefined;
-  const lifeAndEarth = [wheel, story, flight, earth, aurora].filter(Boolean).join(" · ");
+  const zodiac = !isFlat() && shownLayers.has("zodiac") ? `${zodiacAt(date).words}, on ${ZODIAC_TRADITION}` : undefined;
+  const chinese = !isFlat() && shownLayers.has("chinese-calendar") ? `${chineseYear(date).words}, ${solarTerm(date).words}, on ${CHINESE_TRADITION}` : undefined;
+  const lifeAndEarth = [wheel, zodiac, chinese, story, flight, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -444,6 +458,8 @@ function renderWords() {
       deepSaid +
       (quality ? ` ${quality.charAt(0).toUpperCase()}${quality.slice(1)}.` : "") +
       (wheel ? ` ${wheel.charAt(0).toUpperCase()}${wheel.slice(1)}.` : "") +
+      (zodiac ? ` ${zodiac.charAt(0).toUpperCase()}${zodiac.slice(1)}.` : "") +
+      (chinese ? ` ${chinese.charAt(0).toUpperCase()}${chinese.slice(1)}.` : "") +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
       (flight ? ` Across the Pacific, ${flight}.` : "") +
@@ -663,7 +679,7 @@ function renderDeepMarks() {
       const at = deepPosition(m.yearsAgo);
       b.style.setProperty("--at", String(at));
       if (at === 0) b.dataset.edge = "start";
-      if (at > 0.97) b.dataset.edge = "end";
+      if (at > 0.93) b.dataset.edge = "end";
       if (m.labelled) {
         b.textContent = m.label;
         b.dataset.row = String(row++ % 2);

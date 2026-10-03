@@ -41,7 +41,7 @@ export const LENSES: Lens[] = [
   {
     id: "wheel",
     label: "Wheel",
-    layers: ["wheel-marks", "wheel-local"],
+    layers: ["wheel-marks", "zodiac", "chinese-calendar", "wheel-local"],
     upcoming: ["Look up: meteor showers, eclipses and meetings of the planets"],
     on: false,
   },

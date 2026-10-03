@@ -11,7 +11,8 @@ describe("deep time", () => {
   });
 
   it("names moments, and keeps the years to words", () => {
-    expect(nearestMoment(21_500)?.id).toBe("ice-age");
+    expect(nearestMoment(26_000)?.id).toBe("great-year");
+    expect(nearestMoment(4_700)?.id).toBe("thuban");
     expect(nearestMoment(60_000)).toBeNull();
     expect(deepWords(60_000).when).toBe("tens of thousands of years ago");
     expect(yearsWords(21_340)).toBe("about 21,000 years ago");
@@ -23,7 +24,7 @@ describe("deep time", () => {
   it("keeps its moments in order along the scale", () => {
     const at = DEEP_MOMENTS.map((m) => deepPosition(m.yearsAgo));
     expect([...at].sort((a, b) => a - b)).toEqual(at);
-    expect(DEEP_MOMENTS.filter((m) => m.labelled).map((m) => m.label)).toEqual(["Now", "Last Ice Age", "Our species", "Dinosaurs", "Pangaea"]);
+    expect(DEEP_MOMENTS.filter((m) => m.labelled).map((m) => m.label)).toEqual(["Now", "Great year", "Ice-age rhythm", "Galactic year"]);
   });
 });
 
