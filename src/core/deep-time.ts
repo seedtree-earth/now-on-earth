@@ -1,4 +1,8 @@
 /**
+ * PARKED: the clock's third scale is now History (history.ts). Deep time stays
+ * here, unused by the site, until there is good tectonic modelling data to
+ * show the moving continents.
+ *
  * Deep time: a third depth for the clock, after the day and the year. It
  * scrubs back through thousands, then millions of years on a logarithmic
  * scale, so the last Ice Age and the age of the dinosaurs both have room.

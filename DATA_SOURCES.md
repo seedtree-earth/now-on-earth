@@ -132,6 +132,16 @@ Contributed by the people who use the clock, not fetched from anywhere. Each wri
 - **Requests:** 5 in all (4 NASA, 1 JPL), one at a time, 3 seconds apart, cached (`scripts/sky/.cache/`, not committed), stop on any error.
 - **What it can't say:** whether the sky will be clear. Eclipse times are NASA's TD, about a minute from clock time. A lunar eclipse is offered only where the moon is up at its height; partial phases may be seen a little more widely.
 
+### Civilisations through history (checked 2026-10-03)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **Cliopatria** (Seshat Global History Databank): borders of more than 1,600 political entities, 3400 BCE to 2024 CE, each with its years ([repository](https://github.com/Seshat-Global-History-Databank/cliopatria); [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11822181/)) | The states rising and fading in History (Life lens) | Once, at build time (`scripts/history/cliopatria.mjs`): 1 request, about 44 MB, read without an unzip tool. Written to `site/public/data/polities.json` (17.6 MB, about 1.3 MB compressed), loaded only when History is first opened | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): credit, a link to the licence, and a note of changes | "Cliopatria, Seshat Global History Databank, CC BY 4.0 (borders simplified)", under the switch and in the Guide |
+
+- **Changes made** (as CC BY asks): non-polity records dropped; borders simplified (about 0.15°) and rounded to 0.05°; fragments under about 0.15 square degrees dropped; back-to-back records with an unchanged simplified border merged; one name's records split into separate states where they leave a gap of more than fifty years; each state given its first year, last year and the year of its widest reach.
+- **What it can't say:** it is the record of states historians have mapped, densest where written records are. Many peoples never appear as borders. Aboriginal and Torres Strait Islander nations have lived on this continent continuously for more than sixty thousand years; the layer says plainly that the map's silence is its limit, not an emptiness.
+- **Not used:** Reba, Reitsma and Seto's *Historical Urban Population, 3700 BC to AD 2000*: its distribution through NASA SEDAC is non-commercial and share-alike, outside our rule. HYDE 3.3 (CC BY 4.0) is a candidate for a later layer of where people lived.
+
 ### Images for places (rule set 2026-10-01)
 
 For the Places lens (sacred sites, to come), images from Wikimedia Commons may be **CC0, public domain, CC BY or CC BY-SA**. This is the one exception to the no-SA rule: ShareAlike binds only adaptations, so an image shown **unmodified**, with its full credit, licence and a link to its Commons page, keeps to its terms. No cropping beyond the browser's own scaling, no filters, no overlays drawn into the image. NC and ND images are still excluded, as is anything a custodian has asked not to be shown.

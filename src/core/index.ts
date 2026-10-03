@@ -265,3 +265,19 @@ export {
   soonWords,
   lookUp,
 } from "./sky-events.js";
+
+export {
+  type HistoryMoment,
+  type PolityLife,
+  type PolityStage,
+  HISTORY_REACH,
+  HISTORY_MOMENTS,
+  STAGE_WORDS,
+  historyYears,
+  historyPosition,
+  historyMoment,
+  yearOf,
+  polityStage,
+  civilisationsAt,
+  historyYearsWords,
+} from "./history.js";

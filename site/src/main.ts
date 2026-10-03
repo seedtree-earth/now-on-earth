@@ -14,11 +14,16 @@ import {
   moonQuality,
   WHEEL_TRADITION,
   wheelAt,
-  DEEP_MOMENTS,
-  deepPosition,
-  deepWords,
-  deepYears,
-  greatYearWords,
+  HISTORY_MOMENTS,
+  type PolityLife,
+  STAGE_WORDS,
+  civilisationsAt,
+  historyMoment,
+  historyPosition,
+  historyYears,
+  historyYearsWords,
+  polityStage,
+  yearOf,
   chineseYear,
   solarTerm,
   zodiacAt,
@@ -131,9 +136,11 @@ const els = {
 /** How far to look: one slider at a time. */
 type Scale = "day" | "year" | "deep";
 let scale: Scale = "day";
-/** Deep time, as a position on its scale (0..1000); 0 is now. The light stays live. */
+/** History, as a position on its scale (0..1000); 0 is now. The light stays live. (Deep time beyond is parked.) */
 let deepAt = 0;
-const deepNow = () => deepYears(deepAt / 1000);
+const deepNow = () => historyYears(deepAt / 1000);
+/** The states historians have mapped, once their borders have loaded. */
+let polities: PolityLife[] = [];
 let offsetMin = 0; // time scrub, -720 .. 720
 let dayShift = 0; // season, -182 .. 182
 let playing = false;
@@ -271,6 +278,7 @@ const lenses = createLensPanel(
       built: false,
       on: false,
     },
+    { key: "civilisations", label: "Civilisations through history", note: "(in History: states rising and fading)", built: true, on: true, after: credit("States as historians have mapped them: Cliopatria, Seshat Global History Databank, CC BY 4.0 (borders simplified). Many peoples never appear as borders: Aboriginal and Torres Strait Islander nations have lived on this continent for more than sixty thousand years. The map's silence is its limit, not an emptiness.") },
     { key: "notes-life", label: "Life noticed on the ground", note: "(flowering, cicadas, birds: shared by people where they are)", built: true, on: true },
     { key: "ancient-coasts", label: "Ancient coastlines", note: "(in deep time: the seabed that was land)", built: true, on: true, after: credit("Seabed: GEBCO_2025 Grid (GEBCO Compilation Group, 2025). Sea level: Spratt & Lisiecki (2016), Climate of the Past, via NOAA NCEI. A global sea level on today's seabed: coasts that have since risen or sunk are not adjusted.") },
     { key: "magnetic-field", label: "The magnetic field", note: "(the Earth's own, from the World Magnetic Model)", built: true, on: true },
@@ -420,19 +428,24 @@ function renderWords() {
   const place = standing ? `Standing in ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
   const drift = driftWords();
   els.where.textContent = drift ? `${place} · ${drift.toLowerCase()}` : place;
-  const deep = deepAt > 0 ? deepWords(deepNow()) : null;
+  const ago = deepNow();
+  const deep = deepAt > 0 ? { moment: historyMoment(ago), years: historyYearsWords(ago) } : null;
   els.deepline.hidden = !deep;
+  let civWords = "";
   if (deep) {
-    els.deepline.textContent = deep.moment ? `${deep.moment.name} · ${deep.years}. ${deep.moment.about}` : `${deep.when.charAt(0).toUpperCase()}${deep.when.slice(1)} · ${deep.years}.`;
-    // The sky's great year: the turn of the axis and the pole star then.
-    // Between the named moments (which carry their own sky).
-    const sky = deep.moment ? "" : greatYearWords(deepNow());
-    if (sky) els.deepline.textContent += ` ${sky}`;
+    els.deepline.textContent = deep.moment ? `${deep.moment.label} · ${deep.years}. ${deep.moment.about}` : `${deep.years.charAt(0).toUpperCase()}${deep.years.slice(1)}.`;
+    // The states then: those flourishing, and those fading.
+    if (shownLayers.has("civilisations") && polities.length) {
+      const civ = civilisationsAt(polities, yearOf(ago));
+      const parts = [civ.flourishing.length ? `Flourishing: ${civ.flourishing.join(", ")}.` : "", civ.fading.length ? `Fading: ${civ.fading.join(", ")}.` : ""].filter(Boolean);
+      civWords = parts.join(" ");
+      if (civWords) els.deepline.textContent += ` ${civWords}`;
+    }
     // The sea, when the coastlines are showing.
-    const sea = shownLayers.has("ancient-coasts") ? seaWords(deepNow()) : null;
+    const sea = shownLayers.has("ancient-coasts") ? seaWords(ago) : null;
     if (sea) els.deepline.textContent += ` ${sea}`;
   }
-  const deepSaid = deep ? ` In deep time, ${deep.moment ? deep.moment.name : deep.when}, ${deep.years}; the sun and sky as now.` : "";
+  const deepSaid = deep ? ` Looking back in history, ${deep.moment ? deep.moment.name : ""} ${deep.years}; the sun and sky as now. ${civWords}`.replace(/\s+/g, " ") : "";
   const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
   const quality = moonOn && !isFlat() ? moonQuality(moonState(date)).words : undefined;
   const moonText = [w.moon, quality, tides].filter(Boolean).join(" · ");
@@ -482,9 +495,9 @@ function renderWords() {
   flatCanvasLabel(`Flat model. ${w.sentence}`);
   els.scrub.setAttribute("aria-valuetext", `${w.phase}, ${w.sky}`);
   els.season.setAttribute("aria-valuetext", `${w.season}, ${w.days}`);
-  const dw = deepWords(deepNow());
-  els.deep.setAttribute("aria-valuetext", deepAt ? `${dw.moment ? dw.moment.name : dw.when}, ${dw.years}` : "now");
-  for (const b of els.deepMarks.querySelectorAll<HTMLElement>(".deep-mark")) b.classList.toggle("is-here", b.dataset.id === (dw.moment?.id ?? ""));
+  const hm = historyMoment(deepNow());
+  els.deep.setAttribute("aria-valuetext", deepAt ? `${hm ? `${hm.name}, ` : ""}${historyYearsWords(deepNow())}` : "now");
+  for (const b of els.deepMarks.querySelectorAll<HTMLElement>(".deep-mark")) b.classList.toggle("is-here", b.dataset.id === (hm?.id ?? ""));
 }
 
 // ---------------------------------------------------------------- tracks
@@ -628,8 +641,8 @@ els.deep.addEventListener("input", () => {
   setDeep(Number(els.deep.value));
 });
 
-/** Earth's body was opened by going deep, so it closes again on the way back. */
-let openedEarthForDeep = false;
+/** Lenses opened by going back in history close again on the way home. */
+const openedForHistory = new Set<"life" | "earth">();
 
 /** Go to a depth in deep time: the Earth's layers follow; the light stays live. */
 function setDeep(at: number) {
@@ -637,13 +650,17 @@ function setDeep(at: number) {
   deepAt = Math.max(0, Math.min(1000, Math.round(at)));
   els.deep.value = String(deepAt);
   clock?.setDeepTime(deepNow());
-  if (!was && deepAt > 0 && !lenses.lensStates().earth) {
-    lenses.openLens("earth");
-    openedEarthForDeep = true;
+  if (!was && deepAt > 0) {
+    for (const lens of ["life", "earth"] as const) {
+      if (!lenses.lensStates()[lens]) {
+        lenses.openLens(lens);
+        openedForHistory.add(lens);
+      }
+    }
   }
-  if (was && deepAt === 0 && openedEarthForDeep) {
-    lenses.closeLens("earth");
-    openedEarthForDeep = false;
+  if (was && deepAt === 0) {
+    for (const lens of openedForHistory) lenses.closeLens(lens);
+    openedForHistory.clear();
   }
   if (was !== deepAt > 0) syncLocks();
   push();
@@ -683,12 +700,12 @@ for (const b of document.querySelectorAll<HTMLButtonElement>(".depth button")) {
 function renderDeepMarks() {
   let row = 0;
   els.deepMarks.replaceChildren(
-    ...DEEP_MOMENTS.map((m) => {
+    ...HISTORY_MOMENTS.map((m) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = m.labelled ? "deep-mark" : "deep-mark is-quiet";
       b.dataset.id = m.id;
-      const at = deepPosition(m.yearsAgo);
+      const at = historyPosition(m.yearsAgo);
       b.style.setProperty("--at", String(at));
       if (at === 0) b.dataset.edge = "start";
       if (at > 0.93) b.dataset.edge = "end";
@@ -697,7 +714,7 @@ function renderDeepMarks() {
         b.dataset.row = String(row++ % 2);
       }
       b.title = m.label;
-      b.setAttribute("aria-label", m.yearsAgo ? `Go to ${m.name}, ${deepWords(m.yearsAgo).years}` : "Back to now");
+      b.setAttribute("aria-label", m.yearsAgo ? `Go to ${m.name}, ${historyYearsWords(m.yearsAgo)}` : "Back to now");
       b.addEventListener("click", () => setDeep(Math.round(at * 1000)));
       return b;
     }),
@@ -1021,6 +1038,7 @@ function showHereCard() {
     events: [humpbacks, godwits],
     aurora: auroraForHover(date),
     notes,
+    history: deepAt > 0 && polities.length ? { polities, year: yearOf(deepNow()) } : undefined,
     limit: 20,
   }).filter((it) => !["day-line", "sun-track", "lane"].includes(it.key));
   els.pick.hidden = false;
@@ -1103,6 +1121,7 @@ function showTip(point: { x: number; y: number }, lngLat: { lng: number; lat: nu
     events: [humpbacks, godwits],
     aurora: auroraForHover(date),
     notes,
+    history: deepAt > 0 && polities.length ? { polities, year: yearOf(deepNow()) } : undefined,
   });
   placeTip(point, items);
 }
@@ -1277,6 +1296,13 @@ function buildGlobe() {
     people: MOCK_PEOPLE,
     notes,
     deep: deepNow(),
+    civilisations: {
+      url: "/data/polities.json",
+      onLoad: (p) => {
+        polities = p;
+        push();
+      },
+    },
     events: [humpbacks, godwits],
     hidden: lenses.offKeys(),
     lenses: lenses.lensStates(),

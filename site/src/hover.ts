@@ -8,6 +8,9 @@
 import type mapboxgl from "mapbox-gl";
 import {
   type AuroraPoint,
+  type PolityLife,
+  STAGE_WORDS,
+  polityStage,
   moonQuality,
   TURNINGS,
   wheelAt,
@@ -55,6 +58,8 @@ export type HoverContext = {
   shows: (key: string) => boolean;
   events: SeasonalEvent[];
   aurora: { live: boolean; points: AuroraPoint[] };
+  /** In History: the states and the year shown. */
+  history?: { polities: PolityLife[]; year: number };
   /** Ground notes, shared by choice. */
   notes: GroundNote[];
   /** How many items to return; the hover pop-up keeps it short. */
@@ -135,6 +140,13 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
       const [first, second] = mine === "south" ? [["south", t.south], ["north", t.north]] as const : [["north", t.north], ["south", t.south]] as const;
       add("wheel-marks", `${first[1].name} in the ${first[0]}: ${first[1].meaning}. ${second[1].name} in the ${second[0]}: ${second[1].meaning}. (The Celtic/European wheel.)`);
     }
+  }
+
+  // A state of history under the pointer (the layer draws only in History).
+  if (ctx.shows("civilisations") && ctx.history) {
+    const hit = ctx.map.queryRenderedFeatures([ctx.point.x, ctx.point.y], { layers: ["noe-civ-fill"] })[0];
+    const life = hit ? ctx.history.polities[Number(hit.properties?.i)] : undefined;
+    if (life) add("civilisations", `${life.name}, ${STAGE_WORDS[polityStage(life, ctx.history.year)]}.`);
   }
 
   // Lines.

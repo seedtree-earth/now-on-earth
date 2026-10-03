@@ -75,7 +75,7 @@
         <div class="depth" role="radiogroup" aria-label="How far to look">
           <button type="button" role="radio" data-scale="day" aria-checked="true">Day</button>
           <button type="button" role="radio" data-scale="year" aria-checked="false">Year</button>
-          <button type="button" role="radio" data-scale="deep" aria-checked="false">Deep time</button>
+          <button type="button" role="radio" data-scale="deep" aria-checked="false">History</button>
         </div>
         <div class="sliders">
           <label class="slider" data-scale="day">
@@ -91,11 +91,11 @@
             </div>
           </div>
           <div class="slider" data-scale="deep" hidden>
-            <span class="slider-name" id="deep-name">Deep time</span>
+            <span class="slider-name" id="deep-name">History</span>
             <div class="track deep-track">
               <input id="deep" type="range" min="0" max="1000" step="1" value="0" aria-labelledby="deep-name" />
               <!-- Named moments, not figures: the years are in the words. -->
-              <div class="deep-marks" id="deep-marks" role="group" aria-label="Moments in deep time"></div>
+              <div class="deep-marks" id="deep-marks" role="group" aria-label="Turnings of human history"></div>
             </div>
           </div>
         </div>
