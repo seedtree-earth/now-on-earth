@@ -37,11 +37,13 @@
       "import": "./dist/mapbox/index.js"
     },
     "./package.json": "./package.json",
-    "./events/*": "./events/*"
+    "./events/*": "./events/*",
+    "./content/*": "./content/*"
   },
   "files": [
     "dist",
     "events",
+    "content",
     "DATA_SOURCES.md",
     "README.md",
     "LICENSE"

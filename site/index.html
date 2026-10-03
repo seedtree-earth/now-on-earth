@@ -45,6 +45,9 @@
           <p class="where" id="where" aria-hidden="true">&nbsp;</p>
         </header>
 
+        <!-- Hearts Now: the inward view of one place and one moment. Nothing here is stored. -->
+        <section id="hearts" class="hearts" aria-label="Hearts Now" aria-live="polite" hidden></section>
+
         <!-- A tapped place, a person or node, an event: its card. -->
         <aside id="pick" class="pick" aria-live="polite" hidden></aside>
 
@@ -63,6 +66,11 @@
       <div id="notice" class="notice" hidden></div>
 
       <section class="dock" aria-label="Clock controls">
+        <!-- Outward to the whole planet, or inward to your place in it. -->
+        <div class="mode" role="radiogroup" aria-label="Earth Now or Hearts Now">
+          <button type="button" role="radio" data-mode="earth" aria-checked="true">Earth Now</button>
+          <button type="button" role="radio" data-mode="hearts" aria-checked="false">Hearts Now</button>
+        </div>
         <!-- How deep to look: the day, the year, or deep time. One scale at a time. -->
         <div class="depth" role="radiogroup" aria-label="How far to look">
           <button type="button" role="radio" data-scale="day" aria-checked="true">Day</button>

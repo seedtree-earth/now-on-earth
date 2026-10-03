@@ -1343,3 +1343,186 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
 .metronome.is-resting .m-h {
   fill: color-mix(in oklab, var(--accent-strong) 70%, transparent);
 }
+
+/* --- Earth Now · Hearts Now ------------------------------------------- */
+
+.mode {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0 0 0.6rem;
+}
+
+.mode button {
+  flex: 1;
+  font: inherit;
+  font-family: var(--font-fraunces);
+  font-size: var(--fs-body-s);
+  padding: 0.32rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease-unfurl), color 0.3s var(--ease-unfurl);
+}
+
+.mode button[aria-checked="true"] {
+  background: color-mix(in oklab, var(--accent) 24%, var(--bg));
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+}
+
+.mode button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 1px;
+}
+
+/* In Hearts Now the interface quiets: only the toggle stays in the dock. */
+.hearts-mode .face,
+.hearts-mode .depth,
+.hearts-mode .sliders,
+.hearts-mode .pace,
+.hearts-mode .buttons,
+.hearts-mode .layers,
+.hearts-mode .guide,
+.hearts-mode .pick,
+.hearts-mode .hover-tip {
+  display: none !important;
+}
+
+.hearts-mode .mode {
+  margin-bottom: 0;
+}
+
+.hearts {
+  pointer-events: auto;
+  padding: 1rem 1.1rem 1.05rem;
+  border-radius: 1.2rem;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  animation: hearts-in 0.9s var(--ease-unfurl);
+}
+
+@keyframes hearts-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.hearts .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.hearts-where {
+  margin: 0;
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-weight: 420;
+  font-size: 1.3rem;
+  line-height: 1.25;
+}
+
+.hearts-about {
+  margin: 0.4rem 0 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-body-s);
+  line-height: 1.5;
+}
+
+.hearts-list {
+  margin: 0.8rem 0 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.hearts-list dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.hearts-list dd {
+  margin: 0.1rem 0 0;
+  font-size: var(--fs-body-s);
+  line-height: 1.45;
+}
+
+.hearts-question {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0 0.1rem;
+  border-top: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+  font-family: var(--font-fraunces);
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.hearts-invite {
+  margin: 0.7rem 0 0;
+  font-size: var(--fs-body-s);
+  line-height: 1.5;
+  color: var(--accent-strong);
+}
+
+.hearts-note {
+  margin: 0.8rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.hearts-back {
+  margin-top: 0.8rem;
+  font: inherit;
+  font-size: var(--fs-body-s);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--line) 80%, transparent);
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.hearts-back:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.draft-tag {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-family: var(--font-instrument);
+  font-style: normal;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--ink-soft);
+  border: 1px dashed color-mix(in oklab, var(--ink) 40%, transparent);
+}
+
+/* On a phone the card rests just above the toggle, the globe and your place open above it; it scrolls if long. */
+@media (max-width: 899.98px) {
+  .hearts:not([hidden]) {
+    position: absolute;
+    bottom: calc(var(--dock-h, 5rem) + 1.6rem);
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    max-height: 56svh;
+    overflow-y: auto;
+    z-index: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hearts {
+    animation: none;
+  }
+}

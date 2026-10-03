@@ -52,6 +52,7 @@ import { WEATHER_CREDIT, weatherAt } from "./weather";
 import { browserNoteStore } from "./ground-notes-store";
 import { showNoteForm } from "./note-form";
 import { createMetronome } from "./metronome";
+import { renderHearts } from "./hearts";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -114,6 +115,7 @@ const els = {
   yearMarks: $("year-marks"),
   eventline: $("eventline"),
   pick: $("pick"),
+  hearts: $("hearts"),
   theme: $<HTMLButtonElement>("theme"),
 };
 
@@ -287,6 +289,73 @@ const lenses = createLensPanel(
 /** What is showing, so the words work even without a globe. */
 /** A wide screen: information down the left, controls down the right. */
 const WIDE = window.matchMedia("(min-width: 900px)");
+// ---------------------------------------------------------------- Hearts Now
+
+/** Outward (the whole planet) or inward (your place in it). */
+let hearts = false;
+/** Where the camera was, to return to it. */
+let beforeHearts: { center: [number, number]; zoom: number } | null = null;
+let heartsTimer = 0;
+const stillness = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function heartsPlace(): string {
+  return standing ? `Seen from ${standing.name}` : located ? "Where you are" : "Seen from the Northern Rivers";
+}
+
+function setMode(next: boolean) {
+  if (next === hearts) return;
+  hearts = next;
+  for (const b of document.querySelectorAll<HTMLButtonElement>(".mode button")) b.setAttribute("aria-checked", String((b.dataset.mode === "hearts") === hearts));
+  document.body.classList.toggle("hearts-mode", hearts);
+  els.hearts.hidden = !hearts;
+  if (hearts) {
+    // The moment is now, wherever the sliders were.
+    playing = false;
+    offsetMin = 0;
+    dayShift = 0;
+    els.scrub.value = "0";
+    els.season.value = "0";
+    setDeep(0);
+    els.pick.hidden = true;
+    els.layersPanel.hidden = true;
+    els.guidePanel.hidden = true;
+    els.layers.setAttribute("aria-expanded", "false");
+    els.guide.setAttribute("aria-expanded", "false");
+    hideTip();
+    clock?.follow(null);
+    drawHearts();
+    frameGlobe();
+    if (map) {
+      const c = map.getCenter();
+      beforeHearts = { center: [c.lng, c.lat], zoom: map.getZoom() };
+      map.easeTo({ center: [viewer.lng, viewer.lat], zoom: Math.max(map.getZoom(), 3.2), duration: stillness() ? 0 : 2200, essential: true });
+    }
+    // The light and moon change slowly; a quiet refresh is enough.
+    heartsTimer = window.setInterval(drawHearts, 10 * 60 * 1000);
+  } else {
+    clearInterval(heartsTimer);
+    frameGlobe();
+    if (map && beforeHearts) map.easeTo({ center: beforeHearts.center, zoom: beforeHearts.zoom, duration: stillness() ? 0 : 1600, essential: true });
+    beforeHearts = null;
+  }
+  push();
+}
+
+function drawHearts() {
+  if (!hearts) return;
+  renderHearts(els.hearts, { at: viewer, place: heartsPlace(), onBack: () => setMode(false) });
+}
+
+for (const b of document.querySelectorAll<HTMLButtonElement>(".mode button")) {
+  b.addEventListener("click", () => setMode(b.dataset.mode === "hearts"));
+  b.addEventListener("keydown", (e) => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+    e.preventDefault();
+    setMode(!hearts);
+    document.querySelector<HTMLButtonElement>(`.mode button[data-mode="${hearts ? "hearts" : "earth"}"]`)?.focus();
+  });
+}
+
 /** The human field's metronome. No source is connected yet: it rests. */
 const metronome = createMetronome($("metronome"));
 metronome.connect(null);
@@ -1105,7 +1174,9 @@ function frameGlobe() {
   // A hidden dock or face measures zero; it then takes no room.
   const top = !wide && narrow && face.height ? Math.max(0, face.bottom - 24) : 0;
   const dockH = !wide && dock.height ? h - dock.top : 0;
-  const bottom = dockH ? dockH + 12 : 0;
+  // In Hearts Now on a phone, the card takes the lower space: frame the globe above it.
+  const card = hearts && !wide ? els.hearts.getBoundingClientRect() : null;
+  const bottom = card && card.height ? h - card.top + 12 : dockH ? dockH + 12 : 0;
   const left = wide && info.width ? info.right : 0;
   const right = wide && dock.width ? w - dock.left : 0;
   document.documentElement.style.setProperty("--dock-h", `${Math.round(dockH)}px`);
@@ -1116,7 +1187,8 @@ function frameGlobe() {
   const room = Math.max(160, Math.min(w - left - right, h - top - bottom));
   const zoom = Math.max(0.2, Math.log2((0.4 * room * 2 * Math.PI) / 512));
   map.setPadding(padding);
-  if (!userZoomed && Number.isFinite(zoom)) map.setZoom(zoom);
+  // In Hearts Now the camera has settled on a place; the layout leaves its zoom alone.
+  if (!userZoomed && !hearts && Number.isFinite(zoom)) map.setZoom(zoom);
   return { padding, zoom };
 }
 

@@ -1,0 +1,10 @@
+{
+  "id": "lughnasadh",
+  "kind": "turning",
+  "name": "Lughnasadh",
+  "description": "The first harvest, summer turning. The fruits of the year are coming in.",
+  "reflection": "What have you grown this year that is now ready to gather?",
+  "invitation": "Go outside and find something ripening: a seed head, a fruit, a grain.",
+  "status": "draft",
+  "reviewedBy": null
+}

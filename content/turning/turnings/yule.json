@@ -1,0 +1,10 @@
+{
+  "id": "yule",
+  "kind": "turning",
+  "name": "Yule",
+  "description": "The longest night. From here the light begins to return.",
+  "reflection": "What light do you want to carry through the dark?",
+  "invitation": "Go outside at dawn after the longest night and watch the light come back.",
+  "status": "draft",
+  "reviewedBy": null
+}
