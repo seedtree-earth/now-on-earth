@@ -42,3 +42,20 @@ describe("the wheel of the year", () => {
     expect(wheelAt(utc("2026-05-20T00:00:00Z"), 51).season).toBe("summer"); // past Beltane: summer on this wheel
   });
 });
+
+import { moonQuality, moonState } from "../src/core/index.js";
+
+describe("the moon's qualities", () => {
+  // 2026: new moon 11 October 03:50 UTC, full moon 26 October 04:12 UTC.
+  const at = (s: string) => moonQuality(moonState(new Date(s)));
+  it("keeps rest for the dark moon, intention as it grows, illumination at the full, release as it wanes", () => {
+    expect(at("2026-10-10T00:00:00Z").kind).toBe("rest");
+    expect(at("2026-10-11T04:00:00Z").kind).toBe("rest");
+    expect(at("2026-10-13T00:00:00Z").kind).toBe("intention");
+    expect(at("2026-10-13T00:00:00Z").part).toBe("the new moon");
+    expect(at("2026-10-20T00:00:00Z").part).toBe("the waxing moon");
+    expect(at("2026-10-26T04:00:00Z").kind).toBe("illumination");
+    expect(at("2026-11-02T00:00:00Z").kind).toBe("release");
+    for (const d of ["2026-10-10", "2026-10-20", "2026-10-26", "2026-11-02"]) expect(at(`${d}T00:00:00Z`).words).not.toMatch(/\d/);
+  });
+});

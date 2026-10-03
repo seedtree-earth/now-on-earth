@@ -11,6 +11,7 @@ import {
   type LngLat,
   type SeasonalEvent,
   describeLight,
+  moonQuality,
   WHEEL_TRADITION,
   wheelAt,
   DEEP_MOMENTS,
@@ -338,7 +339,8 @@ function renderWords() {
   }
   const deepSaid = deep ? ` In deep time, ${deep.moment ? deep.moment.name : deep.when}, ${deep.years}; the sun and sky as now.` : "";
   const tides = shownLayers.has("tides") && !isFlat() ? tideWords(viewer, moonState(date)) : undefined;
-  const moonText = [w.moon, tides].filter(Boolean).join(" · ");
+  const quality = moonOn && !isFlat() ? moonQuality(moonState(date)).words : undefined;
+  const moonText = [w.moon, quality, tides].filter(Boolean).join(" · ");
   els.moonline.hidden = !moonText;
   if (moonText) els.moonline.textContent = moonText;
   const story = shownLayers.has(humpbacks.id) ? eventStory(humpbacks, date) : undefined;
@@ -367,6 +369,7 @@ function renderWords() {
       (drift ? `${drift}. ` : "") +
       w.sentence +
       deepSaid +
+      (quality ? ` ${quality.charAt(0).toUpperCase()}${quality.slice(1)}.` : "") +
       (wheel ? ` ${wheel.charAt(0).toUpperCase()}${wheel.slice(1)}.` : "") +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +
       (story ? ` Along the east coast, ${story}.` : "") +
@@ -947,7 +950,7 @@ function showHereCard() {
     });
   }
   line("The season", `${w.season.charAt(0).toUpperCase()}${w.season.slice(1)}, and ${w.days}.`);
-  if (w.moon) line("The moon", `${w.moon.charAt(0).toUpperCase()}${w.moon.slice(1)}.`);
+  if (w.moon) line("The moon", `${w.moon.charAt(0).toUpperCase()}${w.moon.slice(1)}. ${moonQuality(moonState(date)).words.charAt(0).toUpperCase()}${moonQuality(moonState(date)).words.slice(1)}.`);
   for (const it of items) if (!["day-light", "night-shade", "moon", "notes-weather", "notes-life"].includes(it.key)) line(it.title, it.detail);
   // What people nearby have noticed lately.
   const near = notesNear(notes, viewer, date).filter((n) => notesOn(kindInfo(n.kind).group));

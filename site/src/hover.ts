@@ -8,6 +8,7 @@
 import type mapboxgl from "mapbox-gl";
 import {
   type AuroraPoint,
+  moonQuality,
   TURNINGS,
   wheelAt,
   type MigrationFlow,
@@ -92,7 +93,7 @@ export function hoverItems(ctx: HoverContext): HoverItem[] {
   // Points.
   if (ctx.shows("sun") && pixelsTo(ctx, sun.subsolar) < 14) add("sun", "The sun is straight overhead here.");
   if (ctx.shows("moon") && pixelsTo(ctx, ctx.moon.sublunar) < 14) {
-    add("moon", `${cap(ctx.moon.phase === "full" ? "a full moon" : `a ${ctx.moon.phase} moon`)}, straight overhead here.`);
+    add("moon", `${cap(ctx.moon.phase === "full" ? "a full moon" : `a ${ctx.moon.phase} moon`)}, straight overhead here. ${cap(moonQuality(ctx.moon).words)}.`);
   }
   if (ctx.shows("magnetic-poles")) {
     const n = poles.north[poles.north.length - 1];

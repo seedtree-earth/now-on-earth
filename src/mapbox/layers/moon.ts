@@ -5,10 +5,11 @@
  * for someone standing in the south.
  */
 
+import { moonQuality } from "../../core/index.js";
 import type { ClockLayer, Frame, LayerContext } from "../types.js";
 import { before, removeAll, setSource, setVisibility } from "./util.js";
 
-const LAYERS = ["moon-halo", "moon-disc"];
+const LAYERS = ["moon-halo", "moon-disc", "moon-quality"];
 const SOURCES = ["moon"];
 const SIZE = 64; // device pixels; drawn at pixelRatio 2
 const ICON = "moon-phase";
@@ -16,7 +17,8 @@ const ICON = "moon-phase";
 const point = (frame: Frame) => ({
   type: "Feature",
   geometry: { type: "Point", coordinates: [frame.moon.sublunar.lng, frame.moon.sublunar.lat] },
-  properties: {},
+  // The quality of this part of the moon's month, set quietly beneath it.
+  properties: { quality: moonQuality(frame.moon).kind },
 });
 
 /**
@@ -121,6 +123,25 @@ export const moonLayer = (): ClockLayer => {
         },
         b,
       );
+      ctx.map.addLayer(
+        {
+          id: ctx.id("moon-quality"),
+          type: "symbol",
+          source: ctx.id("moon"),
+          layout: {
+            "text-field": ["get", "quality"],
+            "text-font": ["DIN Pro Italic", "Arial Unicode MS Regular"],
+            "text-size": ["interpolate", ["linear"], ["zoom"], 0, 10.5, 5, 13],
+            "text-anchor": "top",
+            "text-offset": [0, 1.6],
+            "text-letter-spacing": 0.06,
+            "text-allow-overlap": true,
+            "text-ignore-placement": true,
+          },
+          paint: { "text-halo-width": 1.6, "text-opacity": 0.9 },
+        },
+        // Above the map's own labels, so a town name never hides it.
+      );
       this.applyPalette(ctx);
     },
 
@@ -132,6 +153,8 @@ export const moonLayer = (): ClockLayer => {
 
     applyPalette(ctx) {
       ctx.map.setPaintProperty(ctx.id("moon-halo"), "circle-color", ctx.palette.moon);
+      ctx.map.setPaintProperty(ctx.id("moon-quality"), "text-color", ctx.palette.moon);
+      ctx.map.setPaintProperty(ctx.id("moon-quality"), "text-halo-color", ctx.palette.dark ? ctx.palette.night : "rgba(28,35,26,0.55)");
       if (last) refreshIcon(ctx, last, true);
     },
 

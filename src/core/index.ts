@@ -58,7 +58,7 @@ export {
 
 export { type TwilightKind, type TwilightFeature, TWILIGHT_STEP, twilightBands } from "./twilight.js";
 
-export { type MoonState, type MoonPhase, moonState, phaseName, gmst } from "./moon.js";
+export { type MoonState, type MoonPhase, type MoonQuality, type MoonQualityKind, moonState, phaseName, gmst, moonQuality } from "./moon.js";
 
 export {
   type Presence,

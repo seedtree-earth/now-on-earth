@@ -116,3 +116,38 @@ export function phaseName(age: number): MoonPhase {
   ];
   return names[Math.round(norm(age * 360) / 45) % 8];
 }
+
+// ------------------------------------------------------------ qualities
+
+export type MoonQualityKind = "intention" | "illumination" | "release" | "rest";
+
+export type MoonQuality = {
+  kind: MoonQualityKind;
+  /** The part of the cycle, as the quality is kept: "the new moon", "the dark moon". */
+  part: string;
+  /** One quiet line: "the new moon, a time for intention". */
+  words: string;
+};
+
+/**
+ * The qualities many people keep through the moon's month: the new moon for
+ * intention, the full moon for illumination, the waning moon for release,
+ * the dark moon for rest. Offered as a practice, not as a claim about the
+ * moon's influence.
+ *
+ * - the dark moon: the last two days or so before the new moon, when no moon
+ *   is seen, through the moment of new moon itself;
+ * - intention: from the first thin crescent as it waxes toward the full;
+ * - illumination: around the full, a day or two either side;
+ * - release: as it wanes, from after the full to the dark moon again.
+ */
+export function moonQuality(moon: MoonState): MoonQuality {
+  const a = ((moon.age % 1) + 1) % 1;
+  if (a >= 0.93 || a < 0.02) return { kind: "rest", part: "the dark moon", words: "the dark moon, a time for rest" };
+  if (a < 0.43) {
+    const part = a < 0.2 ? "the new moon" : "the waxing moon";
+    return { kind: "intention", part, words: a < 0.2 ? "the new moon, a time for intention" : "the waxing moon, intention growing toward the full" };
+  }
+  if (a < 0.57) return { kind: "illumination", part: "the full moon", words: "the full moon, a time for illumination" };
+  return { kind: "release", part: "the waning moon", words: "the waning moon, a time for release" };
+}
