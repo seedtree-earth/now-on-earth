@@ -121,6 +121,17 @@ Contributed by the people who use the clock, not fetched from anywhere. Each wri
 - **What it can't say:** one global sea level laid on today's seabed. It does not adjust for coasts that have since risen or sunk (the land rebounding after the ice, sediment, coral growth), and the 0.1° grid can miss very narrow channels. The stack is smoothed, so in the last few thousand years it runs a few metres low (about 5 m at 2,000 years ago, where the sea was near today's): a better curve for the last 30,000 years (for example Lambeck et al. 2014) would sharpen this, if its data can be used under our licence rule.
 - **Not used:** ETOPO 2022 (NOAA, public domain) was the fallback; GEBCO's OPeNDAP made the requested source practical.
 
+### Look up: eclipses, planets and meteor showers (checked 2026-10-03)
+
+| Source | Used for | Fetched | Terms | Attribution |
+| --- | --- | --- | --- | --- |
+| **NASA Eclipse Web Site** (Fred Espenak, NASA GSFC): decade tables of solar and lunar eclipses, 2021-2030 and 2031-2040 | Eclipses to look up for: when, what kind, and where seen | Once, at build time (`scripts/sky/events.mjs`), 4 requests; written to `src/core/data/sky.ts` | "Permission is freely granted to reproduce eclipse data when accompanied by an acknowledgment" ([NASA copyright](https://eclipse.gsfc.nasa.gov/SEpubs/copyright.html)) | "Eclipse Predictions by Fred Espenak, NASA's GSFC", under the switch and in the Guide |
+| **JPL, Approximate Positions of the Planets**, Table 1 (E. M. Standish): Keplerian elements and rates, valid 1800-2050 | The planets' places, computed locally, to find two bright planets meeting in the sky | Once, at build time, 1 request; the table is in the page itself | U.S. government work, public domain | "JPL's approximate planetary positions", under the switch |
+| **The major meteor showers** (Quadrantids, Lyrids, Eta Aquariids, Southern Delta Aquariids, Perseids, Orionids, Leonids, Geminids) | When each peaks (the sun's longitude at the peak) and who can see it (the radiant's declination) | Not fetched: written in from widely recorded facts of the meteor streams, in our own words | Facts. The International Meteor Organization's calendar needs written permission to reproduce and was not used; the IAU Meteor Data Center lists the established showers | "as observers and the IAU Meteor Data Center record them" |
+
+- **Requests:** 5 in all (4 NASA, 1 JPL), one at a time, 3 seconds apart, cached (`scripts/sky/.cache/`, not committed), stop on any error.
+- **What it can't say:** whether the sky will be clear. Eclipse times are NASA's TD, about a minute from clock time. A lunar eclipse is offered only where the moon is up at its height; partial phases may be seen a little more widely.
+
 ### Images for places (rule set 2026-10-01)
 
 For the Places lens (sacred sites, to come), images from Wikimedia Commons may be **CC0, public domain, CC BY or CC BY-SA**. This is the one exception to the no-SA rule: ShareAlike binds only adaptations, so an image shown **unmodified**, with its full credit, licence and a link to its Commons page, keeps to its terms. No cropping beyond the browser's own scaling, no filters, no overlays drawn into the image. NC and ND images are still excluded, as is anything a custodian has asked not to be shown.

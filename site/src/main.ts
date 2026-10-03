@@ -22,6 +22,7 @@ import {
   chineseYear,
   solarTerm,
   zodiacAt,
+  lookUp,
   ZODIAC_TRADITION,
   CHINESE_TRADITION,
   seaWords,
@@ -252,6 +253,7 @@ const lenses = createLensPanel(
       after: creditFor(godwits),
     },
     { key: "wheel-marks", label: "The wheel of the year", note: "(the Celtic/European wheel, both hemispheres' names)", built: true, on: true },
+    { key: "look-up", label: "Look up", note: "(meteor showers, eclipses, the planets meeting: only when near, only if seen from here)", built: true, on: true, after: credit("Eclipse Predictions by Fred Espenak, NASA's GSFC. Planets: JPL's approximate planetary positions. Meteor showers: the major annual showers, as observers record them.") },
     { key: "zodiac", label: "The Western zodiac", note: "(the sun's sign: a tradition of astrology, not a forecast)", built: true, on: false },
     { key: "chinese-calendar", label: "The Chinese calendar", note: "(the year's animal and element, and the solar term)", built: true, on: false },
     {
@@ -395,6 +397,14 @@ function driftWords(): string {
   return parts.length ? `Looking ${parts.join(", ")}` : "";
 }
 
+/** The sky's invitation changes by the hour, not the frame: remember it per hour and place. */
+let lookMemo = { key: "", words: undefined as string | undefined };
+function lookUpNow(date: Date): string | undefined {
+  const key = `${Math.floor(date.getTime() / 3_600_000)}|${viewer.lat.toFixed(1)}|${viewer.lng.toFixed(1)}`;
+  if (key !== lookMemo.key) lookMemo = { key, words: lookUp(date, viewer)[0]?.words };
+  return lookMemo.words;
+}
+
 let lastSentence = "";
 let lastSpoken = 0;
 
@@ -442,7 +452,8 @@ function renderWords() {
   const wheel = !isFlat() && shownLayers.has("wheel-marks") ? `${wheelAt(date, viewer.lat).words}, on ${WHEEL_TRADITION}` : undefined;
   const zodiac = !isFlat() && shownLayers.has("zodiac") ? `${zodiacAt(date).words}, on ${ZODIAC_TRADITION}` : undefined;
   const chinese = !isFlat() && shownLayers.has("chinese-calendar") ? `${chineseYear(date).words}, ${solarTerm(date).words}, on ${CHINESE_TRADITION}` : undefined;
-  const lifeAndEarth = [wheel, zodiac, chinese, story, flight, earth, aurora].filter(Boolean).join(" · ");
+  const look = !isFlat() && deepAt === 0 && shownLayers.has("look-up") ? lookUpNow(date) : undefined;
+  const lifeAndEarth = [wheel, look, zodiac, chinese, story, flight, earth, aurora].filter(Boolean).join(" · ");
   els.eventline.hidden = !lifeAndEarth;
   if (lifeAndEarth) els.eventline.textContent = lifeAndEarth;
 
@@ -458,6 +469,7 @@ function renderWords() {
       deepSaid +
       (quality ? ` ${quality.charAt(0).toUpperCase()}${quality.slice(1)}.` : "") +
       (wheel ? ` ${wheel.charAt(0).toUpperCase()}${wheel.slice(1)}.` : "") +
+      (look ? ` ${look}` : "") +
       (zodiac ? ` ${zodiac.charAt(0).toUpperCase()}${zodiac.slice(1)}.` : "") +
       (chinese ? ` ${chinese.charAt(0).toUpperCase()}${chinese.slice(1)}.` : "") +
       (tides ? ` ${tides.charAt(0).toUpperCase()}${tides.slice(1)}.` : "") +

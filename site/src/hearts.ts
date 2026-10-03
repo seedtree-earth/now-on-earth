@@ -9,7 +9,7 @@
  * on localhost only, tagged "draft". Nothing anyone reflects on is stored.
  */
 
-import { GO_OUTSIDE, type LngLat, type TurningContent, heartsNow } from "now-on-earth/core";
+import { GO_OUTSIDE, type LngLat, type TurningContent, heartsNow, lookUp } from "now-on-earth/core";
 
 const files = import.meta.glob<TurningContent>("../../content/turning/**/*.json", { eager: true, import: "default" });
 const ALL: TurningContent[] = Object.values(files);
@@ -39,6 +39,8 @@ export function renderHearts(root: HTMLElement, opts: { at: LngLat; place: strin
   };
   row("The light", h.light);
   row("The moon", `${cap(h.moon.words)}.`);
+  const sky = lookUp(new Date(), opts.at)[0];
+  if (sky) row("Look up", sky.words);
 
   const parts: HTMLElement[] = [head, where];
   if (about) parts.push(about);

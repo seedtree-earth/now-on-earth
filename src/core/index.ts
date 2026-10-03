@@ -250,3 +250,18 @@ export {
   poleStar,
   greatYearWords,
 } from "./cycles.js";
+
+export {
+  type LookUp,
+  type Shower,
+  type Meeting,
+  type Eclipse,
+  ECLIPSES,
+  MAJOR_SHOWERS,
+  heliocentric,
+  geocentric,
+  planetMeetings,
+  sunAt,
+  soonWords,
+  lookUp,
+} from "./sky-events.js";
