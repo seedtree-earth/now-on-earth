@@ -1253,3 +1253,93 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
 .deepline::first-letter {
   text-transform: uppercase;
 }
+
+/* --- the metronome of the human field (wide screens; phones to come) --- */
+
+.metronome {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .metronome {
+    display: block;
+    position: absolute;
+    left: max(1.25rem, env(safe-area-inset-left));
+    bottom: 1.6rem;
+    width: 17rem;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /* The information rail stops above it. */
+  .info {
+    bottom: 14.5rem;
+  }
+}
+
+.metronome svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.m-earth {
+  fill: color-mix(in oklab, var(--noe-me, var(--accent)) 18%, var(--bg));
+  stroke: none;
+}
+
+.m-limb {
+  fill: none;
+  stroke: color-mix(in oklab, var(--noe-me, var(--accent)) 55%, transparent);
+  stroke-width: 1.2;
+}
+
+.m-scale {
+  fill: none;
+  stroke: color-mix(in oklab, var(--ink) 25%, transparent);
+  stroke-width: 1;
+}
+
+.m-tick {
+  stroke: color-mix(in oklab, var(--ink) 30%, transparent);
+  stroke-width: 1;
+}
+
+.m-letter,
+.m-h {
+  font-family: var(--font-fraunces);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.m-letter {
+  fill: var(--ink-soft);
+}
+
+.m-h {
+  fill: var(--accent-strong);
+  font-weight: 600;
+}
+
+.m-rod {
+  stroke: color-mix(in oklab, var(--accent-strong) 70%, transparent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.m-pivot {
+  fill: var(--accent-strong);
+}
+
+.m-label {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ink-faint, var(--ink-soft));
+  text-align: center;
+}
+
+.metronome.is-resting .m-h {
+  fill: color-mix(in oklab, var(--accent-strong) 70%, transparent);
+}

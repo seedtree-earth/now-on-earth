@@ -59,3 +59,24 @@ describe("the moon's qualities", () => {
     for (const d of ["2026-10-10", "2026-10-20", "2026-10-26", "2026-11-02"]) expect(at(`${d}T00:00:00Z`).words).not.toMatch(/\d/);
   });
 });
+
+import { FIELD_REACH, armAngle, fieldWords } from "../src/core/index.js";
+
+describe("the metronome of the human field", () => {
+  it("rests upright with no reading, and says so", () => {
+    expect(armAngle(null, 3.2)).toBe(0);
+    expect(fieldWords(null, null)).toMatch(/no source connected yet/);
+  });
+  it("reaches the ends only at full intensity", () => {
+    const full = { cadence: 30, intensity: 1, at: new Date() };
+    const half = { ...full, intensity: 0.5 };
+    let max = 0;
+    let maxHalf = 0;
+    for (let t = 0; t < 4; t += 0.01) {
+      max = Math.max(max, Math.abs(armAngle(full, t)));
+      maxHalf = Math.max(maxHalf, Math.abs(armAngle(half, t)));
+    }
+    expect(max).toBeCloseTo(FIELD_REACH, 0);
+    expect(maxHalf).toBeCloseTo(FIELD_REACH / 2, 0);
+  });
+});

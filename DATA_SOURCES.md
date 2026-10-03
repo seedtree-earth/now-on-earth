@@ -129,6 +129,9 @@ For the Places lens (sacred sites, to come), images from Wikimedia Commons may b
 
 | Source | Intended use | What to confirm before use |
 | --- | --- | --- |
+| **GCP 2.0** (Global Consciousness Project 2.0, led by the HeartMath Institute): a network of random number generators | The metronome's cadence and intensity | Live data is on their own dashboard, behind registration; its terms make use of the site personal and non-transferable. Needs an agreement with HeartMath before any reuse. The claim that the generators respond to people is contested, and would be shown as an experiment |
+| **In Truth** (Love Out Loud PBC): emotional state from consumer wearables (heart rate, HRV) and journaling; its Biometric Peace Index (announced 2026-10-01) | The metronome, collectively | No API, download or licence published; they are seeking partners. Personal wearable data would come only opt-in, aggregated, coarse and unstored |
+| **HeartMath Global Coherence** (GCMS magnetometers; coherence data) | The metronome | No public feed or reuse terms found |
 | **eBird Status and Trends** (Cornell Lab) | Weekly modelled abundance for many species | Non-commercial only; would need Cornell's permission or a change to our licence rule |
 
 

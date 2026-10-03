@@ -51,6 +51,7 @@ import { placeName } from "./place-name";
 import { WEATHER_CREDIT, weatherAt } from "./weather";
 import { browserNoteStore } from "./ground-notes-store";
 import { showNoteForm } from "./note-form";
+import { createMetronome } from "./metronome";
 import { MOCK_PEOPLE } from "./mock-people";
 
 /** Static, built at build time by scripts/ecology/humpbacks.mjs. Never fetched live. */
@@ -286,6 +287,9 @@ const lenses = createLensPanel(
 /** What is showing, so the words work even without a globe. */
 /** A wide screen: information down the left, controls down the right. */
 const WIDE = window.matchMedia("(min-width: 900px)");
+/** The human field's metronome. No source is connected yet: it rests. */
+const metronome = createMetronome($("metronome"));
+metronome.connect(null);
 const presentOnly = (key: string) => PRESENT_ONLY.includes(key) || key === humpbacks.id || key === godwits.id;
 const shownLayers = { has: (key: string) => lenses.isShown(key) && !(deepAt > 0 && presentOnly(key)) };
 /** The weather draws nothing on the globe, so it speaks in the cards whenever its own switch is on. */
@@ -1188,7 +1192,7 @@ function buildGlobe() {
     },
   });
   // Dev only: a handle for poking at the globe from the console.
-  if (import.meta.env.DEV) Object.assign(window, { __noe: { map, clock } });
+  if (import.meta.env.DEV) Object.assign(window, { __noe: { map, clock, metronome } });
   clock.subscribe(() => {
     const following = clock?.following() === "sun";
     if (els.faceSun.getAttribute("aria-pressed") !== String(following)) {
