@@ -10,7 +10,7 @@
  * so. `connect(source)` starts it; nothing here makes up a signal.
  */
 
-import { type FieldReading, type FieldSource, FIELD_REACH, armAngle, fieldWords } from "now-on-earth/core";
+import { type FieldReading, type FieldSource, FIELD_REACH, RESTING_SWING, armAngle, fieldWords } from "now-on-earth/core";
 
 const NS = "http://www.w3.org/2000/svg";
 const W = 240;
@@ -97,26 +97,27 @@ export function createMetronome(root: HTMLElement): Metronome {
     root.classList.toggle("is-resting", !onScale);
   };
   const say = () => {
-    const words = fieldWords(reading, source);
+    // With no source, the arm keeps a resting swing; the words say plainly that it is not data.
+    const words = reading ? fieldWords(reading, source) : `${fieldWords(null, source)} · a resting swing, not data`;
     label.textContent = words;
     root.setAttribute("aria-label", `A metronome of the human field, the H swinging between HEART and EARTH. ${words}.`);
   };
   const loop = (now: number) => {
     raf = requestAnimationFrame(loop);
-    setAngle(armAngle(reading, now / 1000));
+    setAngle(armAngle(reading ?? { ...RESTING_SWING, at: new Date() }, now / 1000));
   };
   const run = () => {
     cancelAnimationFrame(raf);
-    // No reading, or a wish for stillness: the arm rests (upright, or held at the swing's reach).
-    seat(!!reading);
-    if (!reading) return setAngle(0);
-    if (reduced) return setAngle(FIELD_REACH * Math.min(1, reading.intensity) * 0.5);
+    // The H rides the scale; with no source the arm keeps its resting swing.
+    seat(true);
+    // A wish for stillness: hold the arm at the HEART end (or, with a reading, half its reach).
+    if (reduced) return setAngle(reading ? FIELD_REACH * Math.min(1, reading.intensity) * 0.5 : -FIELD_REACH);
     raf = requestAnimationFrame(loop);
   };
 
   setAngle(0);
-  seat(false);
   say();
+  run();
 
   return {
     connect(next) {

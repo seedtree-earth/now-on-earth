@@ -11,8 +11,9 @@
  * end and complete a word).
  *
  * No source is connected yet. Until one is, the field is `null` and the arm
- * rests upright. Nothing here invents a signal: random motion presented as
- * the human field would mislead. A source plugs in through `FieldSource`
+ * keeps RESTING_SWING, a slow steady rhythm, labelled "no source connected yet
+ * · a resting swing, not data". Nothing here invents a signal: motion
+ * presented as the human field would mislead, so the words never claim it. A source plugs in through `FieldSource`
  * once its data may be used (an agreement with its keepers; for personal
  * wearables, opt-in, coarse and unstored, by the principles in the README).
  */
@@ -36,6 +37,13 @@ export interface FieldSource {
   /** Called with each reading, and null when the source goes quiet. Returns a way to stop. */
   subscribe(fn: (reading: FieldReading | null) => void): () => void;
 }
+
+/**
+ * The swing while no source is connected: slow and steady, reaching both
+ * ends. A resting rhythm for the instrument, not a reading of anything; the
+ * label says so.
+ */
+export const RESTING_SWING: Omit<FieldReading, "at"> = { cadence: 10, intensity: 1 };
 
 /** The widest swing either side of upright, degrees: the arm's reach to complete the word. */
 export const FIELD_REACH = 60;
