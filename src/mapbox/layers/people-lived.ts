@@ -31,6 +31,13 @@ export function stepsAround(years: number[], year: number): { a: number; b: numb
   return { a, b, t: (year - years[a]) / (years[b] - years[a]) };
 }
 
+/**
+ * The least glow any inhabited place gets. HYDE puts many long-lived peoples
+ * (Aboriginal Australia, much of the Americas, the far north) in its lowest
+ * density band; without a floor they would read as empty land.
+ */
+export const PRESENCE_FLOOR = 0.2;
+
 const alpha = (hex: string, a: number) => {
   const m = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   return m ? `rgba(${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}, ${a})` : hex;
@@ -57,7 +64,7 @@ export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer =
 
   function paint(ctx: LayerContext) {
     const { glow, dusk, day } = ctx.palette;
-    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-color", ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(0,0,0,0)", 0.1, alpha(dusk, 0.18), 0.4, alpha(dusk, 0.55), 0.75, alpha(day, 0.8), 1, glow] as never);
+    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-color", ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(0,0,0,0)", 0.08, alpha(dusk, 0.28), 0.4, alpha(dusk, 0.55), 0.75, alpha(day, 0.8), 1, glow] as never);
   }
 
   function weigh(ctx: LayerContext, frame: Frame) {
@@ -70,7 +77,8 @@ export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer =
     // Blend the two steps, each banded 0..9 on a log scale of density.
     // Raised to the power 1.5: thinly peopled land stays faint, and the well-peopled regions glow as well as the crowded ones.
     const band: ExpressionSpecification = ["/", ["+", ["*", 1 - t, digit(a)], ["*", t, digit(b)]], 9];
-    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-weight", ["^", band, 1.5] as never);
+    // Anywhere people lived keeps a quiet floor of light: thinly peopled is never shown as empty.
+    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-weight", ["case", [">", band, 0], ["max", PRESENCE_FLOOR, ["^", band, 1.5]], 0] as never);
   }
 
   function apply(ctx: LayerContext, frame: Frame) {
