@@ -48,7 +48,7 @@ export const LENSES: Lens[] = [
   {
     id: "life",
     label: "Life",
-    layers: ["civilisations", "notes-life", "people", "partnered-knowledge"],
+    layers: ["people-lived", "civilisations", "notes-life", "people", "partnered-knowledge"],
     upcoming: ["Migrations", "What people are seeing this season, via iNaturalist"],
     on: false,
   },

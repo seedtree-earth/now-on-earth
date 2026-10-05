@@ -278,6 +278,7 @@ const lenses = createLensPanel(
       built: false,
       on: false,
     },
+    { key: "people-lived", label: "Where people lived", note: "(in History: everyone, borders or none)", built: true, on: true, after: credit("HYDE 3.2.1, Klein Goldewijk et al., population density (CC0, DANS), coarsened to 1° and banded. A model built from archaeological, historical and census estimates: a broad picture, not a census.") },
     { key: "civilisations", label: "Civilisations through history", note: "(in History: states rising and fading)", built: true, on: true, after: credit("States as historians have mapped them: Cliopatria, Seshat Global History Databank, CC BY 4.0 (borders simplified). Many peoples never appear as borders: Aboriginal and Torres Strait Islander nations have lived on this continent for more than sixty thousand years. The map's silence is its limit, not an emptiness.") },
     { key: "notes-life", label: "Life noticed on the ground", note: "(flowering, cicadas, birds: shared by people where they are)", built: true, on: true },
     { key: "ancient-coasts", label: "Ancient coastlines", note: "(in deep time: the seabed that was land)", built: true, on: true, after: credit("Seabed: GEBCO_2025 Grid (GEBCO Compilation Group, 2025). Sea level: Spratt & Lisiecki (2016), Climate of the Past, via NOAA NCEI. A global sea level on today's seabed: coasts that have since risen or sunk are not adjusted.") },
@@ -1296,6 +1297,7 @@ function buildGlobe() {
     people: MOCK_PEOPLE,
     notes,
     deep: deepNow(),
+    peopleLived: { url: "/data/people.json" },
     civilisations: {
       url: "/data/polities.json",
       onLoad: (p) => {

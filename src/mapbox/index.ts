@@ -33,3 +33,4 @@ export type { ClockLayer, Frame, LayerContext } from "./types.js";
 export { ancientCoastsLayer, type AncientCoastsOptions } from "./layers/ancient-coasts.js";
 export { wheelLayer, wheelFeatures, wheelPoint } from "./layers/wheel.js";
 export { civilisationsLayer, type CivilisationsOptions } from "./layers/civilisations.js";
+export { peopleLivedLayer, stepsAround, type PeopleLivedOptions } from "./layers/people-lived.js";

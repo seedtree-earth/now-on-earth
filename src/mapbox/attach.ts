@@ -13,6 +13,7 @@ import { partneredKnowledgeLayer, seasonalEventLayer } from "./layers/events.js"
 import { migrationFlowLayer } from "./layers/flows.js";
 import { wheelLayer } from "./layers/wheel.js";
 import { civilisationsLayer, type CivilisationsOptions } from "./layers/civilisations.js";
+import { peopleLivedLayer, type PeopleLivedOptions } from "./layers/people-lived.js";
 import { ancientCoastsLayer, type AncientCoastsOptions } from "./layers/ancient-coasts.js";
 import { magneticFieldLayer, magneticPolesLayer } from "./layers/magnetic.js";
 import { type AuroraOptions, auroraLayer } from "./layers/aurora.js";
@@ -53,6 +54,8 @@ export type NowOnEarthOptions = {
   coasts?: AncientCoastsOptions;
   /** Civilisations through history: where the borders are served, and a callback when they load. */
   civilisations?: CivilisationsOptions;
+  /** Where people lived (HYDE): where the coarsened grid is served. */
+  peopleLived?: PeopleLivedOptions;
   /** The aurora: where its cached forecast is served, and a status callback. */
   aurora?: AuroraOptions;
   /** A person or node dot was hovered or tapped (null on leave). */
@@ -127,9 +130,10 @@ export type NowOnEarth = {
 };
 
 export const defaultLayers = (
-  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions; hazards?: HazardsOptions; coasts?: AncientCoastsOptions; civilisations?: CivilisationsOptions } = {},
+  opts: { onPick?: (pick: PresencePick | null) => void; events?: SeasonalEvent[]; aurora?: AuroraOptions; hazards?: HazardsOptions; coasts?: AncientCoastsOptions; civilisations?: CivilisationsOptions; peopleLived?: PeopleLivedOptions } = {},
 ): ClockLayer[] => [
   ancientCoastsLayer(opts.coasts),
+  peopleLivedLayer(opts.peopleLived),
   civilisationsLayer(opts.civilisations),
   seaIceLayer(),
   tidesLayer(),
@@ -187,7 +191,7 @@ export function attachNowOnEarth(map: MapboxMap, options: NowOnEarthOptions = {}
   const prefix = options.prefix ?? "noe-";
   const themeEl = options.themeElement ?? document.documentElement;
   const tokens = { ...TOKENS, ...options.tokens };
-  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events, aurora: options.aurora, hazards: options.hazards, coasts: options.coasts, civilisations: options.civilisations });
+  const mods = options.layers ?? defaultLayers({ onPick: options.onPick, events: options.events, aurora: options.aurora, hazards: options.hazards, coasts: options.coasts, civilisations: options.civilisations, peopleLived: options.peopleLived });
   const hidden = options.hidden ?? DEFAULT_HIDDEN;
   const chosen = new Map(mods.map((m) => [m.key, !hidden.includes(m.key)]));
   const eventLens = Object.fromEntries((options.events ?? []).map((e) => [e.id, (e.lens ?? "life") as LensId]));

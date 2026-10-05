@@ -29,3 +29,11 @@ describe("History", () => {
     expect(civilisationsAt(data.polities, 226).flourishing).not.toContain("Later Zhou");
   });
 });
+
+describe("History words", () => {
+  it("folds a bracketed name into the plain one, once", () => {
+    const life = (name: string): PolityLife => ({ name, born: -700, died: -300, peak: -500, area: 1000, wiki: null });
+    const at = civilisationsAt([life("(Macedonian Empire)"), life("Macedonian Empire")], -500);
+    expect(at.flourishing).toEqual(["Macedonian Empire"]);
+  });
+});

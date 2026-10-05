@@ -88,7 +88,7 @@ export const STAGE_WORDS: Record<PolityStage, string> = {
 export function civilisationsAt(polities: PolityLife[], year: number, count = 3): { flourishing: string[]; fading: string[] } {
   const alive = polities.filter((p) => p.born <= year && p.died >= year).sort((a, b) => b.area - a.area);
   // Some records name a state in brackets (a looser or contested form of it); the words use the plain name, once.
-  const plain = (n: string) => n.replace(/^((.*))$/, "$1").trim();
+  const plain = (n: string) => n.replace(/^\((.*)\)$/, "$1").trim();
   const names = (list: PolityLife[]) => [...new Set(list.map((p) => plain(p.name)))].slice(0, count);
   const flourishing = names(alive.filter((p) => polityStage(p, year) !== "fading"));
   const fading = names(alive.filter((p) => polityStage(p, year) === "fading" && p.died - year < (p.died - p.peak) * 0.6)).filter((n) => !flourishing.includes(n));
