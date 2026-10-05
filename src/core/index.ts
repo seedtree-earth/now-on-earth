@@ -280,4 +280,8 @@ export {
   polityStage,
   civilisationsAt,
   historyYearsWords,
+  type ArrivalRegion,
+  ARRIVALS,
+  arrivalRegion,
+  presenceWords,
 } from "./history.js";

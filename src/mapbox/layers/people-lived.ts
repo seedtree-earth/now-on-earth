@@ -11,7 +11,7 @@
  */
 
 import type { ExpressionSpecification, GeoJSONSource } from "mapbox-gl";
-import { yearOf } from "../../core/index.js";
+import { arrivalRegion, yearOf } from "../../core/index.js";
 import type { ClockLayer, Frame, LayerContext } from "../types.js";
 import { before, removeAll, setSource, setVisibility } from "./util.js";
 
@@ -45,7 +45,8 @@ const alpha = (hex: string, a: number) => {
 
 const features = (b: Body) => ({
   type: "FeatureCollection",
-  features: b.cells.map((c, i) => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties: { v: b.values[i] } })),
+  // Each cell also carries when people first lived in its region, for the time before HYDE begins.
+  features: b.cells.map((c, i) => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties: { v: b.values[i], arr: arrivalRegion(c[0], c[1]).yearsAgo } })),
 });
 
 export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer => {
@@ -69,7 +70,18 @@ export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer =
 
   function weigh(ctx: LayerContext, frame: Frame) {
     if (!body) return;
-    const { a, b, t } = stepsAround(body.years, yearOf(frame.deep));
+    const year = yearOf(frame.deep);
+    // Before HYDE's first step: a quiet presence wherever people had arrived (HYDE's earliest footprint).
+    if (year < body.years[0]) {
+      const ago = Math.round(frame.deep / 500) * 500;
+      const key = `before|${ago}`;
+      if (key === lastKey) return;
+      lastKey = key;
+      const first: ExpressionSpecification = ["to-number", ["slice", ["get", "v"], 0, 1]];
+      ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-weight", ["case", ["all", [">", first, 0], [">=", ["get", "arr"], ago]], PRESENCE_FLOOR, 0] as never);
+      return;
+    }
+    const { a, b, t } = stepsAround(body.years, year);
     const key = `${a}|${b}|${t.toFixed(3)}`;
     if (key === lastKey) return;
     lastKey = key;

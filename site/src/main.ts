@@ -22,6 +22,7 @@ import {
   historyPosition,
   historyYears,
   historyYearsWords,
+  presenceWords,
   polityStage,
   yearOf,
   chineseYear,
@@ -442,6 +443,8 @@ function renderWords() {
       civWords = parts.join(" ");
       if (civWords) els.deepline.textContent += ` ${civWords}`;
     }
+    // Before the first farms, the words say who lived where.
+    if (shownLayers.has("people-lived") && ago > 12_000) els.deepline.textContent += ` ${presenceWords(ago)}`;
     // The sea, when the coastlines are showing.
     const sea = shownLayers.has("ancient-coasts") ? seaWords(ago) : null;
     if (sea) els.deepline.textContent += ` ${sea}`;
