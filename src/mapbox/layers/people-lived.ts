@@ -68,9 +68,9 @@ export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer =
     lastKey = key;
     const digit = (i: number): ExpressionSpecification => ["to-number", ["slice", ["get", "v"], i, i + 1]];
     // Blend the two steps, each banded 0..9 on a log scale of density.
-    // Squared, so the thinly peopled land stays faint and the crowded places glow.
+    // Raised to the power 1.5: thinly peopled land stays faint, and the well-peopled regions glow as well as the crowded ones.
     const band: ExpressionSpecification = ["/", ["+", ["*", 1 - t, digit(a)], ["*", t, digit(b)]], 9];
-    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-weight", ["*", band, band] as never);
+    ctx.map.setPaintProperty(ctx.id(HEAT), "heatmap-weight", ["^", band, 1.5] as never);
   }
 
   function apply(ctx: LayerContext, frame: Frame) {
@@ -100,7 +100,7 @@ export const peopleLivedLayer = (options: PeopleLivedOptions = {}): ClockLayer =
           source: ctx.id(SOURCE),
           paint: {
             "heatmap-weight": 0,
-            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.55, 4, 1],
+            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.8, 4, 1.3],
             // Wide enough that neighbouring cells melt into one soft glow, not a grid of dots.
             "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 6, 2, 14, 4, 34],
             "heatmap-opacity": 0.8,
